@@ -23,6 +23,19 @@ export const userTable = pgTable('users', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
+export const adminTable = pgTable('admin', {
+  id: uuid().defaultRandom().primaryKey().notNull(),
+  userId: uuid('userId')
+    .references(() => userTable.id, {
+      onDelete: 'cascade',
+    })
+    .unique()
+    .notNull(),
+  fullName: varchar('fullName', { length: 255 }).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
 export const businessOwnerTable = pgTable('businessOwners', {
   id: uuid('id').defaultRandom().primaryKey().notNull(),
   userId: uuid('userId').references(() => userTable.id, {
@@ -99,6 +112,7 @@ export const driverTable = pgTable('drivers', {
   //   .notNull(),
 });
 
+export type adminInsertType = typeof adminTable.$inferInsert;
 export type businessOwnerInsertType = typeof businessOwnerTable.$inferInsert;
 export type businessOwnerSelectType = typeof businessOwnerTable.$inferSelect;
 export type userInsertType = typeof userTable.$inferInsert;
