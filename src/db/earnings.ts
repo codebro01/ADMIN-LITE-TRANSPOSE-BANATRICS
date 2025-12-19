@@ -11,7 +11,6 @@ import {
 } from 'drizzle-orm/pg-core';
 
 export const approvalStatusType = pgEnum('approval_status_type', ['REJECTED', 'APPROVED', 'UNAPPROVED'])
-export const earningPaymentStatusType = pgEnum('earning_payment_status_type', ['PAID', 'UNPAID'])
 
 export const earningsTable = pgTable('earnings', {
   id: uuid('id').primaryKey().defaultRandom().notNull(), 

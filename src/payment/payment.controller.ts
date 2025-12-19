@@ -292,7 +292,7 @@ export class PaymentController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('businessOwner')
+  @Roles('admin')
   @Get('list-all-transactions')
   @ApiOperation({
     summary: 'List all transactions from Paystack',

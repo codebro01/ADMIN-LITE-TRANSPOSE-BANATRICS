@@ -3,12 +3,12 @@ import {
   Inject,
   BadRequestException,
   InternalServerErrorException,
+  ConflictException,
 } from '@nestjs/common';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { jwtConstants } from '@src/auth/jwtContants';
-
 
 import { UpdatePasswordDto } from '@src/users/dto/updatePasswordDto';
 import { UserRepository } from '@src/users/repository/user.repository';
@@ -34,12 +34,20 @@ export class UserService {
 
   // ! create user here
 
-
-
   async createAdminUser(data: CreateAdminUserDto) {
     const { email, phone, password, fullName } = data;
 
+    const isEmailExisting = await this.userRepository.findByEmailOrPhone({
+      email: data.email,
+    });
+    const isPhoneExisting = await this.userRepository.findByEmailOrPhone({
+      phone: data.phone,
+    });
 
+    if (isPhoneExisting && isPhoneExisting.phone === data.phone)
+      throw new ConflictException('Phone number already exist');
+    if (isEmailExisting && isEmailExisting.email === data.email)
+      throw new ConflictException('Email already exist');
 
     // ! ----------------------create admin user--------------------
 
@@ -65,14 +73,13 @@ export class UserService {
       }
 
       // Second insert - business owner profile
-      const addAdminProfile =
-        await this.userRepository.createAdmin(
-          {
-            fullName: fullName,
-            userId: savedUser.id,
-          },
-          trx,
-        );
+      const addAdminProfile = await this.userRepository.createAdmin(
+        {
+          fullName: fullName,
+          userId: savedUser.id,
+        },
+        trx,
+      );
 
       if (!addAdminProfile) {
         throw new InternalServerErrorException(
@@ -112,11 +119,11 @@ export class UserService {
   }
 
   async updateAdmin(data: Pick<adminInsertType, 'fullName'>, userId: string) {
-       const admin = await this.userRepository.updateAdmin(data, userId);
-       return admin;
+    const admin = await this.userRepository.updateAdmin(data, userId);
+    return admin;
   }
 
-  async getAdminProfile(userId: string){
+  async getAdminProfile(userId: string) {
     const admin = await this.userRepository.getAdminProfile(userId);
     return admin;
   }
@@ -152,7 +159,4 @@ export class UserService {
       message: 'Password changed succesfully',
     };
   }
-
-
-
 }
