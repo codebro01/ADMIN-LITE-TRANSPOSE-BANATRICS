@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException, Inject } from '@nestjs/common';
 import {
   bankDetailsTable,
+  campaignDesignsTable,
   campaignTable,
   driverCampaignTable,
   paymentTable,
@@ -17,7 +18,9 @@ import {
   driverTable,
   businessOwnerTable,
 } from '@src/db/users';
-import { eq, or, count, and, sql } from 'drizzle-orm';
+import { ApproveCampaignDto } from '@src/users/dto/approve-campaign.dto';
+import { UploadCampaignDesignDto } from '@src/users/dto/upload-campaign-design.dto';
+import { eq, or, count, and, sql, ne } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { bankDetails } from 'drizzle/schema';
 
@@ -289,20 +292,64 @@ export class UserRepository {
       .from(weeklyProofTable)
       .where(eq(weeklyProofTable.userId, userId));
 
-      return weeklyProofs;
+    return weeklyProofs;
   }
 
-  async  getFullCampaignInformation(campaignId: string) {
-      const [campaign] = await this.DbProvider.select({
-        campaignName: campaignTable.campaignName, 
-        duration: campaignTable.duration, 
-        status: campaignTable.statusType, 
-        paymentStatus: campaignTable.paymentStatus, 
-        totalBudget: campaignTable.price, 
+  async getFullCampaignInformation(campaignId: string) {
+    const [campaign] = await this.DbProvider.select({
+      campaignName: campaignTable.campaignName,
+      duration: campaignTable.duration,
+      status: campaignTable.statusType,
+      paymentStatus: campaignTable.paymentStatus,
+      totalBudget: campaignTable.price,
+      paymentDate: campaignTable.createdAt,
+    })
+      .from(campaignTable)
+      .where(and(eq(campaignTable.id, campaignId)));
 
-      }).from(campaignTable).where(and(eq(campaignTable.id, campaignId)))
+    return campaign;
+  }
 
+  async listAllAssignedDriversForCampaign(userId: string) {
+    const drivers = await this.DbProvider.select()
+      .from(driverCampaignTable)
+      .where(
+        and(
+          eq(driverCampaignTable.userId, userId),
+          ne(driverCampaignTable.campaignStatus, 'rejected'),
+        ),
+      );
 
-      return campaign
+    return drivers;
+  }
+
+  async createCampaignDesigns(data: UploadCampaignDesignDto) {
+    const campaign = await this.DbProvider.insert(campaignDesignsTable).values({
+      campaignId: data.campaignId,
+      designs: data.designs,
+      comment: data.comment,
+    });
+
+    return campaign;
+  }
+  async updateCampaignDesigns(data: UploadCampaignDesignDto) {
+    const campaign = await this.DbProvider.update(campaignDesignsTable).set({
+      campaignId: data.campaignId,
+      designs: data.designs,
+      comment: data.comment,
+    });
+
+    return campaign;
+  }
+
+  async approveCampaign(data: ApproveCampaignDto) {
+    const campaign = await this.DbProvider.update(campaignTable)
+      .set({
+        statusType: data.approveCampaignType,
+        printHousePhoneNo: data.printHousePhoneNo,
+      })
+      .where(eq(campaignTable.id, data.campaignId));
+
+    return campaign;
   }
 }

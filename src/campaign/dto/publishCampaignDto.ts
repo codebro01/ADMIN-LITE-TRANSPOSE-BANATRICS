@@ -31,8 +31,9 @@ export enum PackageType {
 export enum StatusType {
   PENDING = 'pending',
   DRAFT = 'draft',
-  ACTIVE = 'active',
+  APPROVED = 'approved',
   COMPLETED = 'completed',
+  REJECTED = 'rejected'
 }
 
 export class PublishCampaignDto {

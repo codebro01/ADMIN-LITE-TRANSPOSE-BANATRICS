@@ -40,7 +40,7 @@ export class HomeDashboardsRepository {
         total: count(),
       })
         .from(campaignTable)
-        .where(eq(campaignTable.statusType, 'active')),
+        .where(eq(campaignTable.active, true)),
       this.DbProvider.select({
         total: count(),
       })

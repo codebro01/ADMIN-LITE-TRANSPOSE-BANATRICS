@@ -10,7 +10,7 @@ import {
 } from '@src/campaign/dto/create-driver-campaign.dto';
 import { updatePricePerDriverPerCampaign } from '@src/campaign/dto/update-price-per-driver-per-campaign.dto';
 
-export type CampaignStatus = 'draft' | 'pending' | 'active' | 'completed';
+export type CampaignStatus = 'draft' | 'pending' | 'approved' | 'rejected' | 'completed';
 export type packageType = 'starter' | 'basic' | 'premium' | 'custom';
 
 export type uploadType = {
@@ -183,7 +183,7 @@ export class CampaignRepository {
       .where(
         and(
           eq(campaignTable.userId, userId),
-          eq(campaignTable.statusType, 'active'),
+          eq(campaignTable.statusType, 'approved'),
         ),
       );
 
@@ -212,7 +212,7 @@ export class CampaignRepository {
       .where(
         and(
           eq(campaignTable.userId, userId),
-          eq(campaignTable.statusType, 'active'),
+          eq(campaignTable.statusType, 'approved'),
         ),
       );
 
@@ -294,7 +294,7 @@ export class CampaignRepository {
       .from(campaignTable)
       .where(
         and(
-          eq(campaignTable.statusType, 'active'),
+          eq(campaignTable.statusType, 'approved'),
           eq(campaignTable.paymentStatus, 'spent'),
         ),
       );
@@ -306,7 +306,7 @@ export class CampaignRepository {
       .from(campaignTable)
       .where(
         and(
-          eq(campaignTable.statusType, 'active'),
+          eq(campaignTable.statusType, 'approved'),
           eq(campaignTable.paymentStatus, 'spent'),
         ),
       );

@@ -19,7 +19,8 @@ import { PackageType } from '@src/campaign/dto/publishCampaignDto';
 export enum StatusType {
   PENDING = 'pending',
   DRAFT = 'draft',
-  ACTIVE = 'active',
+  APPROVED = 'approved',
+  REJECTED = 'rejected',
   COMPLETED = 'completed',
 }
 
