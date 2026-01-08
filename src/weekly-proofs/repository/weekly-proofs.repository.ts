@@ -1,7 +1,17 @@
 import { Injectable, Inject } from '@nestjs/common';
-import { weeklyProofInsertType, weeklyProofTable } from '@src/db';
+import {
+  campaignTable,
+  driverTable,
+  weeklyProofInsertType,
+  weeklyProofTable,
+} from '@src/db';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import { and, eq } from 'drizzle-orm';
+import { and, count, eq, gte, max } from 'drizzle-orm';
+import {
+  QueryWeeklyProofDto,
+  WeekQueryType,
+} from '@src/weekly-proofs/dto/query-weekly-proofs.dto';
+import { getWeek } from 'date-fns';
 
 @Injectable()
 export class WeeklyProofsRepository {
@@ -9,14 +19,13 @@ export class WeeklyProofsRepository {
     @Inject('DB')
     private readonly DbProvider: NodePgDatabase<typeof import('@src/db')>,
   ) {}
-  async create(
-    data: Omit<weeklyProofInsertType, 'userId'>,
-    userId: string,
-  ) {
-    const [weeklyProof] = await this.DbProvider.insert(weeklyProofTable).values({
-      ...data,
-      userId,
-    }).returning();
+  async create(data: Omit<weeklyProofInsertType, 'userId'>, userId: string) {
+    const [weeklyProof] = await this.DbProvider.insert(weeklyProofTable)
+      .values({
+        ...data,
+        userId,
+      })
+      .returning();
 
     return weeklyProof;
   }
@@ -56,7 +65,8 @@ export class WeeklyProofsRepository {
           eq(weeklyProofTable.id, weeklyProofId),
           eq(weeklyProofTable.userId, userId),
         ),
-      ).returning();
+      )
+      .returning();
 
     return weeklyProof;
   }
@@ -64,4 +74,92 @@ export class WeeklyProofsRepository {
   remove(userId: string) {
     return `This action removes a #${userId} weeklyProof`;
   }
+
+  async weeklyProofDashboardCards() {
+    const [[totalDrivers], [accepted], [pendingReview], [flagged]] =
+      await Promise.all([
+        this.DbProvider.select({
+          total: count(),
+        }).from(weeklyProofTable),
+        this.DbProvider.select({
+          total: count(),
+        })
+          .from(weeklyProofTable)
+          .where(eq(weeklyProofTable.statusType, 'approved')),
+        this.DbProvider.select({
+          total: count(),
+        })
+          .from(weeklyProofTable)
+          .where(eq(weeklyProofTable.statusType, 'pending_review')),
+        this.DbProvider.select({
+          total: count(),
+        })
+          .from(weeklyProofTable)
+          .where(eq(weeklyProofTable.statusType, 'flagged')),
+      ]);
+
+    return {
+      totalDrivers,
+      accepted,
+      pendingReview,
+      flagged,
+    };
+  }
+
+  async queryAllWeeklyProofs(query: QueryWeeklyProofDto) {
+    const limit = query.limit || 20;
+    const page = query.page || 1;
+    const offset = (page - 1) * limit;
+    const conditions = [];
+
+    if (query.status)
+      conditions.push(eq(weeklyProofTable.statusType, query.status));
+    if (query.campaignId)
+      conditions.push(eq(weeklyProofTable.campaignId, query.campaignId));
+    if (query.week === WeekQueryType.CURRENT_WEEK) {
+      const currentWeek = getWeek(new Date());
+
+      conditions.push(gte(weeklyProofTable.weekNumber, currentWeek));
+    }
+    if (query.week === WeekQueryType.LAST_WEEK) {
+      const lastWeek = getWeek(new Date()) - 1;
+
+      conditions.push(gte(weeklyProofTable.weekNumber, lastWeek));
+    }
+    if (query.week === WeekQueryType.TWO_WEEKS_AGO) {
+      const twoWeeksAgo = getWeek(new Date()) - 2;
+
+      conditions.push(gte(weeklyProofTable.weekNumber, twoWeeksAgo));
+    }
+
+    const weeklyProofs = await this.DbProvider.select({
+      firstname: driverTable.firstname,
+      lastname: driverTable.lastname,
+      id: weeklyProofTable.userId,
+      campaignTitle: campaignTable.campaignName,
+      week: weeklyProofTable.createdAt,
+      proofsCount: count(weeklyProofTable.userId),
+      status: weeklyProofTable.statusType,
+      lastSubmitted: max(weeklyProofTable.createdAt),
+    })
+      .from(weeklyProofTable)
+      .leftJoin(driverTable, eq(driverTable.userId, weeklyProofTable.userId))
+      .leftJoin(
+        campaignTable,
+        eq(campaignTable.id, weeklyProofTable.campaignId),
+      )
+      .where(and(...conditions))
+      .groupBy(
+        weeklyProofTable.userId,
+        driverTable.firstname,
+        driverTable.lastname,
+        campaignTable.campaignName,
+      )
+      .limit(limit)
+      .offset(offset);
+
+    return weeklyProofs;
+  }
+
+  
 }

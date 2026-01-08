@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, uuid, pgEnum } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, uuid, pgEnum, varchar } from 'drizzle-orm/pg-core';
 import { userTable } from '@src/db/users';
 
 export const statusType = pgEnum('notification_status_type', [
@@ -14,11 +14,12 @@ export const notificationTable = pgTable('notifications', {
   id: uuid().defaultRandom().primaryKey().notNull(),
   userId: uuid('userId')
     .notNull()
-    .references(() => userTable.id, {onDelete: 'cascade'}),
+    .references(() => userTable.id, { onDelete: 'cascade' }),
   title: text('title').notNull(),
   message: text('message').notNull(),
   status: statusType('status').default('unread').notNull(),
   variant: variantType('variant').default('info').notNull(),
+  role: varchar('role', { length: 50 }).notNull().default('businessOwner'),
   category: categoryType('category').notNull(),
   priority: text('priority').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),

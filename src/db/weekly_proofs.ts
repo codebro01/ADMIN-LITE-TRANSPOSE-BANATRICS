@@ -10,10 +10,11 @@ import {
   jsonb,
 } from 'drizzle-orm/pg-core';
 
-export const weeklyProofStatusType = pgEnum('weekly_proof_status_type', [
+export const weeklyProofStatusType = pgEnum('weekly_proof_status', [
   'approved',
   'pending_review',
   'rejected',
+  'flagged'
 ]);
 
 export const weeklyProofTable = pgTable('weekly_proofs', {
@@ -45,6 +46,8 @@ export const weeklyProofTable = pgTable('weekly_proofs', {
     .notNull(),
   comment: text('comment'),
   month: integer('month'),
+  weekNumber: integer('week_number'),
+  year: integer('year'), 
   statusType: weeklyProofStatusType('weekly_proof_status')
     .notNull()
     .default('pending_review'),

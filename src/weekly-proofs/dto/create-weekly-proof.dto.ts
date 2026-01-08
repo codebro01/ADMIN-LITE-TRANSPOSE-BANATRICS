@@ -35,6 +35,7 @@ export enum WeeklyProofStatus {
   APPROVED = 'approved',
   PENDING_REVIEW = 'pending_review',
   REJECTED = 'rejected',
+  FLAGGED = 'flagged', 
 }
 
 export class CreateWeeklyProofDto {

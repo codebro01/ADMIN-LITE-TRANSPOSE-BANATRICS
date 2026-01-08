@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { WeeklyProofsRepository } from '@src/weekly-proofs/repository/weekly-proofs.repository';
 import { weeklyProofInsertType } from '@src/db';
+import { getWeek, getYear } from 'date-fns';
 
 @Injectable()
 export class WeeklyProofsService {
@@ -8,7 +9,11 @@ export class WeeklyProofsService {
     private readonly weeklyProofsRepository: WeeklyProofsRepository,
   ) {}
   async create(data: Omit<weeklyProofInsertType, 'userId'>, userId: string) {
-    const weeklyProof = await this.weeklyProofsRepository.create(data, userId);
+    const now = new Date()
+    const weeklyProof = await this.weeklyProofsRepository.create(
+      { ...data, weekNumber: getWeek(now), year: getYear(now) },
+      userId,
+    );
 
     return weeklyProof;
   }
@@ -34,7 +39,7 @@ export class WeeklyProofsService {
     userId: string,
   ) {
     const weeklyProof = await this.weeklyProofsRepository.update(
-      data,
+      {...data, updatedAt: new Date()},
       weeklyProofId,
       userId,
     );
