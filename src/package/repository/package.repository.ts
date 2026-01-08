@@ -6,8 +6,7 @@ import { UpdatePackageDto } from '@src/package/dto/update-package.dto';
 import { eq } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
-
-// ! package is referred to as pkg, because we cannot use package because package is a reserved keyword. 
+// ! package is referred to as pkg, because we cannot use package because package is a reserved keyword.
 @Injectable()
 export class PackageRepository {
   constructor(
@@ -16,7 +15,7 @@ export class PackageRepository {
   ) {}
   async create(createPackageDto: CreatePackageDto, userId: string) {
     const [pkg] = await this.DbProvider.insert(packageTable)
-      .values({...createPackageDto, userId})
+      .values({ ...createPackageDto, userId })
       .returning();
 
     return pkg;
@@ -38,7 +37,8 @@ export class PackageRepository {
   async findByPackageType(packageType: PackageType) {
     const pkg = await this.DbProvider.select()
       .from(packageTable)
-      .where(eq(packageTable.packageType, packageType)).limit(1);
+      .where(eq(packageTable.packageType, packageType))
+      .limit(1);
 
     return pkg;
   }
@@ -46,12 +46,15 @@ export class PackageRepository {
   async update(updatePackageDto: UpdatePackageDto, packageId: string) {
     const [pkg] = await this.DbProvider.update(packageTable)
       .set(updatePackageDto)
-      .where(eq(packageTable.id, packageId)).returning();
+      .where(eq(packageTable.id, packageId))
+      .returning();
 
     return pkg;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} package`;
+  async  delete(packageId: string) {
+    await this.DbProvider.delete(packageTable).where(eq(packageTable.id, packageId));
+
+    return 'package deleted successfully!!!'
   }
 }

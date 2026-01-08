@@ -8,6 +8,7 @@ import {
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { eq, sql, and, sum, count, ne, gte } from 'drizzle-orm';
 import { earningsTable } from '@src/db/earnings';
+import { PaymentStatusType } from '@src/payment/dto/paystackMetadataDto';
 
 @Injectable()
 export class HomeDashboardsRepository {
@@ -138,7 +139,7 @@ export class HomeDashboardsRepository {
       .from(paymentTable)
       .where(
         and(
-          eq(paymentTable.paymentStatus, 'success'),
+          eq(paymentTable.paymentStatus, PaymentStatusType.SUCCESS),
           sql`${paymentTable.createdAt} >= DATE_TRUNC('month', CURRENT_DATE - INTERVAL '6 months')`,
         ),
       )

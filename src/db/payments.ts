@@ -6,6 +6,7 @@ import {
   doublePrecision
 } from 'drizzle-orm/pg-core';
 import { userTable } from '@src/db/users';
+import { PaymentStatusType } from '@src/payment/dto/paystackMetadataDto';
 
 
 
@@ -19,7 +20,9 @@ export const paymentTable = pgTable('payments', {
   dateInitiated: text('date_initiated'),
   amount: doublePrecision('amount').notNull(),
   paymentMethod: text('payment_method').notNull(),
-  paymentStatus: text('payment_status').notNull(),
+  paymentStatus: text('payment_status')
+    .$type<PaymentStatusType>()
+    .notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });

@@ -38,7 +38,7 @@ export class UserController {
   @Post('signup')
   @ApiOperation({
     summary:
-      'This handles the creation of admins (thought route will be disabled in production)',
+      'This handles the creation of admins (though route will be removed or disabled in production)',
     description: 'Register new admin using the information provided',
   })
   @ApiResponse({ status: 200, description: 'successs' })
@@ -77,7 +77,7 @@ export class UserController {
   @Get('/all')
   @ApiOperation({
     summary:
-      'This handles the creation of admins (thought route will be disabled in production)',
+      'This handles the creation of admins (though route will be removed or disabled in production)',
     description: 'Register new admin using the information provided',
   })
   @ApiCookieAuth('access_token')

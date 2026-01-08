@@ -12,7 +12,6 @@ import {
   Query,
 } from '@nestjs/common';
 import { EarningService } from './earning.service';
-import { CreateEarningDto } from './dto/create-earning.dto';
 import { JwtAuthGuard } from '@src/auth/guards/jwt-auth.guard';
 import { RolesGuard } from '@src/auth/guards/roles.guard';
 import { Roles } from '@src/auth/decorators/roles.decorators';
@@ -25,82 +24,6 @@ import {  ApiOperation, ApiResponse, ApiCookieAuth } from '@nestjs/swagger';
 export class EarningController {
   constructor(private readonly earningService: EarningService) {}
 
-  // ! ===================================  driver section ==============================
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('driver')
-  @Post('request')
- @ApiCookieAuth('access_token')
-  @ApiOperation({
-    description: 'Request payout',
-    summary: 'Driver requests payout whick will be approved by the admin',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Request submitted successfully',
-  })
-  async requestPayouts(
-    @Body() body: CreateEarningDto,
-    @Req() req: Request,
-    @Res() res: Response,
-  ) {
-    const { id: userId } = req.user;
-    const earning = await this.earningService.requestPayouts(body, userId);
-    res.status(HttpStatus.CREATED).json({ message: 'success', data: earning });
-  }
-
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('driver')
-  @Get('list/all')
- @ApiCookieAuth('access_token')
-  @ApiOperation({
-    description: 'List all transactions',
-    summary: 'List all drivers transactions',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Fetched all transaction  successfully',
-  })
-  async listAllTransactions(@Req() req: Request, @Res() res: Response) {
-    const { id: userId } = req.user;
-    const earning = await this.earningService.listAllTransactions(userId);
-    res.status(HttpStatus.OK).json({ message: 'success', data: earning });
-  }
-
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('driver')
-  @Get('dashboard')
- @ApiCookieAuth('access_token')
-  @ApiOperation({
-    description: 'Earning Dashboard',
-    summary: 'Dashboard that contains infomation about drivers earnings',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Dasboard Data fetched successfully',
-  })
-  async earningDashboard(@Req() req: Request, @Res() res: Response) {
-    const { id: userId } = req.user;
-    const earning = await this.earningService.earningDashboard(userId);
-    res.status(HttpStatus.OK).json({ message: 'success', data: earning });
-  }
-
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('driver')
-  @Get('monthly-earnings')
- @ApiCookieAuth('access_token')
-  @ApiOperation({
-    description: 'Breakdown of monthly earnings',
-    summary: 'Monthly earning information',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Fetched monthly earning successfully',
-  })
-  async monthlyEarningBreakdown(@Req() req: Request, @Res() res: Response) {
-    const { id: userId } = req.user;
-    const earning = await this.earningService.monthlyEarningBreakdown(userId);
-    res.status(HttpStatus.OK).json({ message: 'success', data: earning });
-  }
 
   // ! ===================================  admin section   ==============================
 
@@ -170,4 +93,7 @@ export class EarningController {
     const earning = await this.earningService.listAllUnapprovedEarnings();
     res.status(HttpStatus.OK).json({ message: 'success', data: earning });
   }
+
+
+  
 }

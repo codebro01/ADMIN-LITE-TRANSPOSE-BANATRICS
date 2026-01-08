@@ -29,6 +29,8 @@ import { BankDetailsModule } from './bank-details/bank-details.module';
 import { WeeklyProofsModule } from './weekly-proofs/weekly-proofs.module';
 import { VehicleDetailsModule } from './vehicle-details/vehicle-details.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { InvoicesModule } from './invoices/invoices.module';
+import { ReportsModule } from './reports/reports.module';
 
 
 @Module({
@@ -81,6 +83,8 @@ import { ScheduleModule } from '@nestjs/schedule';
     BankDetailsModule,
     WeeklyProofsModule,
     VehicleDetailsModule,
+    InvoicesModule,
+    ReportsModule,
   ],
   controllers: [AppController, UploadController],
   providers: [AppService, NeonProvider, MulterService],

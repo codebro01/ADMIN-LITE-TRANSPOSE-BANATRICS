@@ -2,6 +2,7 @@ import { Injectable, Inject } from '@nestjs/common';
 import {
   campaignTable,
   driverTable,
+  userTable,
   weeklyProofInsertType,
   weeklyProofTable,
 } from '@src/db';
@@ -141,6 +142,7 @@ export class WeeklyProofsRepository {
       proofsCount: count(weeklyProofTable.userId),
       status: weeklyProofTable.statusType,
       lastSubmitted: max(weeklyProofTable.createdAt),
+      weeklyProofId: weeklyProofTable.id,
     })
       .from(weeklyProofTable)
       .leftJoin(driverTable, eq(driverTable.userId, weeklyProofTable.userId))
@@ -161,5 +163,18 @@ export class WeeklyProofsRepository {
     return weeklyProofs;
   }
 
-  
+  async weeklyProofDetails(weeklyProofId: string, userId: string) {
+    const weeklyProof = await this.DbProvider.select({
+
+    })
+      .from(userTable)
+      .where(
+        and(
+          eq(weeklyProofTable.userId, userId),
+          eq(weeklyProofTable.id, weeklyProofId),
+        ),
+      );
+
+      return weeklyProof;
+  }
 }

@@ -1,5 +1,6 @@
 import { campaignTable } from '@src/db/campaigns';
 import { driverTable } from '@src/db/users';
+import { PaymentStatusType } from '@src/payment/dto/paystackMetadataDto';
 import { pgEnum } from 'drizzle-orm/pg-core';
 import {
   pgTable,
@@ -26,7 +27,7 @@ export const earningsTable = pgTable('earnings', {
   paymentMethod: text('payment_method').notNull().default('transfer'),
   recipientCode: varchar('recipient_code', { length: 255 }).notNull(),
   rejectionReason: varchar('rejection_reason', { length: 255 }),
-  paymentStatus: text('payment_status').notNull().default('UNPAID'),
+  paymentStatus: text('payment_status').$type<PaymentStatusType>().notNull().default(PaymentStatusType.PENDING),
   approved: approvalStatusType('approved').default('UNAPPROVED'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),

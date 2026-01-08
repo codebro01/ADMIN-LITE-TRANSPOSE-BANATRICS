@@ -3,8 +3,11 @@ import {IsString, IsNotEmpty} from 'class-validator';
 
 
 export enum PaymentStatusType {
-  COMPLETED = 'completed',
+  SUCCESS = 'success',
+  REVERSED = 'reversed',
+  FAILED = 'failed', 
   PENDING = 'pending',
+  CANCELLED = 'cancelled', 
 }
 export enum PaymentMethodType {
     CARD = 'card', 
