@@ -1,16 +1,30 @@
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import { and, eq, sql, ne, lt } from 'drizzle-orm';
+import { and, eq, sql, ne, lt, count } from 'drizzle-orm';
 import { campaignTable } from '@src/db/campaigns';
 import { MaintenanceType, StatusType } from '../dto/publishCampaignDto';
-import { driverCampaignTable } from '@src/db';
+import {
+  campaignDesignsTable,
+  driverCampaignTable,
+  driverTable,
+  userTable,
+  weeklyProofInsertType,
+  weeklyProofTable,
+} from '@src/db';
 import {
   CreateDriverCampaignDto,
   DriverCampaignStatusType,
 } from '@src/campaign/dto/create-driver-campaign.dto';
 import { updatePricePerDriverPerCampaign } from '@src/campaign/dto/update-price-per-driver-per-campaign.dto';
+import { UploadCampaignDesignDto } from '@src/users/dto/upload-campaign-design.dto';
+import { ApproveCampaignDto } from '@src/users/dto/approve-campaign.dto';
 
-export type CampaignStatus = 'draft' | 'pending' | 'approved' | 'rejected' | 'completed';
+export type CampaignStatus =
+  | 'draft'
+  | 'pending'
+  | 'approved'
+  | 'rejected'
+  | 'completed';
 export type packageType = 'starter' | 'basic' | 'premium' | 'custom';
 
 export type uploadType = {
@@ -265,9 +279,8 @@ export class CampaignRepository {
   async findDriverCampaignById(campaignId: string, userId: string) {
     const [campaign] = await this.DbProvider.select({
       campaignId: campaignTable.id,
-      paid: driverCampaignTable.paid, 
-      earningPerDriver: campaignTable.earningPerDriver
-
+      paid: driverCampaignTable.paid,
+      earningPerDriver: campaignTable.earningPerDriver,
     })
       .from(driverCampaignTable)
       .where(
@@ -469,61 +482,235 @@ export class CampaignRepository {
 
   // ! ============================ admin section ===============================
   async handleCampaignStatusUpdate() {
+    const now = new Date();
 
-      const now = new Date();
+    const result = await this.DbProvider.update(campaignTable)
+      .set({
+        statusType: 'completed',
+        updatedAt: now,
+      })
+      .where(
+        and(
+          lt(campaignTable.endDate, now),
+          ne(campaignTable.statusType, 'completed'),
+        ),
+      )
+      .returning({
+        id: campaignTable.id,
+        campaignName: campaignTable.campaignName,
+      });
 
-      const result = await this.DbProvider.update(campaignTable)
-        .set({
-          statusType: 'completed',
-          updatedAt: now,
-        })
-        .where(
-          and(
-            lt(campaignTable.endDate, now),
-            ne(campaignTable.statusType, 'completed'),
-          ),
-        )
-        .returning({
-          id: campaignTable.id,
-          campaignName: campaignTable.campaignName,
-        });
-
-        return result;
-    
+    return result;
   }
 
   async updateCampaignStatusManually() {
+    const now = new Date();
 
-   
-      const now = new Date();
+    const result = await this.DbProvider.update(campaignTable)
+      .set({
+        statusType: 'completed',
+        updatedAt: now,
+      })
+      .where(
+        and(
+          lt(campaignTable.endDate, now),
+          ne(campaignTable.statusType, 'completed'),
+        ),
+      )
+      .returning({
+        id: campaignTable.id,
+        campaignName: campaignTable.campaignName,
+      });
 
-      const result = await this.DbProvider.update(campaignTable)
-        .set({
-          statusType: 'completed',
-          updatedAt: now,
-        })
-        .where(
-          and(
-            lt(campaignTable.endDate, now),
-            ne(campaignTable.statusType, 'completed'),
-          ),
-        )
-        .returning({
-          id: campaignTable.id,
-          campaignName: campaignTable.campaignName,
-        });
-
-      return {
-        success: true,
-        updatedCount: result.length,
-        campaigns: result,
-      };
+    return {
+      success: true,
+      updatedCount: result.length,
+      campaigns: result,
+    };
   }
 
   async updatePricePerDriverPerCampaign(data: updatePricePerDriverPerCampaign) {
-      const campaign = await this.DbProvider.update(campaignTable)
-        .set({ earningPerDriver: data.earningPerDriver })
-        .where(eq(campaignTable.id, data.campaignId));
-        return campaign;
+    const campaign = await this.DbProvider.update(campaignTable)
+      .set({ earningPerDriver: data.earningPerDriver })
+      .where(eq(campaignTable.id, data.campaignId));
+    return campaign;
+  }
+
+  async approveDriverCampaign(campaignId: string, userId: string) {
+    const [campaign] = await this.DbProvider.update(driverCampaignTable)
+      .set({
+        campaignStatus: 'approved',
+      })
+      .where(
+        and(
+          eq(driverCampaignTable.userId, userId),
+          eq(driverCampaignTable.id, campaignId),
+        ),
+      )
+      .returning();
+
+    return campaign;
+  }
+
+  async approveOrRejectWeeklyProof(
+    status: Pick<weeklyProofInsertType, 'statusType'>,
+    campaignId: string,
+    userId: string,
+  ) {
+    const [weeklyProof] = await this.DbProvider.update(weeklyProofTable)
+      .set({
+        statusType: status.statusType,
+      })
+      .where(
+        and(
+          eq(weeklyProofTable.campaignId, campaignId),
+          eq(weeklyProofTable.userId, userId),
+        ),
+      )
+      .returning();
+
+    return weeklyProof;
+  }
+
+  async listDriverWeeklyProofs(userId: string) {
+    const weeklyProofs = await this.DbProvider.select()
+      .from(weeklyProofTable)
+      .where(eq(weeklyProofTable.userId, userId));
+
+    return weeklyProofs;
+  }
+
+  async getFullCampaignInformation(campaignId: string) {
+    const [campaign] = await this.DbProvider.select({
+      campaignName: campaignTable.campaignName,
+      duration: campaignTable.duration,
+      status: campaignTable.statusType,
+      paymentStatus: campaignTable.paymentStatus,
+      totalBudget: campaignTable.price,
+      paymentDate: campaignTable.createdAt,
+    })
+      .from(campaignTable)
+      .where(and(eq(campaignTable.id, campaignId)));
+
+    return campaign;
+  }
+
+  async listAllAssignedDriversForCampaign(userId: string) {
+    const drivers = await this.DbProvider.select()
+      .from(driverCampaignTable)
+      .where(
+        and(
+          eq(driverCampaignTable.userId, userId),
+          ne(driverCampaignTable.campaignStatus, 'rejected'),
+        ),
+      );
+
+    return drivers;
+  }
+
+  async listAllCreatedCampaignsByBusinessOwners(userId: string) {
+    const campaigns = await this.DbProvider.select({
+      campaignId: campaignTable.id,
+      duration: campaignTable.duration,
+      vehicles: count(driverCampaignTable.campaignId),
+      amount: campaignTable.price,
+      status: campaignTable.statusType,
+      active: campaignTable.active,
+    })
+      .from(campaignTable)
+      .where(eq(campaignTable.userId, userId))
+      .leftJoin(
+        driverCampaignTable,
+        eq(driverCampaignTable.campaignId, campaignTable.id),
+      )
+      .groupBy(campaignTable.id);
+
+    return campaigns;
+  }
+
+  async createCampaignDesigns(data: UploadCampaignDesignDto) {
+    const campaign = await this.DbProvider.insert(campaignDesignsTable).values({
+      campaignId: data.campaignId,
+      designs: data.designs,
+      comment: data.comment,
+    });
+
+    return campaign;
+  }
+  async updateCampaignDesigns(data: UploadCampaignDesignDto) {
+    const campaign = await this.DbProvider.update(campaignDesignsTable).set({
+      campaignId: data.campaignId,
+      designs: data.designs,
+      comment: data.comment,
+    });
+
+    return campaign;
+  }
+
+  async approveCampaign(data: ApproveCampaignDto) {
+    const campaign = await this.DbProvider.update(campaignTable)
+      .set({
+        statusType: data.approveCampaignType,
+        printHousePhoneNo: data.printHousePhoneNo,
+      })
+      .where(eq(campaignTable.id, data.campaignId));
+
+    return campaign;
+  }
+
+  async listAllAvailableCampaigns() {
+    const campaigns = await this.DbProvider.select({
+      id: campaignTable.id,
+      campaignTitle: campaignTable.campaignName,
+      duration: campaignTable.duration,
+      location: campaignTable.state,
+      vehicles: count(driverCampaignTable.userId),
+      budget: campaignTable.price,
+      status: campaignTable.statusType,
+      active: campaignTable.active,
+    })
+      .from(campaignTable)
+      .where(
+        and(
+          ne(campaignTable.statusType, 'draft'),
+          eq(campaignTable.paymentStatus, 'spent'),
+        ),
+      )
+      .leftJoin(
+        driverCampaignTable,
+        eq(driverCampaignTable.campaignId, campaignTable.id),
+      )
+      .groupBy(campaignTable.id);
+
+    return { campaigns };
+  }
+
+  async listCampaignDriverApplications() {
+    const applications = await this.DbProvider.select({
+      campaign: campaignTable.campaignName,
+      driverFirstName: driverTable.firstname,
+      driverLastName: driverTable.lastname,
+      phone: userTable.phone,
+      appliedDate: driverCampaignTable.createdAt,
+      status: driverCampaignTable.campaignStatus,
+      budget: campaignTable.price,
+      location: campaignTable.state,
+      duration: campaignTable.duration,
+    })
+      .from(driverCampaignTable)
+      .leftJoin(
+        campaignTable,
+        eq(campaignTable.id, driverCampaignTable.campaignId),
+      )
+      .innerJoin(
+        driverTable,
+        eq(driverTable.userId, driverCampaignTable.userId), 
+      )
+      .innerJoin(
+        userTable,
+        eq(userTable.id, driverTable.userId), 
+      );
+
+    return applications;
   }
 }

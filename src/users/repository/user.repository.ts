@@ -1,13 +1,10 @@
 import { Injectable, NotFoundException, Inject } from '@nestjs/common';
 import {
   bankDetailsTable,
-  campaignDesignsTable,
   campaignTable,
   driverCampaignTable,
   paymentTable,
   vehicleDetailsTable,
-  weeklyProofInsertType,
-  weeklyProofTable,
 } from '@src/db';
 import { earningsTable } from '@src/db/earnings';
 import {
@@ -18,9 +15,8 @@ import {
   driverTable,
   businessOwnerTable,
 } from '@src/db/users';
-import { ApproveCampaignDto } from '@src/users/dto/approve-campaign.dto';
-import { UploadCampaignDesignDto } from '@src/users/dto/upload-campaign-design.dto';
-import { eq, or, count, and, sql, ne } from 'drizzle-orm';
+
+import { eq, or, count, and, sql, avg } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { bankDetails } from 'drizzle/schema';
 
@@ -251,105 +247,20 @@ export class UserRepository {
     return campaigns;
   }
 
-  async approveDriverCampaign(campaignId: string, userId: string) {
-    const [campaign] = await this.DbProvider.update(driverCampaignTable)
-      .set({
-        campaignStatus: 'approved',
-      })
-      .where(
-        and(
-          eq(driverCampaignTable.userId, userId),
-          eq(driverCampaignTable.id, campaignId),
-        ),
-      )
-      .returning();
-
-    return campaign;
-  }
-
-  async approveOrRejectWeeklyProof(
-    status: Pick<weeklyProofInsertType, 'statusType'>,
-    campaignId: string,
-    userId: string,
-  ) {
-    const [weeklyProof] = await this.DbProvider.update(weeklyProofTable)
-      .set({
-        statusType: status.statusType,
-      })
-      .where(
-        and(
-          eq(weeklyProofTable.campaignId, campaignId),
-          eq(weeklyProofTable.userId, userId),
-        ),
-      )
-      .returning();
-
-    return weeklyProof;
-  }
-
-  async listDriverWeeklyProofs(userId: string) {
-    const weeklyProofs = await this.DbProvider.select()
-      .from(weeklyProofTable)
-      .where(eq(weeklyProofTable.userId, userId));
-
-    return weeklyProofs;
-  }
-
-  async getFullCampaignInformation(campaignId: string) {
-    const [campaign] = await this.DbProvider.select({
-      campaignName: campaignTable.campaignName,
-      duration: campaignTable.duration,
-      status: campaignTable.statusType,
-      paymentStatus: campaignTable.paymentStatus,
-      totalBudget: campaignTable.price,
-      paymentDate: campaignTable.createdAt,
+  async getFullBusinessOwnerInformation(userId: string) {
+    const user = await this.DbProvider.select({
+      id: userTable.id,
+      email: userTable.email,
+      totalCampaigns: count(campaignTable.userId),
+      phone: userTable.phone,
+      totalSpent: sql<number>`COALESCE(SUM(${paymentTable.amount}), 0)`,
+      averagePerCampaign: avg(paymentTable.amount),
     })
-      .from(campaignTable)
-      .where(and(eq(campaignTable.id, campaignId)));
+      .from(userTable)
+      .where(and(eq(userTable.id, userId)));
 
-    return campaign;
+    return user;
   }
 
-  async listAllAssignedDriversForCampaign(userId: string) {
-    const drivers = await this.DbProvider.select()
-      .from(driverCampaignTable)
-      .where(
-        and(
-          eq(driverCampaignTable.userId, userId),
-          ne(driverCampaignTable.campaignStatus, 'rejected'),
-        ),
-      );
 
-    return drivers;
-  }
-
-  async createCampaignDesigns(data: UploadCampaignDesignDto) {
-    const campaign = await this.DbProvider.insert(campaignDesignsTable).values({
-      campaignId: data.campaignId,
-      designs: data.designs,
-      comment: data.comment,
-    });
-
-    return campaign;
-  }
-  async updateCampaignDesigns(data: UploadCampaignDesignDto) {
-    const campaign = await this.DbProvider.update(campaignDesignsTable).set({
-      campaignId: data.campaignId,
-      designs: data.designs,
-      comment: data.comment,
-    });
-
-    return campaign;
-  }
-
-  async approveCampaign(data: ApproveCampaignDto) {
-    const campaign = await this.DbProvider.update(campaignTable)
-      .set({
-        statusType: data.approveCampaignType,
-        printHousePhoneNo: data.printHousePhoneNo,
-      })
-      .where(eq(campaignTable.id, data.campaignId));
-
-    return campaign;
-  }
 }
