@@ -15,9 +15,10 @@ import { UserRepository } from '@src/users/repository/user.repository';
 import { EmailService } from '@src/email/email.service';
 import { PasswordResetRepository } from '@src/password-reset/repository/password-reset.repository';
 import { EmailVerificationRepository } from '@src/email-verification/repository/email-verification.repository';
-
+import { userEnumType } from '@src/users/dto/query-user.dto';
 import { CreateAdminUserDto } from '@src/users/dto/create-admin-user.dto';
 import { adminInsertType } from '@src/db';
+import { QueryUserDto } from '@src/users/dto/query-user.dto';
 @Injectable()
 export class UserService {
   constructor(
@@ -158,5 +159,23 @@ export class UserService {
     return {
       message: 'Password changed succesfully',
     };
+  }
+
+  async listAllUsers(query: QueryUserDto) {
+    const limit = query.limit || 20;
+    const page = query.page || 1;
+    const offset = (page - 1) * limit;
+
+    if (query.userType === userEnumType.DRIVERS) {
+      return this.userRepository.listAllDrivers(query.status, limit, offset);
+    }
+
+    if (query.userType === userEnumType.BUSINESSOWNERS) {
+      return this.userRepository.listAllBusinessOwners(
+        query.status,
+        limit,
+        offset,
+      );
+    }
   }
 }

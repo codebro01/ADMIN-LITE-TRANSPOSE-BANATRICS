@@ -8,6 +8,7 @@ import {
 } from 'drizzle-orm/pg-core';
 import { jsonb } from 'drizzle-orm/pg-core';
 
+
 export const userTable = pgTable('users', {
   id: uuid().defaultRandom().primaryKey().notNull(),
   phone: varchar('phone', { length: 50 }).notNull().unique(),
@@ -47,6 +48,7 @@ export const businessOwnerTable = pgTable('businessOwners', {
   businessAddress: varchar('businessAddress', { length: 255 }),
   businessLogo: varchar('businessLogo', { length: 255 }),
   refreshToken: varchar('refreshToken', { length: 255 }),
+  status: boolean('business_owner_status').default(true), 
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
   // authProvider: varchar('authProvider', { length: 20 })
