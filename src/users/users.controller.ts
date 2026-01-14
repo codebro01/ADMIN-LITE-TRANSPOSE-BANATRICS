@@ -9,6 +9,8 @@ import {
  
   Query,
   HttpCode,
+  Patch,
+  Req,
 } from '@nestjs/common';
 import { UserService } from '@src/users/users.service';
 import { JwtAuthGuard } from '@src/auth/guards/jwt-auth.guard';
@@ -22,6 +24,7 @@ import {
 
 import omit from 'lodash.omit';
 import type { Response } from 'express';
+import type { Request } from '@src/types';
 import { EarningService } from '@src/earning/earning.service';
 import { CreateAdminUserDto } from '@src/users/dto/create-admin-user.dto';
 import { QueryUserDto } from '@src/users/dto/query-user.dto';
@@ -72,6 +75,24 @@ export class UserController {
     res.status(HttpStatus.ACCEPTED).json({ user: safeUser, accessToken });
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  @Patch()
+  @ApiOperation({
+    summary:
+      'This handles the listing of all user based on query',
+    description: 'This list users based on query and its only accessible to admins',
+  })
+  @ApiCookieAuth('access_token')
+  @ApiResponse({ status: 200, description: 'successs' })
+  @HttpCode(HttpStatus.OK)
+  async updateAdmin(@Body('fullName') fullName: string, @Req() req: Request  ) {
+    const {id: userId} = req.user;
+    const users = await this.userService.updateAdmin({fullName}, userId);
+
+    return { success: true, data: users };
+  }
+  
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
   @Get('/all')

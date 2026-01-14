@@ -1,34 +1,50 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, UseGuards, HttpStatus, HttpCode } from '@nestjs/common';
 import { ReportsService } from './reports.service';
-import { CreateReportDto } from './dto/create-report.dto';
-import { UpdateReportDto } from './dto/update-report.dto';
+import { JwtAuthGuard } from '@src/auth/guards/jwt-auth.guard';
+import { RolesGuard } from '@src/auth/guards/roles.guard';
+import { Roles } from '@src/auth/decorators/roles.decorators';
+import { ApiCookieAuth, ApiOperation } from '@nestjs/swagger';
 
 @Controller('reports')
 export class ReportsController {
   constructor(private readonly reportsService: ReportsService) {}
 
-  @Post()
-  create(@Body() createReportDto: CreateReportDto) {
-    return this.reportsService.create(createReportDto);
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  @Get('cards')
+  @ApiCookieAuth('access_token')
+  @ApiOperation({
+    summary: 'Returns data for report dashboard cards',
+    description: 'Returns data for report dashboard cards',
+  })
+  @HttpCode(HttpStatus.OK)
+  reportsDashboardCards() {
+    return this.reportsService.reportsDashboardCards();
   }
 
-  @Get()
-  findAll() {
-    return this.reportsService.findAll();
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  @Get('cards')
+  @ApiCookieAuth('access_token')
+  @ApiOperation({
+    summary: 'Returns data for Monthly revenue trend chart',
+    description: 'Returns a plottable data for monthly revenue trend chart',
+  })
+  @HttpCode(HttpStatus.OK)
+  monthlyRevenueTrend() {
+    return this.reportsService.monthlyRevenueTrend();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.reportsService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateReportDto: UpdateReportDto) {
-    return this.reportsService.update(+id, updateReportDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.reportsService.remove(+id);
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  @Get('cards')
+  @ApiCookieAuth('access_token')
+  @ApiOperation({
+    summary: 'Returns data for driver activity trend chart',
+    description: 'Returns a plottable data for driver activity trend chart',
+  })
+  @HttpCode(HttpStatus.OK)
+  getDriverActivityTrend() {
+    return this.reportsService.getDriverActivityTrend();
   }
 }

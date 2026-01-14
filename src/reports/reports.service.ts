@@ -1,26 +1,18 @@
 import { Injectable } from '@nestjs/common';
-import { CreateReportDto } from './dto/create-report.dto';
-import { UpdateReportDto } from './dto/update-report.dto';
+import { ReportsRepository } from '@src/reports/repository/reports.repository';
 
 @Injectable()
 export class ReportsService {
-  create(createReportDto: CreateReportDto) {
-    return 'This action adds a new report';
+  constructor(
+    private readonly reportsRepository: ReportsRepository, 
+  ){}
+  async reportsDashboardCards() {
+    return await this.reportsRepository.reportsDashboardCards()
   }
-
-  findAll() {
-    return `This action returns all reports`;
+  async monthlyRevenueTrend() {
+    return await this.reportsRepository.monthlyRevenueTrend()
   }
-
-  findOne(id: number) {
-    return `This action returns a #${id} report`;
-  }
-
-  update(id: number, updateReportDto: UpdateReportDto) {
-    return `This action updates a #${id} report`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} report`;
+  async getDriverActivityTrend() {
+    return await this.reportsRepository.getDriverActivityTrend()
   }
 }
