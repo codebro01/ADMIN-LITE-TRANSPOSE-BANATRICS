@@ -178,4 +178,20 @@ export class UserService {
       );
     }
   }
+
+  // async listAllDrivers(status: boolean, limit: number, page: number) {
+  //   const offset = (page - 1) * limit;
+  //   return await this.userRepository.listAllDrivers(status, limit, offset)
+  // }
+  // async listAllBusinessOwners(status: boolean, limit: number, page: number) {
+  //   const offset = (page - 1) * limit;
+  //   return await this.userRepository.listAllBusinessOwners(status, limit, offset)
+  // }
+
+  async getFullDriverInformation(userId: string) {
+    return await this.userRepository.getFullDriverInformation(userId)
+  }
+  async getFullBusinessOwnerInformation(userId: string) {
+    return await this.userRepository.getFullBusinessOwnerInformation(userId)
+  }
 }

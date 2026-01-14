@@ -77,14 +77,50 @@ export class UserController {
   @Get('/all')
   @ApiOperation({
     summary:
-      'This handles the creation of admins (though route will be removed or disabled in production)',
-    description: 'Register new admin using the information provided',
+      'This handles the listing of all user based on query',
+    description: 'This list users based on query and its only accessible to admins',
   })
   @ApiCookieAuth('access_token')
   @ApiResponse({ status: 200, description: 'successs' })
   @HttpCode(HttpStatus.OK)
   async listAllUsers(@Query() query: QueryUserDto) {
     const users = await this.userService.listAllUsers(query);
+
+    return { success: true, data: users };
+  }
+  
+  
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  @Get('/driver')
+  @ApiOperation({
+    summary:
+      'This loads the comprehensive information of a driver',
+    description: 'Endpoint loads the comprehensive informaton of a driver. Endpoint is only accessible to admins',
+  })
+  @ApiCookieAuth('access_token')
+  @ApiResponse({ status: 200, description: 'successs' })
+  @HttpCode(HttpStatus.OK)
+  async getFullDriverInformation(@Query('userId') userId: string) {
+    const users = await this.userService.getFullDriverInformation(userId);
+
+    return { success: true, data: users };
+  }
+
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  @Get('/business-owner')
+  @ApiOperation({
+    summary:
+      'This loads the comprehensive information of a business Owner',
+    description: 'Endpoint loads the comprehensive informaton of a Business Owner. Endpoint is only accessible to admins',
+  })
+  @ApiCookieAuth('access_token')
+  @ApiResponse({ status: 200, description: 'successs' })
+  @HttpCode(HttpStatus.OK)
+  async getFullBusinessOwnerInformation(@Query('userId') userId: string) {
+    const users = await this.userService.getFullBusinessOwnerInformation(userId);
 
     return { success: true, data: users };
   }

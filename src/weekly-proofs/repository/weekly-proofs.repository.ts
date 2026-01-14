@@ -20,62 +20,7 @@ export class WeeklyProofsRepository {
     @Inject('DB')
     private readonly DbProvider: NodePgDatabase<typeof import('@src/db')>,
   ) {}
-  async create(data: Omit<weeklyProofInsertType, 'userId'>, userId: string) {
-    const [weeklyProof] = await this.DbProvider.insert(weeklyProofTable)
-      .values({
-        ...data,
-        userId,
-      })
-      .returning();
-
-    return weeklyProof;
-  }
-
-  async findAllByUserId(userId: string) {
-    const weeklyProof = await this.DbProvider.select()
-      .from(weeklyProofTable)
-      .where(eq(weeklyProofTable.userId, userId));
-
-    return weeklyProof;
-  }
-
-  async findOneByUserId(weeklyProofId: string, userId: string) {
-    const weeklyProof = await this.DbProvider.select()
-      .from(weeklyProofTable)
-      .where(
-        and(
-          eq(weeklyProofTable.userId, userId),
-          eq(weeklyProofTable.id, weeklyProofId),
-        ),
-      );
-
-    return weeklyProof;
-  }
-
-  async update(
-    data: Partial<Omit<weeklyProofInsertType, 'userId' | 'campaignId'>>,
-    weeklyProofId: string,
-    userId: string,
-  ) {
-    const [weeklyProof] = await this.DbProvider.update(weeklyProofTable)
-      .set({
-        ...data,
-      })
-      .where(
-        and(
-          eq(weeklyProofTable.id, weeklyProofId),
-          eq(weeklyProofTable.userId, userId),
-        ),
-      )
-      .returning();
-
-    return weeklyProof;
-  }
-
-  remove(userId: string) {
-    return `This action removes a #${userId} weeklyProof`;
-  }
-
+  
   async weeklyProofDashboardCards() {
     const [[totalDrivers], [accepted], [pendingReview], [flagged]] =
       await Promise.all([
@@ -177,4 +122,33 @@ export class WeeklyProofsRepository {
 
       return weeklyProof;
   }
+
+    async approveOrRejectWeeklyProof(
+      status: Pick<weeklyProofInsertType, 'statusType'>,
+      campaignId: string,
+      userId: string,
+    ) {
+      const [weeklyProof] = await this.DbProvider.update(weeklyProofTable)
+        .set({
+          statusType: status.statusType,
+        })
+        .where(
+          and(
+            eq(weeklyProofTable.campaignId, campaignId),
+            eq(weeklyProofTable.userId, userId),
+          ),
+        )
+        .returning();
+  
+      return weeklyProof;
+    }
+  
+    async listDriverWeeklyProofs(userId: string) {
+      const weeklyProofs = await this.DbProvider.select()
+        .from(weeklyProofTable)
+        .where(eq(weeklyProofTable.userId, userId));
+  
+      return weeklyProofs;
+    }
+  
 }

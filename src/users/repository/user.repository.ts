@@ -229,24 +229,6 @@ export class UserRepository {
     return user[0];
   }
 
-  async listAllAsignedCampaignsForDriver(userId: string) {
-    const campaigns = await this.DbProvider.select({
-      campaignId: campaignTable.id,
-      campaignName: campaignTable.campaignName,
-      expires: campaignTable.endDate,
-      campaignStatus: driverCampaignTable.campaignStatus,
-      isActive: driverCampaignTable.active,
-    })
-      .from(driverCampaignTable)
-      .where(eq(driverCampaignTable.userId, userId))
-      .leftJoin(
-        campaignTable,
-        eq(campaignTable.id, driverCampaignTable.campaignId),
-      );
-
-    return campaigns;
-  }
-
   async getFullBusinessOwnerInformation(userId: string) {
     const user = await this.DbProvider.select({
       id: userTable.id,
@@ -261,6 +243,4 @@ export class UserRepository {
 
     return user;
   }
-
-
 }

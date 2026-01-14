@@ -8,15 +8,13 @@ import {
   driverCampaignTable,
   driverTable,
   userTable,
-  weeklyProofInsertType,
-  weeklyProofTable,
 } from '@src/db';
 import {
   CreateDriverCampaignDto,
   DriverCampaignStatusType,
 } from '@src/campaign/dto/create-driver-campaign.dto';
 import { updatePricePerDriverPerCampaign } from '@src/campaign/dto/update-price-per-driver-per-campaign.dto';
-import { UploadCampaignDesignDto } from '@src/users/dto/upload-campaign-design.dto';
+import { UploadCampaignDesignDto } from '@src/campaign/dto/upload-campaign-design.dto';
 import { ApproveCampaignDto } from '@src/users/dto/approve-campaign.dto';
 
 export type CampaignStatus =
@@ -552,34 +550,6 @@ export class CampaignRepository {
     return campaign;
   }
 
-  async approveOrRejectWeeklyProof(
-    status: Pick<weeklyProofInsertType, 'statusType'>,
-    campaignId: string,
-    userId: string,
-  ) {
-    const [weeklyProof] = await this.DbProvider.update(weeklyProofTable)
-      .set({
-        statusType: status.statusType,
-      })
-      .where(
-        and(
-          eq(weeklyProofTable.campaignId, campaignId),
-          eq(weeklyProofTable.userId, userId),
-        ),
-      )
-      .returning();
-
-    return weeklyProof;
-  }
-
-  async listDriverWeeklyProofs(userId: string) {
-    const weeklyProofs = await this.DbProvider.select()
-      .from(weeklyProofTable)
-      .where(eq(weeklyProofTable.userId, userId));
-
-    return weeklyProofs;
-  }
-
   async getFullCampaignInformation(campaignId: string) {
     const [campaign] = await this.DbProvider.select({
       campaignName: campaignTable.campaignName,
@@ -595,12 +565,12 @@ export class CampaignRepository {
     return campaign;
   }
 
-  async listAllAssignedDriversForCampaign(userId: string) {
+  async listAllAssignedDriversForCampaign(campaignId: string) {
     const drivers = await this.DbProvider.select()
       .from(driverCampaignTable)
       .where(
         and(
-          eq(driverCampaignTable.userId, userId),
+          eq(driverCampaignTable.campaignId, campaignId),
           ne(driverCampaignTable.campaignStatus, 'rejected'),
         ),
       );
@@ -647,13 +617,13 @@ export class CampaignRepository {
     return campaign;
   }
 
-  async approveCampaign(data: ApproveCampaignDto) {
+  async approveCampaign(data: ApproveCampaignDto, campaignId:string) {
     const campaign = await this.DbProvider.update(campaignTable)
       .set({
         statusType: data.approveCampaignType,
         printHousePhoneNo: data.printHousePhoneNo,
       })
-      .where(eq(campaignTable.id, data.campaignId));
+      .where(eq(campaignTable.id, campaignId));
 
     return campaign;
   }
@@ -704,13 +674,28 @@ export class CampaignRepository {
       )
       .innerJoin(
         driverTable,
-        eq(driverTable.userId, driverCampaignTable.userId), 
+        eq(driverTable.userId, driverCampaignTable.userId),
       )
-      .innerJoin(
-        userTable,
-        eq(userTable.id, driverTable.userId), 
-      );
+      .innerJoin(userTable, eq(userTable.id, driverTable.userId));
 
     return applications;
+  }
+
+  async listAllAsignedCampaignsForDriver(userId: string) {
+    const campaigns = await this.DbProvider.select({
+      campaignId: campaignTable.id,
+      campaignName: campaignTable.campaignName,
+      expires: campaignTable.endDate,
+      campaignStatus: driverCampaignTable.campaignStatus,
+      isActive: driverCampaignTable.active,
+    })
+      .from(driverCampaignTable)
+      .where(eq(driverCampaignTable.userId, userId))
+      .leftJoin(
+        campaignTable,
+        eq(campaignTable.id, driverCampaignTable.campaignId),
+      );
+
+    return campaigns;
   }
 }

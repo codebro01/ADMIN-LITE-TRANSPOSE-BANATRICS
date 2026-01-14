@@ -1,141 +1,123 @@
 import {
   Controller,
   Get,
-  Post,
   Body,
   Patch,
   Param,
-  Req,
   HttpStatus,
   UseGuards,
-  Res
+  HttpCode,
+  Query,
 } from '@nestjs/common';
 import { WeeklyProofsService } from './weekly-proofs.service';
-import { CreateWeeklyProofDto } from './dto/create-weekly-proof.dto';
-import { UpdateWeeklyProofDto } from './dto/update-weekly-proof.dto';
-import type { Response } from 'express';
-import type { Request } from '@src/types';
+import {
+  WeeklyProofStatus,
+} from './dto/create-weekly-proof.dto';
 import { JwtAuthGuard } from '@src/auth/guards/jwt-auth.guard';
 import { RolesGuard } from '@src/auth/guards/roles.guard';
 import { Roles } from '@src/auth/decorators/roles.decorators';
-import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiCookieAuth,
+  ApiOperation,
+} from '@nestjs/swagger';
+import { QueryWeeklyProofDto } from '@src/weekly-proofs/dto/query-weekly-proofs.dto';
 
 @Controller('weekly-proofs')
 export class WeeklyProofsController {
   constructor(private readonly weeklyProofsService: WeeklyProofsService) {}
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('driver')
-  @Post('create')
-  @ApiBearerAuth()
+  @Roles('admin')
+  @Get()
+  @ApiCookieAuth('access_token')
   @ApiOperation({
+    summary: 'Weekly Proof Dashboard cards',
     description:
-      'Submit weekly proof, url of the weekly proof will be submitted after using the upload function to upload it',
-    summary: 'Submit weekly proof',
+      'Fetches weekly proofs info such as No. of total drivers, No of accepted weekly proofs etc',
   })
-  @ApiResponse({
-    status: 200,
-    description: 'Upload successful',
-  })
-  async submitWeeklyProof(
-    @Body() data: CreateWeeklyProofDto,
-    @Res() res: Response,
-    @Req() req: Request,
-  ) {
-    const { id: userId } = req.user;
+  @HttpCode(HttpStatus.OK)
+  async weeklyProofDashboardCards() {
+    const weeklyProofs =
+      await this.weeklyProofsService.weeklyProofDashboardCards();
 
-    const weeklyProof = await this.weeklyProofsService.create(data, userId);
-    // console.log('weeklyproof', weeklyProof)
-    res
-      .status(HttpStatus.CREATED)
-      .json({ message: 'success', data: weeklyProof });
+    return { success: true, data: weeklyProofs };
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('driver')
-  @Get('find-all')
-  @ApiBearerAuth()
+  @Roles('admin')
+  @Get()
+  @ApiCookieAuth('access_token')
   @ApiOperation({
-    description: 'Find all submitted weekly proofs by driver',
-    summary: 'Find all submitted weekly proofs by drivers',
+    summary: 'Query weekly proofs',
+    description: 'Query Weekly proofs by using query like limit, page etc.',
   })
-  @ApiResponse({
-    status: 200,
-    description: 'Fetched Data successfully',
-  })
-  async findAllByUserId(@Res() res: Response, @Req() req: Request) {
-    const { id: userId } = req.user;
+  @HttpCode(HttpStatus.OK)
+  async queryAllWeeklyProofs(@Query() query: QueryWeeklyProofDto) {
+    const weeklyProofs =
+      await this.weeklyProofsService.queryAllWeeklyProofs(query);
 
-    const weeklyProof = await this.weeklyProofsService.findAllByUserId(userId);
-
-    res
-      .status(HttpStatus.CREATED)
-      .json({ message: 'success', data: weeklyProof });
+    return { success: true, data: weeklyProofs };
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('driver')
-  @Get('find/:id')
-  @ApiBearerAuth()
+  @Roles('admin')
+  @Get(':weeklyProofId/user/:driverId')
+  @ApiCookieAuth('access_token')
   @ApiOperation({
-    description: 'Find single weekly proof by driver',
-    summary: 'Find single weekly proof by drivers',
+    summary: 'Get weekly proof details',
+    description:
+      'Provides information about a weekly detail by providing its id and the user id',
   })
-  @ApiResponse({
-    status: 200,
-    description: 'Found weekly proof',
-  })
-  async findOneByUserId(
-    @Param('id') weeklyProofId: string,
-    @Res() res: Response,
-    @Req() req: Request,
+  @HttpCode(HttpStatus.OK)
+  async weeklyProofDetails(
+    @Param('weeklyProofId') weeklyProofId: string,
+    @Param('driverId') driverId: string,
   ) {
-    const { id: userId } = req.user;
-
-    const weeklyProof = await this.weeklyProofsService.findOneByUserId(
+    const weeklyProofs = await this.weeklyProofsService.weeklyProofDetails(
       weeklyProofId,
-      userId,
+      driverId,
     );
 
-    res
-      .status(HttpStatus.CREATED)
-      .json({ message: 'success', data: weeklyProof });
+    return { success: true, data: weeklyProofs };
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('driver')
-  @Patch('update/:id')
-  @ApiBearerAuth()
+  @Roles('admin')
+  @Patch('approve-reject/:campaignId/driver/:driverId')
+  @ApiCookieAuth('access_token')
   @ApiOperation({
-    description: 'update weekly proofs by driver',
-    summary: 'update weekly proofs by drivers',
+    summary: 'Approve or reject weekly proof',
+    description: 'Admin approves or reject week proofs =',
   })
-  @ApiResponse({
-    status: 200,
-    description: 'Update successful',
-  })
-  async update(
-    @Param('id') weeklyProofId: string,
-    @Body() data: UpdateWeeklyProofDto,
-    @Res() res: Response,
-    @Req() req: Request,
+  @HttpCode(HttpStatus.OK)
+  async approveOrRejectWeeklyProof(
+    @Param('campaignId') campaignId: string,
+    @Param('driverId') driverId: string,
+    @Body('status') status: WeeklyProofStatus,
   ) {
-    const { id: userId } = req.user;
+    const weeklyProofs =
+      await this.weeklyProofsService.approveOrRejectWeeklyProof(
+        { statusType: status },
+        campaignId,
+        driverId,
+      );
 
-    const weeklyProof = await this.weeklyProofsService.update(
-      data,
-      weeklyProofId,
-      userId,
-    );
-    res
-      .status(HttpStatus.CREATED)
-      .json({ message: 'success', data: weeklyProof });
+    return { success: true, data: weeklyProofs };
   }
 
-  // @UseGuards(JwtAuthGuard, RolesGuard)
-  // @Roles('admin')
-  // @Delete(':id')
-  // remove(@Param('id') id: string) {
-  //   return this.weeklyProofsService.remove(id);
-  // }
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  @Get(':driverId')
+  @ApiCookieAuth('access_token')
+  @ApiOperation({
+    summary: 'List all weekly proofs for particular driver',
+    description: 'List all weekly proofs submitted by a driver',
+  })
+  @HttpCode(HttpStatus.OK)
+  async listDriverWeeklyProofs(@Param('driverId') driverId: string) {
+    const weeklyProofs =
+      await this.weeklyProofsService.listDriverWeeklyProofs(driverId);
+
+    return { success: true, data: weeklyProofs };
+  }
 }

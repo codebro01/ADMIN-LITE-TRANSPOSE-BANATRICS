@@ -1,52 +1,41 @@
 import { Injectable } from '@nestjs/common';
 import { WeeklyProofsRepository } from '@src/weekly-proofs/repository/weekly-proofs.repository';
 import { weeklyProofInsertType } from '@src/db';
-import { getWeek, getYear } from 'date-fns';
+import { QueryWeeklyProofDto } from '@src/weekly-proofs/dto/query-weekly-proofs.dto';
 
 @Injectable()
 export class WeeklyProofsService {
   constructor(
     private readonly weeklyProofsRepository: WeeklyProofsRepository,
   ) {}
-  async create(data: Omit<weeklyProofInsertType, 'userId'>, userId: string) {
-    const now = new Date()
-    const weeklyProof = await this.weeklyProofsRepository.create(
-      { ...data, weekNumber: getWeek(now), year: getYear(now) },
-      userId,
-    );
 
-    return weeklyProof;
+  async weeklyProofDashboardCards() {
+    return await this.weeklyProofsRepository.weeklyProofDashboardCards();
   }
 
-  async findAllByUserId(userId: string) {
-    const weeklyProof =
-      await this.weeklyProofsRepository.findAllByUserId(userId);
-    return weeklyProof;
+  async queryAllWeeklyProofs(query: QueryWeeklyProofDto) {
+    return await this.weeklyProofsRepository.queryAllWeeklyProofs(query);
   }
-
-  async findOneByUserId(weeklyProofId: string, userId: string) {
-    const weeklyProof = await this.weeklyProofsRepository.findOneByUserId(
+  async weeklyProofDetails(weeklyProofId: string, userId: string) {
+    return await this.weeklyProofsRepository.weeklyProofDetails(
       weeklyProofId,
       userId,
     );
-
-    return weeklyProof;
   }
 
-  async update(
-    data: Partial<Omit<weeklyProofInsertType, 'userId'>>,
-    weeklyProofId: string,
+  async approveOrRejectWeeklyProof(
+    status: Pick<weeklyProofInsertType, 'statusType'>,
+    campaignId: string,
     userId: string,
   ) {
-    const weeklyProof = await this.weeklyProofsRepository.update(
-      {...data, updatedAt: new Date()},
-      weeklyProofId,
+    return await this.weeklyProofsRepository.approveOrRejectWeeklyProof(
+      status,
+      campaignId,
       userId,
     );
-    return weeklyProof;
   }
 
-  remove(id: string) {
-    return `This action removes a #${id} weeklyProof`;
+  async listDriverWeeklyProofs(userId: string) {
+    return await this.weeklyProofsRepository.listDriverWeeklyProofs(userId);
   }
 }
