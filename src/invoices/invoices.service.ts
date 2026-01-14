@@ -1,26 +1,25 @@
 import { Injectable } from '@nestjs/common';
 import { CreateInvoiceDto } from './dto/create-invoice.dto';
-import { UpdateInvoiceDto } from './dto/update-invoice.dto';
+import { InvoicesRepository } from '@src/invoices/repository/invoices.repository';
 
 @Injectable()
 export class InvoicesService {
-  create(createInvoiceDto: CreateInvoiceDto) {
-    return 'This action adds a new invoice';
+  constructor(private readonly invoiceRepository: InvoicesRepository) {}
+  async create(data: CreateInvoiceDto) {
+
+    const invoice_id = 'inv-id';
+    return await this.invoiceRepository.create({
+      ...data,
+      invoiceId: invoice_id, 
+      date: new Date(data.date),
+      dueDate: new Date(data.dueDate),
+    });
   }
 
-  findAll() {
-    return `This action returns all invoices`;
+  async getInvoiceDashboardCards() {
+    return await this.invoiceRepository.getInvoiceDashboardCards();
   }
-
-  findOne(id: number) {
-    return `This action returns a #${id} invoice`;
-  }
-
-  update(id: number, updateInvoiceDto: UpdateInvoiceDto) {
-    return `This action updates a #${id} invoice`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} invoice`;
+  async listInvoicesWithTheirInfos() {
+    return await this.invoiceRepository.listInvoicesWithTheirInfos();
   }
 }

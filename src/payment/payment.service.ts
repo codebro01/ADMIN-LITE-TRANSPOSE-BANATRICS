@@ -13,6 +13,10 @@ import { CampaignRepository } from '@src/campaign/repository/campaign.repository
 
 import { NotificationService } from '@src/notification/notification.service';
 import { EarningRepository } from '@src/earning/repository/earning.repository';
+import {
+  GraphQueryDto,
+  GraphQueryOption,
+} from '@src/payment/dto/graph-query.dto';
 
 @Injectable()
 export class PaymentService {
@@ -88,28 +92,41 @@ export class PaymentService {
   async listAllPayments() {
     return await this.paymentRepository.listAllPayments();
   }
-  async totalMonthlyIncomeGraph() {
-    return await this.paymentRepository.totalMonthlyIncomeGraph();
+
+  async totalIncomGraph(query: GraphQueryDto) {
+    if (query.option === GraphQueryOption.WEEKLY) {
+      return await this.paymentRepository.totalWeeklyIncomeGraph();
+    }
+
+    if (query.option === GraphQueryOption.MONTHLY) {
+      return await this.paymentRepository.totalMonthlyIncomeGraph();
+    }
+    if (query.option === GraphQueryOption.YEARLY) {
+      return await this.paymentRepository.totalYearlyIncomeGraph();
+    }
   }
-  async totalWeeklyIncomeGraph() {
-    return await this.paymentRepository.totalWeeklyIncomeGraph();
+  async totalDriverPayouts(query: GraphQueryDto) {
+    if (query.option === GraphQueryOption.WEEKLY) {
+      return await this.paymentRepository.totalDriverPayoutsWeekly();
+    }
+
+    if (query.option === GraphQueryOption.MONTHLY) {
+      return await this.paymentRepository.totalDriverPayoutsMonthly();
+    }
+    if (query.option === GraphQueryOption.YEARLY) {
+      return await this.paymentRepository.totalDriverPayoutsYearly();
+    }
   }
-  async totalYearlyIncomeGraph() {
-    return await this.paymentRepository.totalYearlyIncomeGraph();
-  }
-  async totalDriverPayoutsWeekly() {
-    return await this.paymentRepository.totalDriverPayoutsWeekly();
-  }
-  async totalDriverPayoutsMonthly() {
-    return await this.paymentRepository.totalDriverPayoutsMonthly();
-  }
-  async totalDriverPayoutsYearly() {
-    return await this.paymentRepository.totalDriverPayoutsYearly();
-  }
-  async netProfitMonthly() {
-    return await this.paymentRepository.netProfitMonthly();
-  }
-  async netProfitYearly() {
-    return await this.paymentRepository.netProfitYearly();
+  async netProfit(query: GraphQueryDto) {
+    if (query.option === GraphQueryOption.WEEKLY) {
+      return await this.paymentRepository.netProfitWeekly();
+    }
+
+    if (query.option === GraphQueryOption.MONTHLY) {
+      return await this.paymentRepository.netProfitMonthly();
+    }
+    if (query.option === GraphQueryOption.YEARLY) {
+      return await this.paymentRepository.netProfitYearly();
+    }
   }
 }

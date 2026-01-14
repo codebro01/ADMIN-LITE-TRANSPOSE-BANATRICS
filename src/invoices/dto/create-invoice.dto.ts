@@ -64,9 +64,9 @@ export class CreateInvoiceDto {
     type: String,
     format: 'date-time',
   })
-  @IsOptional()
+  @IsNotEmpty()
   @IsDateString()
-  dueDate?: string;
+  dueDate: string;
 
   @ApiPropertyOptional({
     description: 'Invoice date',
@@ -74,7 +74,7 @@ export class CreateInvoiceDto {
     type: String,
     format: 'date-time',
   })
-  @IsOptional()
+  @IsNotEmpty()
   @IsDateString()
-  date?: string;
+  date: string;
 }

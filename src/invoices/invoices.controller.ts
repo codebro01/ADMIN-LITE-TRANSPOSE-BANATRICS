@@ -1,34 +1,53 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, HttpCode, HttpStatus, Get } from '@nestjs/common';
 import { InvoicesService } from './invoices.service';
 import { CreateInvoiceDto } from './dto/create-invoice.dto';
-import { UpdateInvoiceDto } from './dto/update-invoice.dto';
+import { JwtAuthGuard } from '@src/auth/guards/jwt-auth.guard';
+import { RolesGuard } from '@src/auth/guards/roles.guard';
+import { Roles } from '@src/auth/decorators/roles.decorators';
+import { ApiCookieAuth, ApiOperation } from '@nestjs/swagger';
 
 @Controller('invoices')
 export class InvoicesController {
   constructor(private readonly invoicesService: InvoicesService) {}
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
   @Post()
+  @ApiCookieAuth('access_token')
+  @ApiOperation({
+    summary: 'Create an invoice',
+    description: 'Enpoint creates an invoice',
+  })
+  @HttpCode(HttpStatus.CREATED)
   create(@Body() createInvoiceDto: CreateInvoiceDto) {
     return this.invoicesService.create(createInvoiceDto);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  @Get('cards')
+  @ApiCookieAuth('access_token')
+  @ApiOperation({
+    summary: 'Get the invoice dashbaord cards info',
+    description:
+      'Get invoice dashboard cards such as total revenue, paid invoices, etc',
+  })
+  @HttpCode(HttpStatus.OK)
+  getInvoiceDashboardCards() {
+    return this.invoicesService.getInvoiceDashboardCards();
+  }
+
+
+  @Roles('admin')
   @Get()
-  findAll() {
-    return this.invoicesService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.invoicesService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateInvoiceDto: UpdateInvoiceDto) {
-    return this.invoicesService.update(+id, updateInvoiceDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.invoicesService.remove(+id);
+  @ApiCookieAuth('access_token')
+  @ApiOperation({
+    summary: 'List  invoices',
+    description:
+      'List all existing  invoices alongside their information',
+  })
+  @HttpCode(HttpStatus.OK)
+  listInvoicesWithTheirInfos() {
+    return this.invoicesService.listInvoicesWithTheirInfos();
   }
 }
