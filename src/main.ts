@@ -38,11 +38,14 @@ async function bootstrap() {
     .setVersion('1.0') // Version
     .addBearerAuth()
     .addServer('http://localhost:3000', 'Local Dev')
-    .addServer('https://lite-transpose-banatrics.onrender.com', 'Production')
+    .addServer(
+      'https://admin-lite-transpose-banatrics.onrender.com',
+      'Production',
+    )
     .addCookieAuth('access_token', {
       type: 'apiKey',
       in: 'cookie',
-      name: 'access_token', 
+      name: 'access_token',
     })
     .build();
 
