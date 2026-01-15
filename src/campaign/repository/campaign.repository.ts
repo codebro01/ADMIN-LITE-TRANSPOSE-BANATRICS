@@ -247,6 +247,19 @@ export class CampaignRepository {
     return campaigns;
   }
 
+
+  async findCampaignById(userId: string) {
+    const [campaigns] = await this.DbProvider.select()
+      .from(campaignTable)
+      .where(
+        and(
+          eq(campaignTable.userId, userId),
+        ),
+      );
+
+    return campaigns;
+  }
+
   /**
    * Count campaigns for a user
    */
@@ -271,6 +284,8 @@ export class CampaignRepository {
 
     return deleted || null;
   }
+
+
 
   //!===================================drivers db calls ===========================================//
 

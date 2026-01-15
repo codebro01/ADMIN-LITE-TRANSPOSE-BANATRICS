@@ -1,7 +1,4 @@
-  import {
-  Inject,
-  Injectable,
-} from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import {
   businessOwnerTable,
@@ -10,7 +7,7 @@ import {
   paymentTable,
 } from '@src/db';
 import crypto from 'crypto';
-import { eq, and, sql, gte} from 'drizzle-orm';
+import { eq, and, sql, gte } from 'drizzle-orm';
 import { CampaignRepository } from '@src/campaign/repository/campaign.repository';
 import { CatchErrorService } from '@src/catch-error/catch-error.service';
 import { NotificationRepository } from '@src/notification/repository/notification.repository';
@@ -48,9 +45,9 @@ export class PaymentRepository {
     });
   }
 
-
   async listAllWithdrawals() {
     const withdrawals = await this.DbProvider.select({
+      id: earningsTable.id,
       userId: earningsTable.userId,
       firstname: driverTable.firstname,
       lastname: driverTable.lastname,
@@ -59,7 +56,8 @@ export class PaymentRepository {
       proofStatus: earningsTable.paymentStatus,
       date: earningsTable.createdAt,
     })
-      .from(earningsTable).where(eq(earningsTable.approved, 'UNAPPROVED'))
+      .from(earningsTable)
+      .where(eq(earningsTable.approved, 'UNAPPROVED'))
       .leftJoin(driverTable, eq(driverTable.userId, earningsTable.userId))
       .leftJoin(campaignTable, eq(campaignTable.id, earningsTable.campaignId));
 
@@ -80,8 +78,8 @@ export class PaymentRepository {
         businessOwnerTable,
         eq(businessOwnerTable.userId, paymentTable.userId),
       );
-      return payments;
-  } 
+    return payments;
+  }
 
   async totalMonthlyIncomeGraph() {
     const payments = await this.DbProvider.select({

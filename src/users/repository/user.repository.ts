@@ -97,6 +97,13 @@ export class UserRepository {
     return user;
   }
 
+  async findDriverByUserId(userId: string) {
+    const user = await this.DbProvider.select()
+      .from(driverTable)
+      .where(eq(driverTable.userId, userId));
+    return user;
+  }
+
   async updateUserToken(token: string, userId: string) {
     const [user] = await this.DbProvider.update(userTable)
       .set({ refreshToken: token })

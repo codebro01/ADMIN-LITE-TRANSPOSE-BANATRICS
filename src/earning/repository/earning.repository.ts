@@ -15,6 +15,8 @@ export class EarningRepository {
     private readonly DbProvider: NodePgDatabase<typeof import('@src/db')>,
   ) {}
 
+
+
   async findEarningsByApproved(userId: string) {
     const earnings = await this.DbProvider.select()
       .from(earningsTable)
@@ -22,6 +24,18 @@ export class EarningRepository {
         and(
           eq(earningsTable.approved, ApprovalStatusType.UNAPPROVED),
           eq(earningsTable.userId, userId),
+        ),
+      );
+    return earnings;
+  }
+  async findUnapprovedEarningById(earningId: string, userId: string) {
+    const earnings = await this.DbProvider.select()
+      .from(earningsTable)
+      .where(
+        and(
+          eq(earningsTable.approved, ApprovalStatusType.UNAPPROVED),
+          eq(earningsTable.userId, userId),
+          eq(earningsTable.id, earningId),
         ),
       );
     return earnings;
@@ -89,7 +103,7 @@ export class EarningRepository {
     return earnings;
   }
   async updateEarningApprovedStatus(
-    approved: boolean,
+    approved: ApprovalStatusType,
     userId: string,
     trx?: any,
   ) {

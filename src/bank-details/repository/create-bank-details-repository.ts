@@ -1,5 +1,5 @@
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
-import { bankDetailsInsertType, bankDetailsTable } from '@src/db';
+import { bankDetailsInsertType, bankDetailsTable, driverTable } from '@src/db';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { eq } from 'drizzle-orm';
 
@@ -11,7 +11,10 @@ export class BankDetailsRepository {
   ) {}
 
   async findOneById(userId: string) {
-    const [user] = await this.DbProvider.select().from(bankDetailsTable).where(eq(bankDetailsTable.userId, userId)).limit(1);
+    const [user] = await this.DbProvider.select()
+      .from(bankDetailsTable)
+      .where(eq(bankDetailsTable.userId, userId))
+      .limit(1);
     return user;
   }
 
@@ -21,7 +24,10 @@ export class BankDetailsRepository {
     trx?: any,
   ) {
     const isBankDetailsExist = await this.findOneById(userId);
-    if(isBankDetailsExist) throw new BadRequestException('User already submitted bank account information')
+    if (isBankDetailsExist)
+      throw new BadRequestException(
+        'User already submitted bank account information',
+      );
     const Trx = trx || this.DbProvider;
     const [createBankDetailsRecord] = await Trx.insert(bankDetailsTable)
       .values({
@@ -34,5 +40,14 @@ export class BankDetailsRepository {
         accountNumber: bankDetailsTable.accountNumber,
       });
     return createBankDetailsRecord;
+  }
+
+  async findBankDetailsByUserId(userId: string) {
+    const [details] = await this.DbProvider.select()
+      .from(bankDetailsTable)
+      .where(eq(bankDetailsTable.userId, userId))
+      .leftJoin(driverTable, eq(driverTable.userId, bankDetailsTable.userId));
+
+      return details;
   }
 }

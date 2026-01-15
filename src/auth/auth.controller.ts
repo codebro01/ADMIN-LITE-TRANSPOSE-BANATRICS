@@ -65,7 +65,7 @@ export class AuthController {
     status: 401,
     description: 'Unauthorized - Invalid email or password',
   })
-  async loginUser(@Body() body: LoginUserDto, @Res() res: Response) {
+  async loginUser(@Body() body: LoginUserDto, @Res({passthrough: true}) res: Response) {
     const { user, accessToken, refreshToken } =
       await this.authService.loginUser(body);
 
@@ -84,7 +84,7 @@ export class AuthController {
 
     const safeUser = omit(user, ['password', 'refreshToken']);
 
-    res.status(HttpStatus.ACCEPTED).json({ user: safeUser, accessToken });
+    return { success: true, user: safeUser };
   }
 
   // ! logout route

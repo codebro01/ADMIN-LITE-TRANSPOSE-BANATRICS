@@ -1,8 +1,12 @@
 import {
+  Body,
   Controller,
   Get,
   HttpCode,
   HttpStatus,
+  Param,
+  ParseUUIDPipe,
+  Patch,
   Query,
   UseGuards,
 } from '@nestjs/common';
@@ -20,6 +24,7 @@ import { PaymentRepository } from '@src/payment/repository/payment.repository';
 
 import { NotificationService } from '@src/notification/notification.service';
 import { GraphQueryDto } from '@src/payment/dto/graph-query.dto';
+import { InitializePayoutDto } from '@src/payment/dto/initialize-payout.dto';
 
 @ApiTags('Payments')
 @ApiBearerAuth()
@@ -39,10 +44,35 @@ export class PaymentController {
   @ApiOperation({
     summary: 'List all transactions from Paystack',
     description:
-      'Retrieves all transactions from Paystack API. Returns a comprehensive list of all payment transactions across the platform.',
+      'This enpoint is used to approve or reject a driver withdrawal request',
   })
   async listTransactions() {
     const result = await this.paymentService.listAllTransactions();
+    return result;
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  @Patch(':userId/earnings/:earningId/campaigns/:campaignId/approval')
+  @ApiCookieAuth('access_token')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Approves or reject an approval',
+    description:
+      'Retrieves all transactions from Paystack API. Returns a comprehensive list of all payment transactions across the platform.',
+  })
+  async approveWithdrawal(
+    @Body() body: InitializePayoutDto,
+    @Param('userId', ParseUUIDPipe) userId: string,
+    @Param('earningId', ParseUUIDPipe) earningId: string,
+    @Param('campaignId', ParseUUIDPipe) campaignId: string,
+  ) {
+    const result = await this.paymentService.initializePayout(
+      body,
+      earningId,
+      campaignId,
+      userId,
+    );
     return result;
   }
 

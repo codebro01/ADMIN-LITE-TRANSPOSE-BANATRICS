@@ -33,8 +33,8 @@ async function bootstrap() {
   );
 
   const config = new DocumentBuilder()
-    .setTitle('BANATRICS API') // Title of your docs
-    .setDescription('BANATRICS API') // Small description
+    .setTitle('BANATRICS ADMIN API') // Title of your docs
+    .setDescription('BANATRICS ADMIN API') // Small description
     .setVersion('1.0') // Version
     .addBearerAuth()
     .addServer('http://localhost:3000', 'Local Dev')
@@ -55,7 +55,7 @@ async function bootstrap() {
   }); 
 
   app.getHttpAdapter().get('/', (req, res) => {
-    res.send({ status: 'ok', message: 'Banatrics Project API' });
+    res.send({ status: 'ok', message: 'Banatrics Admin Project API' });
   });
   app.getHttpAdapter().get('/favicon.ico', (req, res) => res.status(204).end());
 

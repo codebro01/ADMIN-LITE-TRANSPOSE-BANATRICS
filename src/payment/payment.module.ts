@@ -9,9 +9,10 @@ import { CampaignModule } from '@src/campaign/campaign.module';
 import { CatchErrorModule } from '@src/catch-error/catch-error.module';
 import { NotificationModule } from '@src/notification/notification.module';
 import { EarningModule } from '@src/earning/earning.module';
+import { BankDetailsModule } from '@src/bank-details/bank-details.module';
 
 @Module({
-  imports: [HttpModule, UserModule, CampaignModule, CatchErrorModule, NotificationModule, EarningModule],
+  imports: [HttpModule, UserModule, CampaignModule, CatchErrorModule, NotificationModule, EarningModule, BankDetailsModule],
   controllers: [PaymentController],
   providers: [PaymentService, DbProvider, PaymentRepository],
 })

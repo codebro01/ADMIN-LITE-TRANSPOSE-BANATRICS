@@ -6,7 +6,6 @@ import {
   UseGuards,
   Res,
   HttpStatus,
- 
   Query,
   HttpCode,
   Patch,
@@ -16,26 +15,17 @@ import { UserService } from '@src/users/users.service';
 import { JwtAuthGuard } from '@src/auth/guards/jwt-auth.guard';
 import { RolesGuard } from '@src/auth/guards/roles.guard';
 import { Roles } from '@src/auth/decorators/roles.decorators';
-import {
-  ApiOperation,
-  ApiResponse,
-  ApiCookieAuth,
-} from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiCookieAuth } from '@nestjs/swagger';
 
 import omit from 'lodash.omit';
 import type { Response } from 'express';
 import type { Request } from '@src/types';
-import { EarningService } from '@src/earning/earning.service';
 import { CreateAdminUserDto } from '@src/users/dto/create-admin-user.dto';
 import { QueryUserDto } from '@src/users/dto/query-user.dto';
 
-
 @Controller('admin')
 export class UserController {
-  constructor(
-    private readonly userService: UserService,
-    private readonly earningService: EarningService,
-  ) {}
+  constructor(private readonly userService: UserService) {}
 
   // ! finalize driver creation
   @Post('signup')
@@ -48,7 +38,7 @@ export class UserController {
   @HttpCode(HttpStatus.CREATED)
   async createAdminUser(
     @Body() body: CreateAdminUserDto,
-    @Res() res: Response,
+    @Res({passthrough: true}) res: Response,
   ) {
     const { user, accessToken, refreshToken } =
       await this.userService.createAdminUser(body);
@@ -72,34 +62,34 @@ export class UserController {
       'emailVerificationCode',
     ]);
 
-    res.status(HttpStatus.ACCEPTED).json({ user: safeUser, accessToken });
+    return { success: true,  user: safeUser };
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
   @Patch()
   @ApiOperation({
-    summary:
-      'This handles the listing of all user based on query',
-    description: 'This list users based on query and its only accessible to admins',
+    summary: 'This handles the listing of all user based on query',
+    description:
+      'This list users based on query and its only accessible to admins',
   })
   @ApiCookieAuth('access_token')
   @ApiResponse({ status: 200, description: 'successs' })
   @HttpCode(HttpStatus.OK)
-  async updateAdmin(@Body('fullName') fullName: string, @Req() req: Request  ) {
-    const {id: userId} = req.user;
-    const users = await this.userService.updateAdmin({fullName}, userId);
+  async updateAdmin(@Body('fullName') fullName: string, @Req() req: Request) {
+    const { id: userId } = req.user;
+    const users = await this.userService.updateAdmin({ fullName }, userId);
 
     return { success: true, data: users };
   }
-  
+
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
   @Get('/all')
   @ApiOperation({
-    summary:
-      'This handles the listing of all user based on query',
-    description: 'This list users based on query and its only accessible to admins',
+    summary: 'This handles the listing of all user based on query',
+    description:
+      'This list users based on query and its only accessible to admins',
   })
   @ApiCookieAuth('access_token')
   @ApiResponse({ status: 200, description: 'successs' })
@@ -109,15 +99,14 @@ export class UserController {
 
     return { success: true, data: users };
   }
-  
-  
+
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
   @Get('/driver')
   @ApiOperation({
-    summary:
-      'This loads the comprehensive information of a driver',
-    description: 'Endpoint loads the comprehensive informaton of a driver. Endpoint is only accessible to admins',
+    summary: 'This loads the comprehensive information of a driver',
+    description:
+      'Endpoint loads the comprehensive informaton of a driver. Endpoint is only accessible to admins',
   })
   @ApiCookieAuth('access_token')
   @ApiResponse({ status: 200, description: 'successs' })
@@ -128,20 +117,20 @@ export class UserController {
     return { success: true, data: users };
   }
 
-
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
   @Get('/business-owner')
   @ApiOperation({
-    summary:
-      'This loads the comprehensive information of a business Owner',
-    description: 'Endpoint loads the comprehensive informaton of a Business Owner. Endpoint is only accessible to admins',
+    summary: 'This loads the comprehensive information of a business Owner',
+    description:
+      'Endpoint loads the comprehensive informaton of a Business Owner. Endpoint is only accessible to admins',
   })
   @ApiCookieAuth('access_token')
   @ApiResponse({ status: 200, description: 'successs' })
   @HttpCode(HttpStatus.OK)
   async getFullBusinessOwnerInformation(@Query('userId') userId: string) {
-    const users = await this.userService.getFullBusinessOwnerInformation(userId);
+    const users =
+      await this.userService.getFullBusinessOwnerInformation(userId);
 
     return { success: true, data: users };
   }
