@@ -251,10 +251,10 @@ export class UserRepository {
     const [user] = await this.DbProvider.select({
       id: userTable.id,
       email: userTable.email,
-      totalCampaigns: count(campaignTable.id),
+      totalCampaigns: sql<number>`COUNT(DISTINCT ${campaignTable.id})`,
       phone: userTable.phone,
-      totalSpent: sql<number>`COALESCE(SUM(${paymentTable.amount}), 0)`,
-      averagePerCampaign: sql<number>`COALESCE(AVG(${paymentTable.amount}), 0)`,
+      totalSpent: sql<number>`COALESCE(SUM(DISTINCT ${paymentTable.amount}), 0)`,
+      averagePerCampaign: sql<number>`COALESCE(AVG(DISTINCT ${paymentTable.amount}), 0)`,
     })
       .from(userTable)
       .leftJoin(campaignTable, eq(campaignTable.userId, userTable.id))
