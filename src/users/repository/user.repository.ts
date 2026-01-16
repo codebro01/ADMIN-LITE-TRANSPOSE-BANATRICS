@@ -161,7 +161,13 @@ export class UserRepository {
         ),
       )
       .leftJoin(earningsTable, eq(earningsTable.userId, driverTable.userId))
-      .groupBy(driverTable.id, userTable.id,  driverTable.lastname, driverTable.firstname, userTable.phone)
+      .groupBy(
+        driverTable.id,
+        userTable.id,
+        driverTable.lastname,
+        driverTable.firstname,
+        userTable.phone,
+      )
       .limit(limit)
       .offset(offset);
 
@@ -195,7 +201,15 @@ export class UserRepository {
         campaignTable,
         eq(campaignTable.userId, businessOwnerTable.userId),
       )
-      .groupBy(businessOwnerTable.id, userTable.id, businessOwnerTable.businessName, userTable.phone, userTable.email, businessOwnerTable.balance, businessOwnerTable.status)
+      .groupBy(
+        businessOwnerTable.id,
+        userTable.id,
+        businessOwnerTable.businessName,
+        userTable.phone,
+        userTable.email,
+        businessOwnerTable.balance,
+        businessOwnerTable.status,
+      )
       .limit(limit)
       .offset(offset);
 
@@ -237,17 +251,21 @@ export class UserRepository {
   }
 
   async getFullBusinessOwnerInformation(userId: string) {
-    const user = await this.DbProvider.select({
+    const [user] = await this.DbProvider.select({
       id: userTable.id,
       email: userTable.email,
-      totalCampaigns: count(campaignTable.userId),
+      totalCampaigns: count(campaignTable.id),
       phone: userTable.phone,
       totalSpent: sql<number>`COALESCE(SUM(${paymentTable.amount}), 0)`,
-      averagePerCampaign: avg(paymentTable.amount),
+      averagePerCampaign: sql<number>`COALESCE(AVG(${paymentTable.amount}), 0)`,
     })
       .from(userTable)
-      .where(and(eq(userTable.id, userId)));
+      .leftJoin(campaignTable, eq(campaignTable.userId, userTable.id))
+      .leftJoin(paymentTable, eq(paymentTable.userId, userTable.id))
+      .leftJoin(businessOwnerTable, eq(businessOwnerTable.userId, userTable.id))
+      .where(eq(userTable.id, userId))
+      .groupBy(userTable.id, userTable.email, userTable.phone);
 
-    return user;
+    return user; 
   }
 }
