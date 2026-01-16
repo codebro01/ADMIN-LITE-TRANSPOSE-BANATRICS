@@ -16,7 +16,7 @@ import {
   businessOwnerTable,
 } from '@src/db/users';
 
-import { eq, or, count, and, sql, avg } from 'drizzle-orm';
+import { eq, or, count, and, sql } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { bankDetails } from 'drizzle/schema';
 
@@ -173,7 +173,6 @@ export class UserRepository {
 
     return users;
   }
-
   async listAllBusinessOwners(status: boolean, limit: number, offset: number) {
     const user = await this.DbProvider.select({
       id: userTable.id,
@@ -182,16 +181,10 @@ export class UserRepository {
       email: userTable.email,
       totalBalance: businessOwnerTable.balance,
       status: businessOwnerTable.status,
-      totalSpent: sql<number>`COALESCE(SUM(${paymentTable.amount}), 0)`, // Sum earnings, default to 0
-      campaigns: count(campaignTable.statusType),
+      totalSpent: sql<number>`COALESCE(SUM(CASE WHEN ${paymentTable.userId} IS NOT NULL THEN ${paymentTable.amount} ELSE 0 END), 0)`,
+      campaigns: sql<number>`COUNT(DISTINCT CASE WHEN ${campaignTable.paymentStatus} = 'spent' THEN ${campaignTable.id} END)`,
     })
       .from(businessOwnerTable)
-      .where(
-        and(
-          eq(businessOwnerTable.status, status),
-          eq(paymentTable.userId, businessOwnerTable.userId),
-        ),
-      )
       .leftJoin(userTable, eq(userTable.id, businessOwnerTable.userId))
       .leftJoin(
         paymentTable,
@@ -199,8 +192,12 @@ export class UserRepository {
       )
       .leftJoin(
         campaignTable,
-        eq(campaignTable.userId, businessOwnerTable.userId),
+        and(
+          eq(campaignTable.userId, businessOwnerTable.userId),
+          eq(campaignTable.paymentStatus, 'spent'),
+        ),
       )
+      .where(eq(businessOwnerTable.status, status))
       .groupBy(
         businessOwnerTable.id,
         userTable.id,
@@ -266,6 +263,6 @@ export class UserRepository {
       .where(eq(userTable.id, userId))
       .groupBy(userTable.id, userTable.email, userTable.phone);
 
-    return user; 
+    return user;
   }
 }
