@@ -8,7 +8,7 @@ import {
   IsBoolean,
 } from 'class-validator';
 
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 
 
 // export enum userStatusType {
@@ -24,15 +24,19 @@ export enum userEnumType {
 
 export class QueryUserDto {
   @ApiProperty({
-    description: 'status of the user',
-    example: 'active',
+    description: 'approved status of the user',
+    example: true,
+  })
+  @Transform(({ value }) => {
+    if (value === 'true') return true;
+    if (value === 'false') return false;
+    return value;
   })
   @IsBoolean()
-  status: boolean;
-
+  approvedStatus: boolean;
   @ApiProperty({
-    description: 'status of the user',
-    example: 'active',
+    description: 'type of the user',
+    example: 'businessOwners',
   })
   @IsEnum(userEnumType)
   userType: userEnumType;

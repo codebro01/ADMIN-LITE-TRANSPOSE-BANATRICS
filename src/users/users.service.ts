@@ -169,12 +169,12 @@ export class UserService {
     const offset = (page - 1) * limit;
 
     if (query.userType === userEnumType.DRIVERS) {
-      return this.userRepository.listAllDrivers(query.status, limit, offset);
+      return this.userRepository.listAllDrivers(query.approvedStatus, limit, offset);
     }
 
     if (query.userType === userEnumType.BUSINESSOWNERS) {
       return this.userRepository.listAllBusinessOwners(
-        query.status,
+        query.approvedStatus,
         limit,
         offset,
       );

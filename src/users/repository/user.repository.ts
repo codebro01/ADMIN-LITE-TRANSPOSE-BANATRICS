@@ -161,7 +161,7 @@ export class UserRepository {
         ),
       )
       .leftJoin(earningsTable, eq(earningsTable.userId, driverTable.userId))
-      .groupBy(driverTable.id)
+      .groupBy(driverTable.id, userTable.id,  driverTable.lastname, driverTable.firstname, userTable.phone)
       .limit(limit)
       .offset(offset);
 
@@ -195,7 +195,7 @@ export class UserRepository {
         campaignTable,
         eq(campaignTable.userId, businessOwnerTable.userId),
       )
-      .groupBy(businessOwnerTable.id)
+      .groupBy(businessOwnerTable.id, userTable.id, businessOwnerTable.businessName, userTable.phone, userTable.email, businessOwnerTable.balance, businessOwnerTable.status)
       .limit(limit)
       .offset(offset);
 
