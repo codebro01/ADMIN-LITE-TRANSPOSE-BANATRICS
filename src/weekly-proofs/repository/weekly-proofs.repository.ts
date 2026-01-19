@@ -101,6 +101,9 @@ export class WeeklyProofsRepository {
         driverTable.firstname,
         driverTable.lastname,
         campaignTable.campaignName,
+        weeklyProofTable.createdAt, 
+        weeklyProofTable.statusType,
+        weeklyProofTable.id,
       )
       .limit(limit)
       .offset(offset);

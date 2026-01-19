@@ -670,7 +670,7 @@ export class CampaignRepository {
     return { campaigns };
   }
 
-  async listCampaignDriverApplications() {
+  async listCampaignDriverApplications(campaignId: string) {
     const applications = await this.DbProvider.select({
       campaign: campaignTable.campaignName,
       driverFirstName: driverTable.firstname,
@@ -682,7 +682,7 @@ export class CampaignRepository {
       location: campaignTable.state,
       duration: campaignTable.duration,
     })
-      .from(driverCampaignTable)
+      .from(driverCampaignTable).where(eq(driverCampaignTable.campaignId, campaignId))
       .leftJoin(
         campaignTable,
         eq(campaignTable.id, driverCampaignTable.campaignId),

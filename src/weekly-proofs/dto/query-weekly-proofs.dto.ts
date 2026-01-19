@@ -33,6 +33,7 @@ export class QueryWeeklyProofDto {
   @ApiProperty({
     description: 'Query weekly proof by campaign',
     example: '537a3daf-4c50-48ba-bcfe-5f39d2b444de',
+    required: false
   })
   @IsOptional()
   @IsUUID()
@@ -40,7 +41,8 @@ export class QueryWeeklyProofDto {
 
   @ApiProperty({
     description: 'The status of the weekly proof you want to query',
-    example: 'pending',
+    example: 'pending_review',
+    required: false
   })
   @IsOptional()
   @IsEnum(WeeklyProofStatus)

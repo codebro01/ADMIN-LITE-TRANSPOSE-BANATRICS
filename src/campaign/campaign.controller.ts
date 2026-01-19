@@ -189,7 +189,6 @@ export class CampaignController {
     return { success: true, data: campaign };
   }
 
-
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
   @Patch('campaign/campaignId')
@@ -211,7 +210,6 @@ export class CampaignController {
     return { success: true, data: campaign };
   }
 
-
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
   @Get('all')
@@ -221,13 +219,11 @@ export class CampaignController {
     description: 'List all available campaigns',
   })
   @HttpCode(HttpStatus.CREATED)
-  async listAllAvailableCampaigns(
-  ) {
+  async listAllAvailableCampaigns() {
     const campaign = await this.campaignService.listAllAvailableCampaigns();
 
     return { success: true, data: campaign };
   }
-
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
@@ -238,9 +234,9 @@ export class CampaignController {
     description: 'List all campaign applications',
   })
   @HttpCode(HttpStatus.CREATED)
-  async listCampaignDriverApplications(
-  ) {
-    const campaign = await this.campaignService.listCampaignDriverApplications();
+  async listCampaignDriverApplications(@Query('campaignId') campaignId: string) {
+    const campaign =
+      await this.campaignService.listCampaignDriverApplications(campaignId);
 
     return { success: true, data: campaign };
   }
@@ -250,14 +246,14 @@ export class CampaignController {
   @Get('assigned/:driverId')
   @ApiCookieAuth('access_token')
   @ApiOperation({
-    summary: 'List all campaigns that have been assigned to a particular driver',
+    summary:
+      'List all campaigns that have been assigned to a particular driver',
     description: 'List all assigned campaign to a particular driver',
   })
   @HttpCode(HttpStatus.CREATED)
-  async listAllAsignedCampaignsForDriver(
-    @Param('driverId') driverId: string, 
-  ) {
-    const campaign = await this.campaignService.listAllAsignedCampaignsForDriver(driverId);
+  async listAllAsignedCampaignsForDriver(@Param('driverId') driverId: string) {
+    const campaign =
+      await this.campaignService.listAllAsignedCampaignsForDriver(driverId);
 
     return { success: true, data: campaign };
   }

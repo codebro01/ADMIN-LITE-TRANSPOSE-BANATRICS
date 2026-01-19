@@ -28,7 +28,7 @@ export class WeeklyProofsController {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
-  @Get()
+  @Get('dashboard-cards')
   @ApiCookieAuth('access_token')
   @ApiOperation({
     summary: 'Weekly Proof Dashboard cards',
@@ -59,27 +59,27 @@ export class WeeklyProofsController {
     return { success: true, data: weeklyProofs };
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
-  @Get(':weeklyProofId/user/:driverId')
-  @ApiCookieAuth('access_token')
-  @ApiOperation({
-    summary: 'Get weekly proof details',
-    description:
-      'Provides information about a weekly detail by providing its id and the user id',
-  })
-  @HttpCode(HttpStatus.OK)
-  async weeklyProofDetails(
-    @Param('weeklyProofId') weeklyProofId: string,
-    @Param('driverId') driverId: string,
-  ) {
-    const weeklyProofs = await this.weeklyProofsService.weeklyProofDetails(
-      weeklyProofId,
-      driverId,
-    );
+  // @UseGuards(JwtAuthGuard, RolesGuard)
+  // @Roles('admin')
+  // @Get(':weeklyProofId/user/:driverId')
+  // @ApiCookieAuth('access_token')
+  // @ApiOperation({
+  //   summary: 'Get weekly proof details',
+  //   description:
+  //     'Provides information about a weekly detail by providing its id and the user id',
+  // })
+  // @HttpCode(HttpStatus.OK)
+  // async weeklyProofDetails(
+  //   @Param('weeklyProofId') weeklyProofId: string,
+  //   @Param('driverId') driverId: string,
+  // ) {
+  //   const weeklyProofs = await this.weeklyProofsService.weeklyProofDetails(
+  //     weeklyProofId,
+  //     driverId,
+  //   );
 
-    return { success: true, data: weeklyProofs };
-  }
+  //   return { success: true, data: weeklyProofs };
+  // }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')

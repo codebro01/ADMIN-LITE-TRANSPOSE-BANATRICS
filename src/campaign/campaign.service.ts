@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 
 import { CloudinaryService } from '@src/cloudinary/cloudinary.service';
 import { CampaignRepository } from '@src/campaign/repository/campaign.repository';
@@ -76,8 +76,10 @@ export class CampaignService {
   async listAllAvailableCampaigns() {
     return this.campaignRepository.listAllAvailableCampaigns();
   }
-  async listCampaignDriverApplications() {
-    return this.campaignRepository.listCampaignDriverApplications();
+  async listCampaignDriverApplications(campaignId: string) {
+    console.log('got to here nah', campaignId)
+    if(!campaignId) throw new BadRequestException('Campaign Id not provided') 
+    return this.campaignRepository.listCampaignDriverApplications(campaignId);
   }
   async listAllAsignedCampaignsForDriver(userId: string) {
     return this.campaignRepository.listAllAsignedCampaignsForDriver(userId);
