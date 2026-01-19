@@ -8,6 +8,11 @@ import {
 } from 'drizzle-orm/pg-core';
 import { jsonb } from 'drizzle-orm/pg-core';
 
+export enum UserApprovalStatusType {
+  APPROVED = 'approved',
+  SUSPENDED = 'suspended',
+  PENDING = 'pending',
+}
 
 export const userTable = pgTable('users', {
   id: uuid().defaultRandom().primaryKey().notNull(),
@@ -39,16 +44,19 @@ export const adminTable = pgTable('admin', {
 
 export const businessOwnerTable = pgTable('businessOwners', {
   id: uuid('id').defaultRandom().primaryKey().notNull(),
-  userId: uuid('userId').references(() => userTable.id, {
-    onDelete: 'cascade',
-  }).unique().notNull(),
+  userId: uuid('userId')
+    .references(() => userTable.id, {
+      onDelete: 'cascade',
+    })
+    .unique()
+    .notNull(),
   balance: doublePrecision('balance').default(0).notNull(),
   pending: doublePrecision('pending').default(0).notNull(),
   businessName: varchar('businessName', { length: 255 }).notNull(),
   businessAddress: varchar('businessAddress', { length: 255 }),
   businessLogo: varchar('businessLogo', { length: 255 }),
   refreshToken: varchar('refreshToken', { length: 255 }),
-  status: boolean('business_owner_status').default(true), 
+  status: varchar('business_owner_status', { length: 50 }).$type<UserApprovalStatusType>().default(UserApprovalStatusType.APPROVED).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
   // authProvider: varchar('authProvider', { length: 20 })
@@ -66,10 +74,11 @@ export const driverTable = pgTable('drivers', {
   firstname: varchar('firstname', { length: 255 })
     .notNull()
     .default('firstname'),
-  lastname: varchar('lastname', { length: 255 })
-    .notNull()
-    .default('lastname'),
-  approvedStatus: boolean('approved_status').default(false).notNull(),
+  lastname: varchar('lastname', { length: 255 }).notNull().default('lastname'),
+  approvedStatus: varchar('approved_status', { length: 20 })
+    .$type<UserApprovalStatusType>()
+    .default(UserApprovalStatusType.APPROVED)
+    .notNull(),
   balance: doublePrecision('balance').default(0).notNull(),
   pending: doublePrecision('pending').default(0).notNull(),
   dp: jsonb('dp').$type<{

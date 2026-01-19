@@ -161,22 +161,24 @@ export class UserService {
     };
   }
 
-  
-
   async listAllUsers(query: QueryUserDto) {
     const limit = query.limit || 20;
     const page = query.page || 1;
     const offset = (page - 1) * limit;
 
     if (query.userType === userEnumType.DRIVERS) {
-      return this.userRepository.listAllDrivers(query.approvedStatus, limit, offset);
+      return this.userRepository.listAllDrivers(
+        limit,
+        offset,
+        query.approvedStatus,
+      );
     }
 
     if (query.userType === userEnumType.BUSINESSOWNERS) {
       return this.userRepository.listAllBusinessOwners(
-        query.approvedStatus,
         limit,
         offset,
+        query.approvedStatus,
       );
     }
   }
@@ -191,9 +193,26 @@ export class UserService {
   // }
 
   async getFullDriverInformation(userId: string) {
-    return await this.userRepository.getFullDriverInformation(userId)
+    return await this.userRepository.getFullDriverInformation(userId);
   }
   async getFullBusinessOwnerInformation(userId: string) {
-    return await this.userRepository.getFullBusinessOwnerInformation(userId)
+    return await this.userRepository.getFullBusinessOwnerInformation(userId);
+  }
+
+  async rejectUser(userId: string, roleType: 'driver' | 'businessOwner') {
+    const user = await this.userRepository.findUserById(userId);
+    if (!user) throw new BadRequestException('Invalid user');
+
+    if (!user.role.includes(roleType)) {
+      throw new BadRequestException(`User is not a ${roleType}`);
+    }
+
+    if (roleType === 'driver') {
+      return await this.userRepository.suspendDriver(userId);
+    }
+
+    if (roleType === 'businessOwner') {
+      return await this.userRepository.suspendBusinessOwner(userId);
+    }
   }
 }

@@ -1,39 +1,30 @@
 import { ApiProperty } from '@nestjs/swagger';
-import {
+import { IsOptional, IsNumber, Min, IsEnum } from 'class-validator';
 
-  IsOptional, 
-  IsNumber, 
-  Min,
-  IsEnum,
-  IsBoolean,
-} from 'class-validator';
-
-import { Transform, Type } from 'class-transformer';
-
+import { Type } from 'class-transformer';
+import { UserApprovalStatusType } from '@src/db';
 
 // export enum userStatusType {
-//     ACTIVE = 'active', 
-//     PENDING = 'pending', 
+//     ACTIVE = 'active',
+//     PENDING = 'pending',
 //     SUSPENDED='suspended'
 // }
 
 export enum userEnumType {
-    DRIVERS = 'drivers', 
-    BUSINESSOWNERS = 'businessOwners', 
+  DRIVERS = 'drivers',
+  BUSINESSOWNERS = 'businessOwners',
 }
 
 export class QueryUserDto {
   @ApiProperty({
     description: 'approved status of the user',
-    example: true,
+    example: 'approved',
+    required: false
   })
-  @Transform(({ value }) => {
-    if (value === 'true') return true;
-    if (value === 'false') return false;
-    return value;
-  })
-  @IsBoolean()
-  approvedStatus: boolean;
+  @IsOptional()
+  @IsEnum(UserApprovalStatusType)
+  approvedStatus?: UserApprovalStatusType;
+
   @ApiProperty({
     description: 'type of the user',
     example: 'businessOwners',

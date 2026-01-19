@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { campaignTable, driverCampaignTable, driverTable, paymentTable } from '@src/db';
+import { campaignTable, driverCampaignTable, driverTable, paymentTable, UserApprovalStatusType } from '@src/db';
 import { PaymentStatusType } from '@src/payment/dto/paystackMetadataDto';
 import { eq, sum, count, avg, sql, gte } from 'drizzle-orm';
 
@@ -24,7 +24,7 @@ export class ReportsRepository {
         .where(eq(paymentTable.paymentStatus, PaymentStatusType.SUCCESS)),
       this.DbProvider.select({ total: count(driverTable.id) })
         .from(driverTable)
-        .where(eq(driverTable.approvedStatus, true)),
+        .where(eq(driverTable.approvedStatus, UserApprovalStatusType.APPROVED)),
       this.DbProvider.select({ total: count(campaignTable.id) })
         .from(campaignTable)
         .where(eq(campaignTable.active, true)),

@@ -22,13 +22,14 @@ import type { Response } from 'express';
 import type { Request } from '@src/types';
 import { CreateAdminUserDto } from '@src/users/dto/create-admin-user.dto';
 import { QueryUserDto } from '@src/users/dto/query-user.dto';
+import { UpdateAdminUserDto } from '@src/users/dto/update-admin.dto';
 
-@Controller('admin')
+@Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
   // ! finalize driver creation
-  @Post('signup')
+  @Post('admin-signup')
   @ApiOperation({
     summary:
       'This handles the creation of admins (though route will be removed or disabled in production)',
@@ -67,25 +68,25 @@ export class UserController {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
-  @Patch()
+  @Patch('admin')
   @ApiOperation({
-    summary: 'This handles the listing of all user based on query',
+    summary: 'updates admin fullName',
     description:
-      'This list users based on query and its only accessible to admins',
+      'This endpoint updates the fullname of the admin',
   })
   @ApiCookieAuth('access_token')
   @ApiResponse({ status: 200, description: 'successs' })
   @HttpCode(HttpStatus.OK)
-  async updateAdmin(@Body('fullName') fullName: string, @Req() req: Request) {
+  async updateAdmin(@Body() body: UpdateAdminUserDto, @Req() req: Request) {
     const { id: userId } = req.user;
-    const users = await this.userService.updateAdmin({ fullName }, userId);
+    const users = await this.userService.updateAdmin(body, userId);
 
     return { success: true, data: users };
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
-  @Get('/all')
+  @Get('all')
   @ApiOperation({
     summary: 'This handles the listing of all user based on query',
     description:

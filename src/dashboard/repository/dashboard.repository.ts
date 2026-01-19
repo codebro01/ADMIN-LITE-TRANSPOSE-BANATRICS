@@ -4,6 +4,7 @@ import {
   campaignTable,
   driverTable,
   paymentTable,
+  UserApprovalStatusType,
 } from '@src/db';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { eq, sql, and, sum, count, ne, gte } from 'drizzle-orm';
@@ -36,7 +37,7 @@ export class HomeDashboardsRepository {
         total: count(),
       })
         .from(driverTable)
-        .where(eq(driverTable.approvedStatus, true)),
+        .where(eq(driverTable.approvedStatus, UserApprovalStatusType.APPROVED)),
       this.DbProvider.select({
         total: count(),
       })
@@ -56,7 +57,7 @@ export class HomeDashboardsRepository {
         total: count(),
       })
         .from(driverTable)
-        .where(eq(driverTable.approvedStatus, false)),
+        .where(eq(driverTable.approvedStatus, UserApprovalStatusType.PENDING)),
     ]);
 
     // ! works for selected year
@@ -223,7 +224,7 @@ export class HomeDashboardsRepository {
       .orderBy(sql`DATE_TRUNC('year', ${campaignTable.createdAt}) ASC`);
   }
 
-  async get6MonthsEarnings() {
+  async get6MonthsPayouts() {
     const sixMonthsAgo = new Date();
     sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
 
@@ -231,14 +232,39 @@ export class HomeDashboardsRepository {
       month: sql<string>`TO_CHAR(DATE_TRUNC('month', ${earningsTable.dateInitiated}), 'Mon')`,
       year: sql<number>`EXTRACT(YEAR FROM DATE_TRUNC('month', ${earningsTable.dateInitiated}))`,
       totalPaidOut: sql<number>`coalesce(sum(${earningsTable.amount}) filter (where ${earningsTable.paymentStatus} = 'PAID'), 0)`,
-      // totalUnpaid: sql<number>`coalesce(sum(${earningsTable.amount}) filter (where ${earningsTable.paymentStatus} = 'UNPAID'), 0)`,
-      // totalApproved: sql<number>`coalesce(sum(${earningsTable.amount}) filter (where ${earningsTable.approved} = 'APPROVED'), 0)`,
-      // totalRejected: sql<number>`coalesce(sum(${earningsTable.amount}) filter (where ${earningsTable.approved} = 'REJECTED'), 0)`,
-      // paymentCount: sql<number>`count(*) filter (where ${earningsTable.paymentStatus} = 'PAID')`,
     })
       .from(earningsTable)
-      .where(gte(earningsTable.dateInitiated, sixMonthsAgo))
+      .where(and(gte(earningsTable.dateInitiated, sixMonthsAgo), eq(earningsTable.paymentStatus, PaymentStatusType.SUCCESS)))
       .groupBy(sql`DATE_TRUNC('month', ${earningsTable.dateInitiated})`)
       .orderBy(sql`DATE_TRUNC('month', ${earningsTable.dateInitiated}) ASC`);
+  }
+
+  async get7DaysPayouts() {
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    return await this.DbProvider.select({
+      day: sql<string>`TO_CHAR(DATE_TRUNC('day', ${earningsTable.dateInitiated}), 'Day')`,
+      date: sql<string>`TO_CHAR(DATE_TRUNC('day', ${earningsTable.dateInitiated}), 'YYYY-MM-DD')`,
+      totalPaidOut: sql<number>`coalesce(sum(${earningsTable.amount}) filter (where ${earningsTable.paymentStatus} = 'PAID'), 0)`,
+    })
+      .from(earningsTable)
+      .where(and(gte(earningsTable.dateInitiated, sevenDaysAgo), eq(earningsTable.paymentStatus, PaymentStatusType.SUCCESS)))
+      .groupBy(sql`DATE_TRUNC('day', ${earningsTable.dateInitiated})`)
+      .orderBy(sql`DATE_TRUNC('day', ${earningsTable.dateInitiated}) ASC`);
+  }
+
+  async get5YearsPayouts() {
+    const fiveYearsAgo = new Date();
+    fiveYearsAgo.setFullYear(fiveYearsAgo.getFullYear() - 5);
+
+    return await this.DbProvider.select({
+      year: sql<number>`EXTRACT(YEAR FROM DATE_TRUNC('year', ${earningsTable.dateInitiated}))`,
+      totalPaidOut: sql<number>`coalesce(sum(${earningsTable.amount}) filter (where ${earningsTable.paymentStatus} = 'PAID'), 0)`,
+    })
+      .from(earningsTable)
+      .where(and(gte(earningsTable.dateInitiated, fiveYearsAgo), eq(earningsTable.paymentStatus, PaymentStatusType.SUCCESS)))
+      .groupBy(sql`DATE_TRUNC('year', ${earningsTable.dateInitiated})`)
+      .orderBy(sql`DATE_TRUNC('year', ${earningsTable.dateInitiated}) ASC`);
   }
 }

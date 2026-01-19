@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, Inject } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  Inject,
+  BadRequestException,
+} from '@nestjs/common';
 import {
   bankDetailsTable,
   campaignTable,
@@ -14,6 +19,7 @@ import {
   adminInsertType,
   driverTable,
   businessOwnerTable,
+  UserApprovalStatusType,
 } from '@src/db/users';
 
 import { eq, or, count, and, sql } from 'drizzle-orm';
@@ -47,17 +53,21 @@ export class UserRepository {
 
   async updateAdmin(data: Pick<adminInsertType, 'fullName'>, userId: string) {
     const userIsExisting = await this.findUserById(userId);
+
     if (!userIsExisting) throw new NotFoundException('Invalid Request');
-    const admin = await this.DbProvider.update(adminTable)
+    const [admin] = await this.DbProvider.update(adminTable)
       .set({ ...data, userId, updatedAt: new Date() })
       .where(eq(adminTable.userId, userId))
       .returning();
 
+    if (!admin) throw new BadRequestException('Could not update admin');
+
+    console.log('admin', userId, admin);
     return admin;
   }
 
   async findUserById(userId: string) {
-    const user = await this.DbProvider.select()
+    const [user] = await this.DbProvider.select()
       .from(userTable)
       .where(eq(userTable.id, userId));
     return user;
@@ -141,25 +151,30 @@ export class UserRepository {
     return storedPassword;
   }
 
-  async listAllDrivers(status: boolean, limit: number, offset: number) {
+  async listAllDrivers(
+    limit: number,
+    offset: number,
+    status?: UserApprovalStatusType,
+  ) {
+    const condition = [];
+    if (status) condition.push(eq(driverTable.approvedStatus, status));
+    console.log('status', status);
     const users = await this.DbProvider.select({
       id: userTable.id,
       lastname: driverTable.lastname,
       firstname: driverTable.firstname,
       phone: userTable.phone,
-      totalCampaign: count(driverCampaignTable.id),
+      totalCampaigns: count(driverCampaignTable.id),
       totalEarnings: sql<number>`COALESCE(SUM(${earningsTable.amount}), 0)`, // Sum earnings, default to 0
+      status: driverTable.approvedStatus,
     })
       .from(driverTable)
       .leftJoin(userTable, eq(userTable.id, driverTable.userId))
       .leftJoin(
         driverCampaignTable,
-        and(
-          eq(driverCampaignTable.userId, userTable.id),
-          eq(driverCampaignTable.campaignStatus, 'completed'),
-          eq(driverTable.approvedStatus, status),
-        ),
+        and(eq(driverCampaignTable.userId, userTable.id)),
       )
+      .where(and(...condition))
       .leftJoin(earningsTable, eq(earningsTable.userId, driverTable.userId))
       .groupBy(
         driverTable.id,
@@ -173,7 +188,13 @@ export class UserRepository {
 
     return users;
   }
-  async listAllBusinessOwners(status: boolean, limit: number, offset: number) {
+  async listAllBusinessOwners(
+    limit: number,
+    offset: number,
+    status?: UserApprovalStatusType,
+  ) {
+    const condition = [];
+    if (status) condition.push(eq(businessOwnerTable.status, status));
     const user = await this.DbProvider.select({
       id: userTable.id,
       businessName: businessOwnerTable.businessName,
@@ -197,7 +218,7 @@ export class UserRepository {
           eq(campaignTable.paymentStatus, 'spent'),
         ),
       )
-      .where(eq(businessOwnerTable.status, status))
+      .where(and(...condition))
       .groupBy(
         businessOwnerTable.id,
         userTable.id,
@@ -264,5 +285,28 @@ export class UserRepository {
       .groupBy(userTable.id, userTable.email, userTable.phone);
 
     return user;
+  }
+
+  async approveDriver(userId: string) {
+    await this.DbProvider.update(driverTable)
+      .set({ approvedStatus: UserApprovalStatusType.APPROVED })
+      .where(eq(driverTable.userId, userId));
+
+    return 'Driver successfully approved';
+  }
+
+  async suspendDriver(userId: string) {
+    await this.DbProvider.update(driverTable)
+      .set({ approvedStatus: UserApprovalStatusType.SUSPENDED })
+      .where(eq(driverTable.userId, userId));
+
+    return 'Driver successfully suspended';
+  }
+  async suspendBusinessOwner(userId: string) {
+    await this.DbProvider.update(businessOwnerTable)
+      .set({ status: UserApprovalStatusType.SUSPENDED })
+      .where(eq(businessOwnerTable.userId, userId));
+
+    return 'Business Owner suspended';
   }
 }
