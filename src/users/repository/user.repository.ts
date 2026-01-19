@@ -292,7 +292,7 @@ export class UserRepository {
       .set({ approvedStatus: UserApprovalStatusType.APPROVED })
       .where(eq(driverTable.userId, userId));
 
-    return 'Driver successfully approved';
+    return true;
   }
 
   async suspendDriver(userId: string) {
@@ -300,13 +300,13 @@ export class UserRepository {
       .set({ approvedStatus: UserApprovalStatusType.SUSPENDED })
       .where(eq(driverTable.userId, userId));
 
-    return 'Driver successfully suspended';
+    return true;
   }
   async suspendBusinessOwner(userId: string) {
     await this.DbProvider.update(businessOwnerTable)
       .set({ status: UserApprovalStatusType.SUSPENDED })
       .where(eq(businessOwnerTable.userId, userId));
 
-    return 'Business Owner suspended';
+    return true;
   }
 }

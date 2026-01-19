@@ -10,6 +10,7 @@ import {
   HttpCode,
   Patch,
   Req,
+  Param,
 } from '@nestjs/common';
 import { UserService } from '@src/users/users.service';
 import { JwtAuthGuard } from '@src/auth/guards/jwt-auth.guard';
@@ -23,6 +24,7 @@ import type { Request } from '@src/types';
 import { CreateAdminUserDto } from '@src/users/dto/create-admin-user.dto';
 import { QueryUserDto } from '@src/users/dto/query-user.dto';
 import { UpdateAdminUserDto } from '@src/users/dto/update-admin.dto';
+import { RejectUserDto } from '@src/users/dto/reject-user.dto';
 
 @Controller('users')
 export class UserController {
@@ -39,7 +41,7 @@ export class UserController {
   @HttpCode(HttpStatus.CREATED)
   async createAdminUser(
     @Body() body: CreateAdminUserDto,
-    @Res({passthrough: true}) res: Response,
+    @Res({ passthrough: true }) res: Response,
   ) {
     const { user, accessToken, refreshToken } =
       await this.userService.createAdminUser(body);
@@ -63,7 +65,7 @@ export class UserController {
       'emailVerificationCode',
     ]);
 
-    return { success: true,  user: safeUser };
+    return { success: true, user: safeUser };
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -71,8 +73,7 @@ export class UserController {
   @Patch('admin')
   @ApiOperation({
     summary: 'updates admin fullName',
-    description:
-      'This endpoint updates the fullname of the admin',
+    description: 'This endpoint updates the fullname of the admin',
   })
   @ApiCookieAuth('access_token')
   @ApiResponse({ status: 200, description: 'successs' })
@@ -134,5 +135,37 @@ export class UserController {
       await this.userService.getFullBusinessOwnerInformation(userId);
 
     return { success: true, data: users };
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  @Post(':userId/suspend')
+  @ApiCookieAuth('access_token')
+  @ApiOperation({
+    summary: 'Reject a user by role type',
+    description: 'This endpoint enables the reject of a user',
+  })
+  @HttpCode(HttpStatus.OK)
+  async rejectUser(
+    @Param('userId') userId: string,
+    @Body() dto: RejectUserDto,
+  ) {
+     await this.userService.rejectUser(userId, dto.roleType);
+     return {success: true, message: 'User suspended'}
+  }
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  @Post(':driverId/approve')
+  @ApiCookieAuth('access_token')
+  @ApiOperation({
+    summary: 'Approved driver kyc',
+    description: 'This endpoint enables the approval of a driver kyc',
+  })
+  @HttpCode(HttpStatus.OK)
+  async approveDriver(
+    @Param('driverId') driverId: string,
+  ) {
+     await this.userService.approveDriver(driverId);
+     return {success:true, message: 'Driver approved'}
   }
 }

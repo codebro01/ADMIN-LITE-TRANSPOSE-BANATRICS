@@ -215,4 +215,8 @@ export class UserService {
       return await this.userRepository.suspendBusinessOwner(userId);
     }
   }
+
+  async approveDriver(userId: string) {
+    return await this.userRepository.approveDriver(userId);
+  }
 }
