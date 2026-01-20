@@ -153,5 +153,13 @@ export class WeeklyProofsRepository {
   
       return weeklyProofs;
     }
+
+    async campaignAllWeeklyProofs (campaignId: string) {
+        const weeklyProofs = await this.DbProvider.select().from(weeklyProofTable).where(eq(weeklyProofTable.campaignId, campaignId));
+
+        return weeklyProofs;
+
+
+    }
   
 }

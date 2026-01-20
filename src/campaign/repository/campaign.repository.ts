@@ -4,6 +4,7 @@ import { and, eq, sql, ne, lt, count } from 'drizzle-orm';
 import { campaignTable } from '@src/db/campaigns';
 import { MaintenanceType, StatusType } from '../dto/publishCampaignDto';
 import {
+  businessOwnerTable,
   campaignDesignsTable,
   driverCampaignTable,
   driverTable,
@@ -16,6 +17,7 @@ import {
 import { updatePricePerDriverPerCampaign } from '@src/campaign/dto/update-price-per-driver-per-campaign.dto';
 import { UploadCampaignDesignDto } from '@src/campaign/dto/upload-campaign-design.dto';
 import { ApproveCampaignDto } from '@src/users/dto/approve-campaign.dto';
+import { QueryCampaignDto } from '@src/campaign/dto/query-campaign.dto';
 
 export type CampaignStatus =
   | 'draft'
@@ -247,15 +249,10 @@ export class CampaignRepository {
     return campaigns;
   }
 
-
   async findCampaignById(userId: string) {
     const [campaigns] = await this.DbProvider.select()
       .from(campaignTable)
-      .where(
-        and(
-          eq(campaignTable.userId, userId),
-        ),
-      );
+      .where(and(eq(campaignTable.userId, userId)));
 
     return campaigns;
   }
@@ -284,8 +281,6 @@ export class CampaignRepository {
 
     return deleted || null;
   }
-
-
 
   //!===================================drivers db calls ===========================================//
 
@@ -550,6 +545,7 @@ export class CampaignRepository {
   }
 
   async approveDriverCampaign(campaignId: string, userId: string) {
+    console.log('approving', campaignId, userId);
     const [campaign] = await this.DbProvider.update(driverCampaignTable)
       .set({
         campaignStatus: 'approved',
@@ -557,7 +553,7 @@ export class CampaignRepository {
       .where(
         and(
           eq(driverCampaignTable.userId, userId),
-          eq(driverCampaignTable.id, campaignId),
+          eq(driverCampaignTable.campaignId, campaignId),
         ),
       )
       .returning();
@@ -568,14 +564,42 @@ export class CampaignRepository {
   async getFullCampaignInformation(campaignId: string) {
     const [campaign] = await this.DbProvider.select({
       campaignName: campaignTable.campaignName,
-      duration: campaignTable.duration,
       status: campaignTable.statusType,
-      paymentStatus: campaignTable.paymentStatus,
+      duration: campaignTable.duration,
+      startDate: campaignTable.startDate,
+      endDate: campaignTable.endDate,
       totalBudget: campaignTable.price,
+      paymentStatus: campaignTable.paymentStatus,
       paymentDate: campaignTable.createdAt,
+      advertiser: businessOwnerTable.businessName,
+      email: userTable.email,
+      phone: userTable.phone,
+      colorPallete: campaignTable.colorPallete,
+      companyLogo: campaignTable.companyLogo,
+      uploadedImages: campaignTable.uploadedImages,
+      mainMessage: campaignTable.mainMessage,
+      slogan: campaignTable.slogan,
+      callToAction: campaignTable.callToAction,
+      responseOnSeeingBanner: campaignTable.responseOnSeeingBanner,
+      assignedVehicles: count(driverCampaignTable.id),
     })
       .from(campaignTable)
-      .where(and(eq(campaignTable.id, campaignId)));
+      .where(eq(campaignTable.id, campaignId))
+      .leftJoin(userTable, eq(userTable.id, campaignTable.userId))
+      .leftJoin(businessOwnerTable, eq(businessOwnerTable.userId, userTable.id))
+      .leftJoin(
+        driverCampaignTable,
+        and(
+          eq(driverCampaignTable.campaignId, campaignTable.id),
+          eq(driverCampaignTable.campaignStatus, 'approved'),
+        ),
+      )
+      .groupBy(
+        campaignTable.id,
+        businessOwnerTable.businessName,
+        userTable.email,
+        userTable.phone,
+      );
 
     return campaign;
   }
@@ -613,18 +637,26 @@ export class CampaignRepository {
     return campaigns;
   }
 
-  async createCampaignDesigns(data: UploadCampaignDesignDto) {
-    const campaign = await this.DbProvider.insert(campaignDesignsTable).values({
-      campaignId: data.campaignId,
-      designs: data.designs,
-      comment: data.comment,
-    });
+  async createCampaignDesigns(
+    data: UploadCampaignDesignDto,
+    campaignId: string,
+  ) {
+    const [campaign] = await this.DbProvider.insert(campaignDesignsTable)
+      .values({
+        campaignId: campaignId,
+        designs: data.designs,
+        comment: data.comment,
+      })
+      .returning();
 
     return campaign;
   }
-  async updateCampaignDesigns(data: UploadCampaignDesignDto) {
+  async updateCampaignDesigns(
+    data: UploadCampaignDesignDto,
+    campaignId: string,
+  ) {
     const campaign = await this.DbProvider.update(campaignDesignsTable).set({
-      campaignId: data.campaignId,
+      campaignId: campaignId,
       designs: data.designs,
       comment: data.comment,
     });
@@ -632,18 +664,31 @@ export class CampaignRepository {
     return campaign;
   }
 
-  async approveCampaign(data: ApproveCampaignDto, campaignId:string) {
-    const campaign = await this.DbProvider.update(campaignTable)
+  async getDesignsForCampaign(campaignId: string) {
+    const designs = await this.DbProvider.select()
+      .from(campaignDesignsTable)
+      .where(eq(campaignDesignsTable.campaignId, campaignId));
+
+    return designs;
+  }
+
+  async approveCampaign(data: ApproveCampaignDto, campaignId: string) {
+    const [campaign] = await this.DbProvider.update(campaignTable)
       .set({
         statusType: data.approveCampaignType,
         printHousePhoneNo: data.printHousePhoneNo,
       })
-      .where(eq(campaignTable.id, campaignId));
+      .where(eq(campaignTable.id, campaignId))
+      .returning();
 
     return campaign;
   }
 
-  async listAllAvailableCampaigns() {
+  async listAllAvailableCampaigns(query: QueryCampaignDto) {
+    const conditions = [];
+    if (query.active) conditions.push(eq(campaignTable.active, query.active));
+    if (query.status)
+      conditions.push(eq(campaignTable.statusType, query.status));
     const campaigns = await this.DbProvider.select({
       id: campaignTable.id,
       campaignTitle: campaignTable.campaignName,
@@ -657,8 +702,10 @@ export class CampaignRepository {
       .from(campaignTable)
       .where(
         and(
-          ne(campaignTable.statusType, 'draft'),
-          eq(campaignTable.paymentStatus, 'spent'),
+          // ne(campaignTable.statusType, 'draft'),
+          // eq(campaignTable.paymentStatus, 'spent'),
+
+          ...conditions,
         ),
       )
       .leftJoin(
@@ -671,6 +718,7 @@ export class CampaignRepository {
   }
 
   async listCampaignDriverApplications(campaignId: string) {
+    console.log(campaignId);
     const applications = await this.DbProvider.select({
       campaign: campaignTable.campaignName,
       driverFirstName: driverTable.firstname,
@@ -682,7 +730,8 @@ export class CampaignRepository {
       location: campaignTable.state,
       duration: campaignTable.duration,
     })
-      .from(driverCampaignTable).where(eq(driverCampaignTable.campaignId, campaignId))
+      .from(driverCampaignTable)
+      .where(eq(driverCampaignTable.campaignId, campaignId))
       .leftJoin(
         campaignTable,
         eq(campaignTable.id, driverCampaignTable.campaignId),

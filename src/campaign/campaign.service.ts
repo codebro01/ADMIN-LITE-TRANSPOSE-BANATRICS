@@ -9,6 +9,7 @@ import { CronExpression, Cron } from '@nestjs/schedule';
 import { updatePricePerDriverPerCampaign } from '@src/campaign/dto/update-price-per-driver-per-campaign.dto';
 import { UploadCampaignDesignDto } from '@src/campaign/dto/upload-campaign-design.dto';
 import { ApproveCampaignDto } from '@src/users/dto/approve-campaign.dto';
+import { QueryCampaignDto } from '@src/campaign/dto/query-campaign.dto';
 
 @Injectable()
 export class CampaignService {
@@ -50,7 +51,15 @@ export class CampaignService {
   }
 
   async getFullCampaignInformation(campaignId: string) {
-    return await this.campaignRepository.getFullCampaignInformation(campaignId);
+    const [campaign, design] = await Promise.all([
+      this.campaignRepository.getFullCampaignInformation(campaignId),
+      this.campaignRepository.getDesignsForCampaign(campaignId),
+    ]);
+
+    return {
+      ...campaign,
+      design,
+    };
   }
 
   async listAllAssignedDriversForCampaign(campaignId: string) {
@@ -64,21 +73,30 @@ export class CampaignService {
       userId,
     );
   }
-  async createCampaignDesigns(data: UploadCampaignDesignDto) {
-    return this.campaignRepository.createCampaignDesigns(data);
+  async createCampaignDesigns(
+    data: UploadCampaignDesignDto,
+    campaignId: string,
+  ) {
+    return this.campaignRepository.createCampaignDesigns(data, campaignId);
   }
-  async updateCampaignDesigns(data: UploadCampaignDesignDto) {
-    return this.campaignRepository.updateCampaignDesigns(data);
+  async updateCampaignDesigns(
+    data: UploadCampaignDesignDto,
+    campaignId: string,
+  ) {
+    return this.campaignRepository.updateCampaignDesigns(data, campaignId);
+  }
+  async getDesignsForCampaign(campaignId: string) {
+    return this.campaignRepository.getDesignsForCampaign(campaignId);
   }
   async approveCampaign(data: ApproveCampaignDto, campaignId: string) {
     return this.campaignRepository.approveCampaign(data, campaignId);
   }
-  async listAllAvailableCampaigns() {
-    return this.campaignRepository.listAllAvailableCampaigns();
+  async listAllAvailableCampaigns(query: QueryCampaignDto) {
+    return this.campaignRepository.listAllAvailableCampaigns(query);
   }
   async listCampaignDriverApplications(campaignId: string) {
-    console.log('got to here nah', campaignId)
-    if(!campaignId) throw new BadRequestException('Campaign Id not provided') 
+    console.log('got to here nah', campaignId);
+    if (!campaignId) throw new BadRequestException('Campaign Id not provided');
     return this.campaignRepository.listCampaignDriverApplications(campaignId);
   }
   async listAllAsignedCampaignsForDriver(userId: string) {

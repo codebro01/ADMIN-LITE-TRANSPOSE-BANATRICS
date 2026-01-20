@@ -28,6 +28,8 @@ export class JwtAuthGuard implements CanActivate {
     const access_token = request.cookies?.access_token; // for browser cookies // for mobile apps
     const refresh_token = request.cookies?.refresh_token; // for browser cookies // for mobile apps
 
+    // console.log('tokens', access_token, refresh_token)
+
     if (!access_token && !refresh_token) {
       throw new UnauthorizedException('No token provided');
     }
@@ -44,17 +46,16 @@ export class JwtAuthGuard implements CanActivate {
           'Could not verify token, Unauthorization error',
         );
 
-        console.log(token)
+        // console.log(token)
 
       // const payload = this.jwtService.verify(token); // verify with secret
       request['user'] = token; // attach user to request
       return true;
     } catch (error) {
-      console.log(error);
+      console.log( error);
       if (!refresh_token) {
-        response.redirect('/signin');
         throw new UnauthorizedException(
-          'You are not permitted to enter here',
+          'Not authorized',
         );
       }
       // console.log('got to is not refresh token', refresh_token);

@@ -38,4 +38,8 @@ export class WeeklyProofsService {
   async listDriverWeeklyProofs(userId: string) {
     return await this.weeklyProofsRepository.listDriverWeeklyProofs(userId);
   }
+  
+  async campaignAllWeeklyProofs(campaignId: string) {
+    return await this.weeklyProofsRepository.campaignAllWeeklyProofs(campaignId);
+  }
 }

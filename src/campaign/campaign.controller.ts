@@ -10,6 +10,7 @@ import {
   Query,
   Param,
   Post,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -30,6 +31,7 @@ import { ApproveDriverApplicationDto } from '@src/campaign/dto/approve-driver-ap
 import { UploadCampaignDesignDto } from '@src/campaign/dto/upload-campaign-design.dto';
 import { UpdateCampaignDesignDto } from '@src/campaign/dto/update-campaign-design.dto';
 import { ApproveCampaignDto } from '@src/users/dto/approve-campaign.dto';
+import { QueryCampaignDto } from '@src/campaign/dto/query-campaign.dto';
 
 @ApiTags('Campaign')
 @Controller('campaign')
@@ -155,15 +157,21 @@ export class CampaignController {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
-  @Post('designs')
+  @Post(':campaignId/designs')
   @ApiCookieAuth('access_token')
   @ApiOperation({
     summary: 'Create a campaign design',
     description: 'Submit a campaign design',
   })
   @HttpCode(HttpStatus.CREATED)
-  async createCampaignDesigns(@Body() body: UploadCampaignDesignDto) {
-    const campaign = await this.campaignService.createCampaignDesigns(body);
+  async createCampaignDesigns(
+    @Body() body: UploadCampaignDesignDto,
+    @Param('campaignId', ParseUUIDPipe) campaignId: string,
+  ) {
+    const campaign = await this.campaignService.createCampaignDesigns(
+      body,
+      campaignId,
+    );
 
     return { success: true, data: campaign };
   }
@@ -179,14 +187,11 @@ export class CampaignController {
   @HttpCode(HttpStatus.CREATED)
   async approveCampaign(
     @Body() body: ApproveCampaignDto,
-    @Param('campaignId') campaignId: string,
+    @Param('campaignId', ParseUUIDPipe) campaignId: string,
   ) {
-    const campaign = await this.campaignService.approveCampaign(
-      body,
-      campaignId,
-    );
+    await this.campaignService.approveCampaign(body, campaignId);
 
-    return { success: true, data: campaign };
+    return { success: true, message: 'campaign Approved' };
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -200,12 +205,12 @@ export class CampaignController {
   @HttpCode(HttpStatus.CREATED)
   async updateCampaignDesigns(
     @Body() body: UpdateCampaignDesignDto,
-    @Param('campaignId') campaignId: string,
+    @Param('campaignId', ParseUUIDPipe) campaignId: string,
   ) {
-    const campaign = await this.campaignService.updateCampaignDesigns({
-      ...body,
+    const campaign = await this.campaignService.updateCampaignDesigns(
+      body,
       campaignId,
-    });
+    );
 
     return { success: true, data: campaign };
   }
@@ -219,8 +224,8 @@ export class CampaignController {
     description: 'List all available campaigns',
   })
   @HttpCode(HttpStatus.CREATED)
-  async listAllAvailableCampaigns() {
-    const campaign = await this.campaignService.listAllAvailableCampaigns();
+  async listAllAvailableCampaigns(@Query() query: QueryCampaignDto) {
+    const campaign = await this.campaignService.listAllAvailableCampaigns(query);
 
     return { success: true, data: campaign };
   }
@@ -234,7 +239,9 @@ export class CampaignController {
     description: 'List all campaign applications',
   })
   @HttpCode(HttpStatus.CREATED)
-  async listCampaignDriverApplications(@Query('campaignId') campaignId: string) {
+  async listCampaignDriverApplications(
+    @Query('campaignId', ParseUUIDPipe) campaignId: string,
+  ) {
     const campaign =
       await this.campaignService.listCampaignDriverApplications(campaignId);
 

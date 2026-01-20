@@ -8,6 +8,7 @@ import {
   UseGuards,
   HttpCode,
   Query,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { WeeklyProofsService } from './weekly-proofs.service';
 import {
@@ -114,9 +115,25 @@ export class WeeklyProofsController {
     description: 'List all weekly proofs submitted by a driver',
   })
   @HttpCode(HttpStatus.OK)
-  async listDriverWeeklyProofs(@Param('driverId') driverId: string) {
+  async listDriverWeeklyProofs(@Param('driverId', ParseUUIDPipe) driverId: string) {
     const weeklyProofs =
       await this.weeklyProofsService.listDriverWeeklyProofs(driverId);
+
+    return { success: true, data: weeklyProofs };
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  @Get('all/:campaignId')
+  @ApiCookieAuth('access_token')
+  @ApiOperation({
+    summary: 'List all weekly proofs submitted for a campaign',
+    description: 'List all weekly proofs for a campaign',
+  })
+  @HttpCode(HttpStatus.OK)
+  async campaignAllWeeklyProofs(@Param('campaignId', ParseUUIDPipe) campaignId: string) {
+    const weeklyProofs =
+      await this.weeklyProofsService.campaignAllWeeklyProofs(campaignId);
 
     return { success: true, data: weeklyProofs };
   }
