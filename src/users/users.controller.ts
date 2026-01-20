@@ -24,7 +24,7 @@ import type { Request } from '@src/types';
 import { CreateAdminUserDto } from '@src/users/dto/create-admin-user.dto';
 import { QueryUserDto } from '@src/users/dto/query-user.dto';
 import { UpdateAdminUserDto } from '@src/users/dto/update-admin.dto';
-import { RejectUserDto } from '@src/users/dto/reject-user.dto';
+import { SuspendUserDto } from '@src/users/dto/reject-user.dto';
 
 @Controller('users')
 export class UserController {
@@ -146,26 +146,38 @@ export class UserController {
     description: 'This endpoint enables the reject of a user',
   })
   @HttpCode(HttpStatus.OK)
-  async rejectUser(
+  async suspendUser(
     @Param('userId') userId: string,
-    @Body() dto: RejectUserDto,
+    @Body() dto: SuspendUserDto,
   ) {
-     await this.userService.rejectUser(userId, dto.roleType);
-     return {success: true, message: 'User suspended'}
+    await this.userService.suspendUser(userId, dto.roleType);
+    return { success: true, message: 'User suspended' };
   }
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
-  @Post(':driverId/approve')
+  @Post('driver/:driverId/approve')
   @ApiCookieAuth('access_token')
   @ApiOperation({
     summary: 'Approved driver kyc',
     description: 'This endpoint enables the approval of a driver kyc',
   })
   @HttpCode(HttpStatus.OK)
-  async approveDriver(
-    @Param('driverId') driverId: string,
-  ) {
-     await this.userService.approveDriver(driverId);
-     return {success:true, message: 'Driver approved'}
+  async approveDriver(@Param('driverId') driverId: string) {
+    await this.userService.approveDriver(driverId);
+    return { success: true, message: 'Driver approved' };
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  @Post('businessOwner/:businessOwnerId/approve')
+  @ApiCookieAuth('access_token')
+  @ApiOperation({
+    summary: 'Approve business Owner',
+    description: 'This endpoint enables the approval of a driver kyc',
+  })
+  @HttpCode(HttpStatus.OK)
+  async approveBusinessOwner(@Param('businessOwnerId') businessOwnerId: string) {
+    await this.userService.approveBusinessOwner(businessOwnerId);
+    return { success: true, message: 'business Owner approved' };
   }
 }

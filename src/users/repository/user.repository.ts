@@ -298,6 +298,13 @@ export class UserRepository {
     return true;
   }
 
+  async approveBusinessOwner(userId: string) {
+    await this.DbProvider.update(businessOwnerTable)
+      .set({ status: UserApprovalStatusType.APPROVED })
+      .where(eq(businessOwnerTable.userId, userId));
+
+    return true;
+  }
   async suspendDriver(userId: string) {
     await this.DbProvider.update(driverTable)
       .set({ approvedStatus: UserApprovalStatusType.SUSPENDED })

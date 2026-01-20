@@ -6,8 +6,7 @@ enum RoleType {
   BUSINESS_OWNER = 'businessOwner',
 }
 
-export class RejectUserDto {
-
+export class SuspendUserDto {
   @ApiProperty({
     description: 'The role type to reject',
     enum: RoleType,

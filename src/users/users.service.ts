@@ -199,7 +199,7 @@ export class UserService {
     return await this.userRepository.getFullBusinessOwnerInformation(userId);
   }
 
-  async rejectUser(userId: string, roleType: 'driver' | 'businessOwner') {
+  async suspendUser(userId: string, roleType: 'driver' | 'businessOwner') {
     const user = await this.userRepository.findUserById(userId);
     if (!user) throw new BadRequestException('Invalid user');
 
@@ -218,5 +218,9 @@ export class UserService {
 
   async approveDriver(userId: string) {
     return await this.userRepository.approveDriver(userId);
+  }
+
+  async approveBusinessOwner(userId: string) {
+    return await this.userRepository.approveBusinessOwner(userId);
   }
 }
