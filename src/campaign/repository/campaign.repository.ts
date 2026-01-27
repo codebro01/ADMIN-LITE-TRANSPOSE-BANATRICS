@@ -428,6 +428,7 @@ export class CampaignRepository {
       state: campaignTable.state,
       driverCampaignStatus: driverCampaignTable.campaignStatus,
       startDate: campaignTable.startDate,
+      endDate: campaignTable.endDate,
       duration: campaignTable.duration,
       availability: campaignTable.availability,
       requirements: campaignTable.requirements,
@@ -453,6 +454,8 @@ export class CampaignRepository {
       driverCampaignStatus: driverCampaignTable.campaignStatus,
       title: campaignTable.campaignName,
       totalEarning: campaignTable.earningPerDriver,
+      startDate: campaignTable.startDate, 
+      endDate: campaignTable.endDate, 
     })
       .from(driverCampaignTable)
       .where(
@@ -582,6 +585,7 @@ export class CampaignRepository {
       callToAction: campaignTable.callToAction,
       responseOnSeeingBanner: campaignTable.responseOnSeeingBanner,
       assignedVehicles: count(driverCampaignTable.id),
+      noOfDrivers: count(driverCampaignTable.id)
     })
       .from(campaignTable)
       .where(eq(campaignTable.id, campaignId))
@@ -625,6 +629,9 @@ export class CampaignRepository {
       amount: campaignTable.price,
       status: campaignTable.statusType,
       active: campaignTable.active,
+      startDate: campaignTable.startDate,
+      endDate: campaignTable.endDate,
+
     })
       .from(campaignTable)
       .where(eq(campaignTable.userId, userId))
@@ -692,6 +699,8 @@ export class CampaignRepository {
     const campaigns = await this.DbProvider.select({
       id: campaignTable.id,
       campaignTitle: campaignTable.campaignName,
+      startDate: campaignTable.startDate,
+      endDate: campaignTable.endDate,
       duration: campaignTable.duration,
       location: campaignTable.state,
       vehicles: count(driverCampaignTable.userId),

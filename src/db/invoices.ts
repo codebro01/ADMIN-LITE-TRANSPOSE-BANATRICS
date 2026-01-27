@@ -1,7 +1,14 @@
 import { pgTable, uuid, doublePrecision, timestamp, varchar } from "drizzle-orm/pg-core";
 import { campaignTable } from "@src/db/campaigns";
 import { driverTable } from "@src/db/users";
-import { InvoiceStatusType } from "@src/invoices/dto/create-invoice.dto";
+
+
+export enum InvoiceStatusType {
+  SUCCESS = 'success',
+  PENDING = 'pending',
+  OVERDUE = 'overdue',
+  FAILED = 'failed',
+}
 
 export const invoicesTable = pgTable('invoices', {
       id: uuid('id').primaryKey().defaultRandom().notNull(), 

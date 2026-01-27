@@ -4,8 +4,6 @@ import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { eq } from 'drizzle-orm';
 // import { driverTable } from '@src/db';
 
-
-
 @Injectable()
 export class AuthRepository {
   constructor(
@@ -42,4 +40,6 @@ export class AuthRepository {
 
     return updateUserToken;
   }
+
+
 }
