@@ -19,7 +19,8 @@ import {
   ApiOperation,
   ApiBody,
   ApiBearerAuth,
-} from '@nestjs/swagger';import { UserService } from '@src/users/users.service';
+} from '@nestjs/swagger';
+import { UserService } from '@src/users/users.service';
 import omit from 'lodash.omit';
 import { JwtAuthGuard } from '@src/auth/guards/jwt-auth.guard';
 
@@ -65,7 +66,10 @@ export class AuthController {
     status: 401,
     description: 'Unauthorized - Invalid email or password',
   })
-  async loginUser(@Body() body: LoginUserDto, @Res({passthrough: true}) res: Response) {
+  async loginUser(
+    @Body() body: LoginUserDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
     const { user, accessToken, refreshToken } =
       await this.authService.loginUser(body);
 
@@ -117,6 +121,8 @@ export class AuthController {
   async logoutUser(@Res() res: Response, @Req() req: Request) {
     await this.authService.logoutUser(res, req);
 
+    res.clearCookie('access_token');
+    res.clearCookie('refresh_token');
     res.status(HttpStatus.OK).json({ message: 'Logout Successful' });
   }
 }

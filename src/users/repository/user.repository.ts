@@ -245,9 +245,9 @@ export class UserRepository {
       accountNumber: bankDetails.accountNumber,
       accountName: bankDetails.accountName,
       // vehiclePhoto: vehicleDetailsTable.vehiclePhotos,
-      sideView: driverTable.sideview, 
-      frontView: driverTable.frontview, 
-      backView: driverTable.backview, 
+      sideView: driverTable.sideview,
+      frontView: driverTable.frontview,
+      backView: driverTable.backview,
       driverLicense: driverTable.driverLicense,
       vehiclePapers: driverTable.owershipDocument,
       totalEarnings: sql<number>`COALESCE(SUM(${earningsTable.amount}), 0)`,
@@ -298,10 +298,17 @@ export class UserRepository {
     return true;
   }
 
-  async approveBusinessOwner(userId: string) {
+  async activateBusinessOwner(userId: string) {
     await this.DbProvider.update(businessOwnerTable)
       .set({ status: UserApprovalStatusType.APPROVED })
       .where(eq(businessOwnerTable.userId, userId));
+
+    return true;
+  }
+  async activateDriver(userId: string) {
+    await this.DbProvider.update(driverTable)
+      .set({ activeStatus: UserApprovalStatusType.ACTIVATED })
+      .where(eq(driverTable.userId, userId));
 
     return true;
   }

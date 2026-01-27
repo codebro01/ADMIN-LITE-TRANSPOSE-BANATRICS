@@ -220,7 +220,10 @@ export class UserService {
     return await this.userRepository.approveDriver(userId);
   }
 
-  async approveBusinessOwner(userId: string) {
-    return await this.userRepository.approveBusinessOwner(userId);
+  async activateBusinessOwner(userId: string) {
+    return await this.userRepository.activateBusinessOwner(userId);
+  }
+  async activateDriver(userId: string) {
+    return await this.userRepository.activateDriver(userId);
   }
 }

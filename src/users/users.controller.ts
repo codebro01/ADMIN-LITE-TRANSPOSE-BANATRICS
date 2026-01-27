@@ -11,6 +11,7 @@ import {
   Patch,
   Req,
   Param,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { UserService } from '@src/users/users.service';
 import { JwtAuthGuard } from '@src/auth/guards/jwt-auth.guard';
@@ -169,15 +170,34 @@ export class UserController {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
-  @Post('businessOwner/:businessOwnerId/approve')
+  @Post('businessOwner/:businessOwnerId/activate')
   @ApiCookieAuth('access_token')
   @ApiOperation({
-    summary: 'Approve business Owner',
-    description: 'This endpoint enables the approval of a driver kyc',
+    summary: 'Activate business Owner',
+    description: 'This endpoint is used for the activation of a suspended business Owner',
   })
   @HttpCode(HttpStatus.OK)
-  async approveBusinessOwner(@Param('businessOwnerId') businessOwnerId: string) {
-    await this.userService.approveBusinessOwner(businessOwnerId);
-    return { success: true, message: 'business Owner approved' };
+  async activateBusinessOwner(
+    @Param('businessOwnerId', ParseUUIDPipe) businessOwnerId: string,
+  ) {
+    await this.userService.activateBusinessOwner(businessOwnerId);
+    return { success: true, message: 'Business Owner activated' };
+  }
+
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  @Post('businessOwner/:driverId/activate')
+  @ApiCookieAuth('access_token')
+  @ApiOperation({
+    summary: 'Activate driver',
+    description: 'This endpoint is used the activation of a suspended driver',
+  })
+  @HttpCode(HttpStatus.OK)
+  async activateDriver(
+    @Param('driverId', ParseUUIDPipe) driverId: string,
+  ) {
+    await this.userService.activateDriver(driverId);
+    return { success: true, message: 'Driver activated' };
   }
 }

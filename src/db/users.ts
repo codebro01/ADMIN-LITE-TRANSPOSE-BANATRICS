@@ -9,6 +9,7 @@ import {
 import { jsonb } from 'drizzle-orm/pg-core';
 
 export enum UserApprovalStatusType {
+  ACTIVATED = 'activated', 
   APPROVED = 'approved',
   SUSPENDED = 'suspended',
   PENDING = 'pending',
@@ -77,8 +78,9 @@ export const driverTable = pgTable('drivers', {
   lastname: varchar('lastname', { length: 255 }).notNull().default('lastname'),
   approvedStatus: varchar('approved_status', { length: 20 })
     .$type<UserApprovalStatusType>()
-    .default(UserApprovalStatusType.APPROVED)
+    .default(UserApprovalStatusType.PENDING)
     .notNull(),
+  activeStatus: varchar('active_status').$type<UserApprovalStatusType>().default(UserApprovalStatusType.ACTIVATED).notNull(), 
   balance: doublePrecision('balance').default(0).notNull(),
   pending: doublePrecision('pending').default(0).notNull(),
   dp: jsonb('dp').$type<{

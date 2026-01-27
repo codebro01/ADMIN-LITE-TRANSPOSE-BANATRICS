@@ -12,4 +12,7 @@ export class LoginUserDto {
   @IsString()
   @MinLength(6) // enforce strong-ish password
   password: string;
+
+
+  
 }
