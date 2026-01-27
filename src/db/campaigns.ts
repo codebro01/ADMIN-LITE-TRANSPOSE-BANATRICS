@@ -51,8 +51,8 @@ export const campaignTable = pgTable('campaigns', {
   availability: integer('availability'),
   campaignName: varchar('campaign_name', { length: 255 }),
   campaignDescriptions: text('campaign_descriptions'),
-  startDate: timestamp('start_date'),
-  endDate: timestamp('end_date'),
+  startDate: timestamp('start_date', { mode: 'date', withTimezone: true }),
+  endDate: timestamp('end_date', { mode: 'date', withTimezone: true }),
   companyLogo: jsonb('company_logo').$type<{
     secure_url: string;
     public_id: string;
@@ -71,17 +71,21 @@ export const campaignTable = pgTable('campaigns', {
   callToAction: text('call_to_action'),
   requirements: text('requirements'),
   mainMessage: text('main_message'),
-  active: boolean('active').default(false), 
+  active: boolean('active').default(false),
   responseOnSeeingBanner: text('response_on_seeing_banner'),
   uploadedImages: jsonb('uploaded_images')
     .$type<{ secure_url: string; public_id: string }[]>()
     .default([]),
 
   slogan: varchar('slogan', { length: 500 }),
-  printHousePhoneNo: varchar('print_house_phone_no', {length: 20}), 
-  spentAt: timestamp('spent_at'),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  printHousePhoneNo: varchar('print_house_phone_no', { length: 20 }),
+  spentAt: timestamp('spent_at', { mode: 'date', withTimezone: true }),
+  createdAt: timestamp('created_at', { mode: 'date', withTimezone: true })
+    .defaultNow()
+    .notNull(),
+  updatedAt: timestamp('updated_at', { mode: 'date', withTimezone: true })
+    .defaultNow()
+    .notNull(),
 });
 
 // Types

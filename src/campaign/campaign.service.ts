@@ -23,10 +23,20 @@ export class CampaignService {
   // !====================== admin section ===================================================
 
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
-  async handleCampaignStatusUpdate() {
+  async updateCampaignStatusToCompleted() {
     console.log('Running campaign status update job...');
 
-    const result = await this.campaignRepository.handleCampaignStatusUpdate();
+    const result =
+      await this.campaignRepository.updateCampaignStatusToCompleted();
+
+    return result;
+  }
+
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  async updateCampaignToActive() {
+    console.log('Running campaign status update job...');
+
+    const result = await this.campaignRepository.updateCampaignToActive();
 
     return result;
   }
