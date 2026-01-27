@@ -220,10 +220,23 @@ export class UserService {
     return await this.userRepository.approveDriver(userId);
   }
 
-  async activateBusinessOwner(userId: string) {
-    return await this.userRepository.activateBusinessOwner(userId);
-  }
-  async activateDriver(userId: string) {
-    return await this.userRepository.activateDriver(userId);
+  async activateUserByRoleType(
+    userId: string,
+    roleType: 'driver' | 'businessOwner',
+  ) {
+     const user = await this.userRepository.findUserById(userId);
+     if (!user) throw new BadRequestException('Invalid user');
+
+     if (!user.role.includes(roleType)) {
+       throw new BadRequestException(`User is not a ${roleType}`);
+     }
+
+     if (roleType === 'driver') {
+       return await this.userRepository.activateDriver(userId);
+     }
+
+     if (roleType === 'businessOwner') {
+       return await this.userRepository.activateBusinessOwner(userId);
+     }
   }
 }

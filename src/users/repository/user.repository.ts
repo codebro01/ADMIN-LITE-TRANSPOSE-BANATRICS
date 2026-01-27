@@ -300,7 +300,7 @@ export class UserRepository {
 
   async activateBusinessOwner(userId: string) {
     await this.DbProvider.update(businessOwnerTable)
-      .set({ status: UserApprovalStatusType.APPROVED })
+      .set({ status: UserApprovalStatusType.ACTIVATED })
       .where(eq(businessOwnerTable.userId, userId));
 
     return true;
@@ -314,7 +314,7 @@ export class UserRepository {
   }
   async suspendDriver(userId: string) {
     await this.DbProvider.update(driverTable)
-      .set({ approvedStatus: UserApprovalStatusType.SUSPENDED })
+      .set({ activeStatus: UserApprovalStatusType.SUSPENDED })
       .where(eq(driverTable.userId, userId));
 
     return true;

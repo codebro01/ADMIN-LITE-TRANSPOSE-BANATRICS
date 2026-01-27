@@ -162,6 +162,13 @@
       "when": 1768813766212,
       "tag": "0022_minor_ego",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1769482364900,
+      "tag": "0023_lean_red_wolf",
+      "breakpoints": true
     }
   ]
 }

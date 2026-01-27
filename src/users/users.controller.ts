@@ -26,6 +26,7 @@ import { CreateAdminUserDto } from '@src/users/dto/create-admin-user.dto';
 import { QueryUserDto } from '@src/users/dto/query-user.dto';
 import { UpdateAdminUserDto } from '@src/users/dto/update-admin.dto';
 import { SuspendUserDto } from '@src/users/dto/reject-user.dto';
+import { ActivateUserDto } from '@src/users/dto/activate-user.dto';
 
 @Controller('users')
 export class UserController {
@@ -47,18 +48,18 @@ export class UserController {
     const { user, accessToken, refreshToken } =
       await this.userService.createAdminUser(body);
 
-     res.cookie('access_token', accessToken, {
-       httpOnly: true,
-       secure: process.env.NODE_ENV === 'production',
-       sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-       maxAge: 1000 * 60 * 60, // 1h
-     });
-     res.cookie('refresh_token', refreshToken, {
-       httpOnly: true,
-       secure: process.env.NODE_ENV === 'production',
-       sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-       maxAge: 1000 * 60 * 60 * 24 * 30, // 30d
-     });
+    res.cookie('access_token', accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      maxAge: 1000 * 60 * 60, // 1h
+    });
+    res.cookie('refresh_token', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      maxAge: 1000 * 60 * 60 * 24 * 30, // 30d
+    });
 
     const safeUser = omit(user, [
       'password',
@@ -143,16 +144,33 @@ export class UserController {
   @Post(':userId/suspend')
   @ApiCookieAuth('access_token')
   @ApiOperation({
-    summary: 'Reject a user by role type',
-    description: 'This endpoint enables the reject of a user',
+    summary: 'Suspend user by role type',
+    description: 'This endpoint enables the suspension of a user',
   })
   @HttpCode(HttpStatus.OK)
   async suspendUser(
-    @Param('userId') userId: string,
+    @Param('userId', ParseUUIDPipe) userId: string,
     @Body() dto: SuspendUserDto,
   ) {
     await this.userService.suspendUser(userId, dto.roleType);
     return { success: true, message: 'User suspended' };
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  @Post(':userId/activate')
+  @ApiCookieAuth('access_token')
+  @ApiOperation({
+    summary: 'Activate user by role type',
+    description: 'This endpoint enables the activation of a user',
+  })
+  @HttpCode(HttpStatus.OK)
+  async activateUser(
+    @Param('userId', ParseUUIDPipe) userId: string,
+    @Body() dto: ActivateUserDto,
+  ) {
+    await this.userService.activateUserByRoleType(userId, dto.roleType);
+    return { success: true, message: 'User Activated' };
   }
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
@@ -163,41 +181,8 @@ export class UserController {
     description: 'This endpoint enables the approval of a driver kyc',
   })
   @HttpCode(HttpStatus.OK)
-  async approveDriver(@Param('driverId') driverId: string) {
+  async approveDriver(@Param('driverId', ParseUUIDPipe) driverId: string) {
     await this.userService.approveDriver(driverId);
     return { success: true, message: 'Driver approved' };
-  }
-
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
-  @Post('businessOwner/:businessOwnerId/activate')
-  @ApiCookieAuth('access_token')
-  @ApiOperation({
-    summary: 'Activate business Owner',
-    description: 'This endpoint is used for the activation of a suspended business Owner',
-  })
-  @HttpCode(HttpStatus.OK)
-  async activateBusinessOwner(
-    @Param('businessOwnerId', ParseUUIDPipe) businessOwnerId: string,
-  ) {
-    await this.userService.activateBusinessOwner(businessOwnerId);
-    return { success: true, message: 'Business Owner activated' };
-  }
-
-
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
-  @Post('businessOwner/:driverId/activate')
-  @ApiCookieAuth('access_token')
-  @ApiOperation({
-    summary: 'Activate driver',
-    description: 'This endpoint is used the activation of a suspended driver',
-  })
-  @HttpCode(HttpStatus.OK)
-  async activateDriver(
-    @Param('driverId', ParseUUIDPipe) driverId: string,
-  ) {
-    await this.userService.activateDriver(driverId);
-    return { success: true, message: 'Driver activated' };
   }
 }
