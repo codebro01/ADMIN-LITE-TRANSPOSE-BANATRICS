@@ -7,17 +7,18 @@ import {
   text,
   pgEnum,
   uuid,
-  boolean, 
+  boolean,
   jsonb,
 } from 'drizzle-orm/pg-core';
 import { userTable } from '@src/db/users';
 
 // Package type enum
-export const packageTypeEnum = pgEnum('package_type', [
+export const campaignPackageTypeEnum = pgEnum('package_type', [
   'starter',
   'basic',
   'premium',
   'custom',
+  'grand',
 ]);
 
 export const maintenanceTypeEnum = pgEnum('maintenance_type', [
@@ -31,7 +32,7 @@ export const campaignStatusType = pgEnum('campaign_status_type', [
   'pending', //! this is the stutus when the campaign of business Owner is approved and still active
   'approved', //! this is the stutus before approval
   'completed', //! this is the stutus when the campaign is completed
-  'rejected'
+  'rejected',
 ]);
 
 export const campaignTable = pgTable('campaigns', {
@@ -39,7 +40,7 @@ export const campaignTable = pgTable('campaigns', {
   userId: uuid('userId')
     .notNull()
     .references(() => userTable.id, { onDelete: 'cascade' }),
-  packageType: packageTypeEnum('package_type'),
+  packageType: campaignPackageTypeEnum('package_type'),
   statusType: campaignStatusType('status_type'),
   paymentStatus: paymentStatusEnum('payment_status'),
   duration: integer('duration').default(30).notNull(),

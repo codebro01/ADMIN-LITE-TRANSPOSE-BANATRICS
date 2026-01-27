@@ -2,7 +2,6 @@ import {
   IsInt,
   IsString,
   Min,
-  MaxLength,
   IsPositive,
   IsNotEmpty,
   IsEnum
@@ -10,13 +9,14 @@ import {
 import { ApiProperty } from '@nestjs/swagger';
 import { PackageType } from '@src/campaign/dto/publishCampaignDto';
 import { MaintenanceType } from '@src/campaign/dto/publishCampaignDto';
+import { Type } from 'class-transformer';
 
 export class CreatePackageDto {
-  @ApiProperty({
-    description: 'Admin/User ID who created the package',
-    example: '68d48751-8f11-4f5a-ab63-012ff02429d2',
-    format: 'uuid',
-  })
+  // @ApiProperty({
+  //   description: 'Admin/User ID who created the package',
+  //   example: '68d48751-8f11-4f5a-ab63-012ff02429d2',
+  //   format: 'uuid',
+  // })
   @ApiProperty({
     description: 'Package duration in days',
     example: 30,
@@ -46,21 +46,22 @@ export class CreatePackageDto {
   @Min(0, { message: 'price must be zero or positive' })
   price: number;
 
-  @ApiProperty({
-    description: 'Local Government Area coverage',
-    example: '5',
-    maxLength: 10,
-  })
-  @IsNotEmpty()
-  @IsString({ message: 'lgaCoverage must be a string' })
-  @MaxLength(10, { message: 'lgaCoverage must not exceed 10 characters' })
-  lgaCoverage: string;
+  // @ApiProperty({
+  //   description: 'Local Government Area coverage',
+  //   example: '5',
+  //   maxLength: 10,
+  // })
+  // @IsNotEmpty()
+  // @IsString({ message: 'lgaCoverage must be a string' })
+  // @MaxLength(10, { message: 'lgaCoverage must not exceed 10 characters' })
+  // lgaCoverage: string;
 
   @ApiProperty({
     description: 'Number of drivers included in the package',
     example: 10,
   })
   @IsNotEmpty()
+  @Type(() => Number)
   @IsInt({ message: 'noOfDrivers must be an integer' })
   @IsPositive({ message: 'noOfDrivers must be a positive number' })
   noOfDrivers: number;

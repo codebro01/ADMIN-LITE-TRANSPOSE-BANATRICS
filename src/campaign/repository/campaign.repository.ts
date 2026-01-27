@@ -352,7 +352,11 @@ export class CampaignRepository {
     return { campaigns };
   }
 
-  async listCampaignDriverApplications(campaignId: string) {
+  async listCampaignDriverApplications(campaignId?: string) {
+
+    const conditions = [];
+
+    if(campaignId) conditions.push(eq(driverCampaignTable.campaignId, campaignId));
     console.log(campaignId);
     const applications = await this.DbProvider.select({
       campaign: campaignTable.campaignName,
@@ -366,7 +370,7 @@ export class CampaignRepository {
       duration: campaignTable.duration,
     })
       .from(driverCampaignTable)
-      .where(eq(driverCampaignTable.campaignId, campaignId))
+      .where(and(...conditions))
       .leftJoin(
         campaignTable,
         eq(campaignTable.id, driverCampaignTable.campaignId),

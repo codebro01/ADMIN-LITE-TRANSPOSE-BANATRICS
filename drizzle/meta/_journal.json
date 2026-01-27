@@ -169,6 +169,13 @@
       "when": 1769482364900,
       "tag": "0023_lean_red_wolf",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1769554169171,
+      "tag": "0024_lumpy_titanium_man",
+      "breakpoints": true
     }
   ]
 }

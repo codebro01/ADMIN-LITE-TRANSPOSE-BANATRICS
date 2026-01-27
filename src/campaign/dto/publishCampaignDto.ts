@@ -26,6 +26,7 @@ export enum PackageType {
   BASIC = 'basic',
   PREMIUM = 'premium',
   CUSTOM = 'custom',
+  GRAND = 'grand',
 }
 
 export enum StatusType {

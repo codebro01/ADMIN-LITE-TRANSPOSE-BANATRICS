@@ -104,9 +104,9 @@ export class CampaignService {
   async listAllAvailableCampaigns(query: QueryCampaignDto) {
     return this.campaignRepository.listAllAvailableCampaigns(query);
   }
-  async listCampaignDriverApplications(campaignId: string) {
+  async listCampaignDriverApplications(campaignId?: string) {
     console.log('got to here nah', campaignId);
-    if (!campaignId) throw new BadRequestException('Campaign Id not provided');
+    // if (!campaignId) throw new BadRequestException('Campaign Id not provided');
     return this.campaignRepository.listCampaignDriverApplications(campaignId);
   }
   async listAllAsignedCampaignsForDriver(userId: string) {

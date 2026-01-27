@@ -17,6 +17,7 @@ import {
   ApiOperation,
   ApiResponse,
   ApiCookieAuth,
+  ApiQuery,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@src/auth/guards/jwt-auth.guard';
 import { RolesGuard } from '@src/auth/guards/roles.guard';
@@ -225,7 +226,8 @@ export class CampaignController {
   })
   @HttpCode(HttpStatus.CREATED)
   async listAllAvailableCampaigns(@Query() query: QueryCampaignDto) {
-    const campaign = await this.campaignService.listAllAvailableCampaigns(query);
+    const campaign =
+      await this.campaignService.listAllAvailableCampaigns(query);
 
     return { success: true, data: campaign };
   }
@@ -238,9 +240,16 @@ export class CampaignController {
     summary: 'List all campaigns applications',
     description: 'List all campaign applications',
   })
+  @ApiQuery({
+    name: 'campaignId',
+    required: false,
+    type: String,
+    description: 'Optional campaign ID to filter applications',
+  })
   @HttpCode(HttpStatus.CREATED)
   async listCampaignDriverApplications(
-    @Query('campaignId', ParseUUIDPipe) campaignId: string,
+    @Query('campaignId', new ParseUUIDPipe({ optional: true }))
+    campaignId?: string,
   ) {
     const campaign =
       await this.campaignService.listCampaignDriverApplications(campaignId);
