@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {  Injectable } from '@nestjs/common';
 
 import { CloudinaryService } from '@src/cloudinary/cloudinary.service';
 import { CampaignRepository } from '@src/campaign/repository/campaign.repository';
