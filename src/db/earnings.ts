@@ -1,6 +1,5 @@
 import { campaignTable } from '@src/db/campaigns';
 import { driverTable } from '@src/db/users';
-import { PaymentStatusType } from '@src/payment/dto/paystackMetadataDto';
 import { pgEnum } from 'drizzle-orm/pg-core';
 import {
   pgTable,
@@ -10,6 +9,14 @@ import {
   text,
   timestamp,
 } from 'drizzle-orm/pg-core';
+
+export enum PaymentStatusType {
+  SUCCESS = 'success',
+  REVERSED = 'reversed',
+  FAILED = 'failed',
+  PENDING = 'pending',
+  CANCELLED = 'cancelled',
+}
 
 export const approvalStatusType = pgEnum('approval_status_type', ['REJECTED', 'APPROVED', 'UNAPPROVED'])
 

@@ -215,7 +215,7 @@ export class UserRepository {
         campaignTable,
         and(
           eq(campaignTable.userId, businessOwnerTable.userId),
-          eq(campaignTable.paymentStatus, 'spent'),
+          eq(campaignTable.paymentStatus, true),
         ),
       )
       .where(and(...condition))

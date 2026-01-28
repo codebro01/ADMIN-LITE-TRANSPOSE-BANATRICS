@@ -25,7 +25,7 @@ export const userTable = pgTable('users', {
   email: varchar('email', { length: 255 }).notNull().unique(), // can use date type if preferred
   password: varchar('password', { length: 255 }).notNull(),
   emailVerified: boolean('is_email_Verified').default(false).notNull(),
-  refreshToken: varchar('refreshToken', { length: 255 }),
+  refreshToken: varchar('refreshToken'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
@@ -53,6 +53,7 @@ export const businessOwnerTable = pgTable('businessOwners', {
     .notNull(),
   balance: doublePrecision('balance').default(0).notNull(),
   pending: doublePrecision('pending').default(0).notNull(),
+  totalSpent: doublePrecision('totalSpent').default(0).notNull(),
   businessName: varchar('businessName', { length: 255 }).notNull(),
   businessAddress: varchar('businessAddress', { length: 255 }),
   businessLogo: varchar('businessLogo', { length: 255 }),

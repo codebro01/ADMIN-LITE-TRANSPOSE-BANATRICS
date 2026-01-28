@@ -6,9 +6,16 @@ import {
   doublePrecision
 } from 'drizzle-orm/pg-core';
 import { userTable } from '@src/db/users';
-import { PaymentStatusType } from '@src/payment/dto/paystackMetadataDto';
 
 
+
+export enum PaymentStatusType {
+  SUCCESS = 'success',
+  REVERSED = 'reversed',
+  FAILED = 'failed', 
+  PENDING = 'pending',
+  CANCELLED = 'cancelled', 
+}
 
 export const paymentTable = pgTable('payments', {
   id: uuid().defaultRandom().primaryKey().notNull(),
