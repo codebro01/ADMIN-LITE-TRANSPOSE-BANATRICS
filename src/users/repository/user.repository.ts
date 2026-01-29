@@ -277,6 +277,8 @@ export class UserRepository {
       email: userTable.email,
       totalCampaigns: sql<number>`COUNT(DISTINCT ${campaignTable.id})`,
       phone: userTable.phone,
+      businessName: businessOwnerTable.businessName,
+      balance: businessOwnerTable.balance,
       totalSpent: sql<number>`COALESCE(SUM(DISTINCT ${paymentTable.amount}), 0)`,
       averagePerCampaign: sql<number>`COALESCE(AVG(DISTINCT ${paymentTable.amount}), 0)`,
     })
@@ -285,7 +287,12 @@ export class UserRepository {
       .leftJoin(paymentTable, eq(paymentTable.userId, userTable.id))
       .leftJoin(businessOwnerTable, eq(businessOwnerTable.userId, userTable.id))
       .where(eq(userTable.id, userId))
-      .groupBy(userTable.id, userTable.email, userTable.phone);
+      .groupBy(
+        userTable.id,
+        userTable.email,
+        userTable.phone,
+        businessOwnerTable.balance,
+      );
 
     return user;
   }

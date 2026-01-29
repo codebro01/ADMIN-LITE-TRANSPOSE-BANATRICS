@@ -250,6 +250,7 @@ export class CampaignRepository {
 
   async listAllCreatedCampaignsByBusinessOwners(userId: string) {
     const campaigns = await this.DbProvider.select({
+      campaignTitle: campaignTable.campaignName, 
       campaignId: campaignTable.id,
       duration: campaignTable.duration,
       vehicles: count(driverCampaignTable.campaignId),
