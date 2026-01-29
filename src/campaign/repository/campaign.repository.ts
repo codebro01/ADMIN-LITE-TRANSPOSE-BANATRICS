@@ -359,7 +359,6 @@ export class CampaignRepository {
     if(campaignId) conditions.push(eq(driverCampaignTable.campaignId, campaignId));
     console.log(campaignId);
     const applications = await this.DbProvider.select({
-      campaignId: campaignTable.id, 
       driverId: driverTable.userId, 
       campaign: campaignTable.campaignName,
       driverFirstName: driverTable.firstname,

@@ -92,7 +92,7 @@ export class PaymentController {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
-  @Get('payments')
+  @Get()
   @ApiCookieAuth('access_token')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
@@ -106,7 +106,7 @@ export class PaymentController {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
-  @Get('payments')
+  @Get('income')
   @ApiCookieAuth('access_token')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
@@ -119,7 +119,7 @@ export class PaymentController {
   }
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
-  @Get('payments')
+  @Get('payouts')
   @ApiCookieAuth('access_token')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
@@ -132,7 +132,7 @@ export class PaymentController {
   }
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
-  @Get('payments')
+  @Get('net-profit')
   @ApiCookieAuth('access_token')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
