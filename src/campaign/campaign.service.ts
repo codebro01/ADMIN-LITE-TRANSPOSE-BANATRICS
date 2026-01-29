@@ -1,4 +1,4 @@
-import {  Injectable } from '@nestjs/common';
+import {  BadRequestException, Injectable } from '@nestjs/common';
 
 import { CloudinaryService } from '@src/cloudinary/cloudinary.service';
 import { CampaignRepository } from '@src/campaign/repository/campaign.repository';
@@ -8,7 +8,7 @@ import { PackageRepository } from '@src/package/repository/package.repository';
 import { CronExpression, Cron } from '@nestjs/schedule';
 import { updatePricePerDriverPerCampaign } from '@src/campaign/dto/update-price-per-driver-per-campaign.dto';
 import { UploadCampaignDesignDto } from '@src/campaign/dto/upload-campaign-design.dto';
-import { ApproveCampaignDto } from '@src/users/dto/approve-campaign.dto';
+import { ApproveCampaignDto, approveCampaignType } from '@src/users/dto/approve-campaign.dto';
 import { QueryCampaignDto } from '@src/campaign/dto/query-campaign.dto';
 import { CategoryType, StatusType, VariantType } from '@src/notification/dto/createNotificationDto';
 
@@ -101,6 +101,9 @@ export class CampaignService {
     data: UploadCampaignDesignDto,
     campaignId: string,
   ) {
+
+    const existingDesign = await this.campaignRepository.getDesignsForCampaign(campaignId);
+    if(existingDesign.length > 0) throw new BadRequestException(`This campaign currently has an uploaded design, please update the design.`)
     return this.campaignRepository.createCampaignDesigns(data, campaignId);
   }
   async updateCampaignDesigns(
@@ -113,6 +116,11 @@ export class CampaignService {
     return this.campaignRepository.getDesignsForCampaign(campaignId);
   }
   async approveCampaign(data: ApproveCampaignDto, campaignId: string) {
+    const [design] = await this.campaignRepository.getDesignsForCampaign(campaignId);
+    if(!design) throw new BadRequestException(
+      'Design has not been created for the campaign',
+    );
+    if(design.approvalStatus !== approveCampaignType.APPROVE) throw new BadRequestException('Please make sure the design of the campaign is approved before approving the campaign')
     return this.campaignRepository.approveCampaign(data, campaignId);
   }
   async listAllAvailableCampaigns(query: QueryCampaignDto) {
