@@ -27,7 +27,6 @@ import { CloudinaryService } from '@src/cloudinary/cloudinary.service';
 import {} from '@src/campaign/dto/draftCampaignDto';
 import type { Response } from 'express';
 
-import { updatePricePerDriverPerCampaign } from '@src/campaign/dto/update-price-per-driver-per-campaign.dto';
 import { ApproveDriverApplicationDto } from '@src/campaign/dto/approve-driver-application.dto';
 import { UploadCampaignDesignDto } from '@src/campaign/dto/upload-campaign-design.dto';
 import { UpdateCampaignDesignDto } from '@src/campaign/dto/update-campaign-design.dto';
@@ -58,30 +57,6 @@ export class CampaignController {
   })
   async updateCampaignStatusManually(@Res() res: Response) {
     const campaign = await this.campaignService.updateCampaignStatusManually();
-
-    res.status(HttpStatus.OK).json({ message: 'success', data: campaign });
-  }
-
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
-  @Patch('update/campaign-status')
-  @ApiCookieAuth('access_token')
-  @ApiOperation({
-    description: 'update earning-per-driver for a campaign',
-    summary: 'update earning-per-driver for a campaign',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Update successful',
-  })
-  @HttpCode(HttpStatus.OK)
-  async updatePricePerDriverPerCampaign(
-    // @Req() req: Request,
-    @Body() body: updatePricePerDriverPerCampaign,
-    @Res() res: Response,
-  ) {
-    const campaign =
-      await this.campaignService.updatePricePerDriverPerCampaign(body);
 
     res.status(HttpStatus.OK).json({ message: 'success', data: campaign });
   }

@@ -11,7 +11,6 @@ import {
   userTable,
 } from '@src/db';
 
-import { updatePricePerDriverPerCampaign } from '@src/campaign/dto/update-price-per-driver-per-campaign.dto';
 import { UploadCampaignDesignDto } from '@src/campaign/dto/upload-campaign-design.dto';
 import { ApproveCampaignDto } from '@src/users/dto/approve-campaign.dto';
 import { QueryCampaignDto } from '@src/campaign/dto/query-campaign.dto';
@@ -178,10 +177,10 @@ export class CampaignRepository {
     };
   }
 
-  async updatePricePerDriverPerCampaign(data: updatePricePerDriverPerCampaign) {
+  async updatePricePerDriverPerCampaign(amount: number, campaignId: string) {
     const campaign = await this.DbProvider.update(campaignTable)
-      .set({ earningPerDriver: data.earningPerDriver })
-      .where(eq(campaignTable.id, data.campaignId));
+      .set({ earningPerDriver: amount })
+      .where(eq(campaignTable.id, campaignId));
     return campaign;
   }
 

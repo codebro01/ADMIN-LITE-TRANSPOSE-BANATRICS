@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, Matches, IsEnum } from "class-validator";
+import { IsNotEmpty, IsString, Matches, IsEnum, IsNumber, Min,  } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
 
 export enum approveCampaignType  {
@@ -28,4 +28,14 @@ export class ApproveCampaignDto {
   @IsNotEmpty()
   @IsEnum(approveCampaignType)
   approveCampaignType: approveCampaignType;
+
+
+  @ApiProperty({
+    example: 45000,
+    description: 'The amount that will be paid to each driver after the completion of the campaign',
+  })
+  @IsNumber()
+  @Min(0)
+  @IsNotEmpty()
+  pricePerDriver: number;
 }
