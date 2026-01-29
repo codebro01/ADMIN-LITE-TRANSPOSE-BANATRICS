@@ -222,10 +222,10 @@ export class UserRepository {
       .groupBy(
         businessOwnerTable.id,
         userTable.id,
-        businessOwnerTable.businessName,
         userTable.phone,
         userTable.email,
         businessOwnerTable.balance,
+        businessOwnerTable.businessName,
         businessOwnerTable.status,
       )
       .limit(limit)
@@ -292,6 +292,7 @@ export class UserRepository {
         userTable.email,
         userTable.phone,
         businessOwnerTable.balance,
+        businessOwnerTable.businessName,
       );
 
     return user;
