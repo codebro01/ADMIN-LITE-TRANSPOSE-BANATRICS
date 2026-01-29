@@ -115,7 +115,7 @@ export class PaymentController {
   })
   async totalIncomGraph(@Query() query: GraphQueryDto) {
     const result = await this.paymentService.totalIncomGraph(query);
-    return result;
+    return { success: true, data: result };
   }
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
@@ -128,7 +128,7 @@ export class PaymentController {
   })
   async totalDriverPayouts(@Query() query: GraphQueryDto) {
     const result = await this.paymentService.totalDriverPayouts(query);
-    return result;
+    return {success: true, data: result}
   }
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
@@ -141,6 +141,6 @@ export class PaymentController {
   })
   async netProfit(@Query() query: GraphQueryDto) {
     const result = await this.paymentService.netProfit(query);
-    return result;
+    return {success: true, data: result}
   }
 }

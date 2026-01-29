@@ -158,7 +158,10 @@ export class PaymentRepository {
           gte(earningsTable.createdAt, sql`CURRENT_DATE - INTERVAL '6 days'`),
         ),
       )
-      .groupBy(sql`DATE(${earningsTable.createdAt})`)
+      .groupBy(
+        sql`DATE(${earningsTable.createdAt})`,
+        sql`TO_CHAR(${earningsTable.createdAt}, 'Dy')`,
+      )
       .orderBy(sql`DATE(${earningsTable.createdAt})`);
 
     return payouts;
@@ -185,7 +188,6 @@ export class PaymentRepository {
         sql`EXTRACT(MONTH FROM ${earningsTable.createdAt})`,
       )
       .orderBy(sql`EXTRACT(MONTH FROM ${earningsTable.createdAt})`);
-
     return payouts;
   }
 
