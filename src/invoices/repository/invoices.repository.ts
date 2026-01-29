@@ -58,13 +58,21 @@ export class InvoicesRepository {
       status: invoicesTable.status,
     })
       .from(invoicesTable)
-      .groupBy(invoicesTable.invoiceId, campaignTable.campaignName)
+      .groupBy(
+        invoicesTable.invoiceId,
+        campaignTable.campaignName,
+        businessOwnerTable.businessName,
+        invoicesTable.amount,
+        invoicesTable.createdAt,
+        invoicesTable.dueDate,
+        invoicesTable.status,
+      )
       .leftJoin(campaignTable, eq(campaignTable.id, invoicesTable.campaignId))
       .leftJoin(
         businessOwnerTable,
         eq(businessOwnerTable.userId, invoicesTable.userId),
       );
 
-      return invoices
+    return invoices;
   }
 }

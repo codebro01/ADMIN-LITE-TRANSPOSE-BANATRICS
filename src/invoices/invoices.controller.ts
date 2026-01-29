@@ -19,8 +19,13 @@ export class InvoicesController {
     description: 'Enpoint creates an invoice',
   })
   @HttpCode(HttpStatus.CREATED)
-  create(@Body() createInvoiceDto: CreateInvoiceDto) {
-    return this.invoicesService.create(createInvoiceDto);
+  async create(@Body() createInvoiceDto: CreateInvoiceDto) {
+    const invoice  = await this.invoicesService.create(createInvoiceDto);
+
+     return {
+       success: true,
+       data: invoice,
+     };
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -33,8 +38,13 @@ export class InvoicesController {
       'Get invoice dashboard cards such as total revenue, paid invoices, etc',
   })
   @HttpCode(HttpStatus.OK)
-  getInvoiceDashboardCards() {
-    return this.invoicesService.getInvoiceDashboardCards();
+  async getInvoiceDashboardCards() {
+    const cards = await this.invoicesService.getInvoiceDashboardCards();
+
+    return {
+      success: true, 
+      data: cards, 
+    }
   }
 
 
@@ -47,7 +57,11 @@ export class InvoicesController {
       'List all existing  invoices alongside their information',
   })
   @HttpCode(HttpStatus.OK)
-  listInvoicesWithTheirInfos() {
-    return this.invoicesService.listInvoicesWithTheirInfos();
+ async listInvoicesWithTheirInfos() {
+    const invoices = await this.invoicesService.listInvoicesWithTheirInfos();
+     return {
+       success: true,
+       data: invoices,
+     };
   }
 }
