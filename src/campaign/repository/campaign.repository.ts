@@ -372,6 +372,7 @@ export class CampaignRepository {
     console.log(campaignId);
     const applications = await this.DbProvider.select({
       driverId: driverTable.userId, 
+      campaignId: campaignTable.id, 
       campaign: campaignTable.campaignName,
       driverFirstName: driverTable.firstname,
       driverLastName: driverTable.lastname,
