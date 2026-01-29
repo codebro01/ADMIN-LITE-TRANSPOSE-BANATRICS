@@ -20,12 +20,12 @@ export class InvoicesController {
   })
   @HttpCode(HttpStatus.CREATED)
   async create(@Body() createInvoiceDto: CreateInvoiceDto) {
-    const invoice  = await this.invoicesService.create(createInvoiceDto);
+    const invoice = await this.invoicesService.create(createInvoiceDto);
 
-     return {
-       success: true,
-       data: invoice,
-     };
+    return {
+      success: true,
+      data: invoice,
+    };
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -42,26 +42,25 @@ export class InvoicesController {
     const cards = await this.invoicesService.getInvoiceDashboardCards();
 
     return {
-      success: true, 
-      data: cards, 
-    }
+      success: true,
+      data: cards,
+    };
   }
 
-
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
   @Get()
   @ApiCookieAuth('access_token')
   @ApiOperation({
     summary: 'List  invoices',
-    description:
-      'List all existing  invoices alongside their information',
+    description: 'List all existing  invoices alongside their information',
   })
   @HttpCode(HttpStatus.OK)
- async listInvoicesWithTheirInfos() {
+  async listInvoicesWithTheirInfos() {
     const invoices = await this.invoicesService.listInvoicesWithTheirInfos();
-     return {
-       success: true,
-       data: invoices,
-     };
+    return {
+      success: true,
+      data: invoices,
+    };
   }
 }

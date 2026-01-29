@@ -31,6 +31,7 @@ import { VehicleDetailsModule } from './vehicle-details/vehicle-details.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { InvoicesModule } from './invoices/invoices.module';
 import { ReportsModule } from './reports/reports.module';
+import { InstallmentProofsModule } from './installment-proofs/installment-proofs.module';
 
 
 @Module({
@@ -85,6 +86,7 @@ import { ReportsModule } from './reports/reports.module';
     VehicleDetailsModule,
     InvoicesModule,
     ReportsModule,
+    InstallmentProofsModule,
   ],
   controllers: [AppController, UploadController],
   providers: [AppService, NeonProvider, MulterService],
