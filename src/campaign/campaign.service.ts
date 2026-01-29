@@ -10,6 +10,7 @@ import { updatePricePerDriverPerCampaign } from '@src/campaign/dto/update-price-
 import { UploadCampaignDesignDto } from '@src/campaign/dto/upload-campaign-design.dto';
 import { ApproveCampaignDto } from '@src/users/dto/approve-campaign.dto';
 import { QueryCampaignDto } from '@src/campaign/dto/query-campaign.dto';
+import { CategoryType, StatusType, VariantType } from '@src/notification/dto/createNotificationDto';
 
 @Injectable()
 export class CampaignService {
@@ -54,10 +55,23 @@ export class CampaignService {
   }
 
   async approveDriverCampaign(campaignId: string, userId: string) {
-    return await this.campaignRepository.approveDriverCampaign(
+    const approvedCampaign =  await this.campaignRepository.approveDriverCampaign(
       campaignId,
       userId,
     );
+
+    const campaign = await this.campaignRepository.findCampaignByCampaignId(approvedCampaign.campaignId)
+
+    await this.notificationService.createNotification({
+      title: 'Campaign Approved', 
+      message: `Your campaign "${campaign.campaignTitle} has been approved, please provide an installation proof within 24 hours. Thank you.`, 
+      category: CategoryType.CAMPAIGN, 
+      variant: VariantType.INFO, 
+      priority: 'important', 
+      status: StatusType.UNREAD, 
+    }, userId, 'driver')
+
+    return approvedCampaign
   }
 
   async getFullCampaignInformation(campaignId: string) {

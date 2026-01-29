@@ -1,6 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { NotificationRepository } from '@src/notification/repository/notification.repository';
-import { CreateNotificationDto } from '@src/notification/dto/createNotificationDto';
+import {
+  CreateNotificationDto,
+  StatusType,
+} from '@src/notification/dto/createNotificationDto';
 // import { notificationTableSelectType } from '@src/db/notifications';
 import { CatchErrorService } from '@src/catch-error/catch-error.service';
 import { FilterNotificationsDto } from './dto/filterNotificationDto';
@@ -12,11 +15,12 @@ export class NotificationService {
     private catchErrorService: CatchErrorService,
   ) {}
 
-  async createNotification(data: CreateNotificationDto, userId: string) {
+  async createNotification(data: CreateNotificationDto, userId: string, role: string) {
     try {
       const notification = await this.notificationRepository.createNotification(
         data,
         userId,
+        role
       );
 
       return notification;
@@ -28,10 +32,10 @@ export class NotificationService {
     }
   }
 
-  async getNotifications(userId: string) {
+  async getNotifications(data: {userId: string, role: string}) {
     try {
       const notification =
-        await this.notificationRepository.getNotifications(userId);
+        await this.notificationRepository.getNotifications({userId: data.userId, role: data.role});
 
       return notification;
     } catch (error) {
@@ -58,15 +62,14 @@ export class NotificationService {
     }
   }
   async updateNotifications(
-    data: Pick<CreateNotificationDto, 'status'>,
-    notificationId: string[],
+    data: { status: StatusType; ids: string[] },
     userId: string,
   ) {
     try {
       const notification =
         await this.notificationRepository.updateNotifications(
-          data,
-          notificationId,
+          {status: data.status},
+          data.ids,
           userId,
         );
 
@@ -98,14 +101,10 @@ export class NotificationService {
       );
     }
   }
-  async notificationDashboard(
-    userId: string,
-  ) {
+  async notificationDashboard(userId: string) {
     try {
-      const data = await this.notificationRepository.notificationDashboard(
- 
-        userId,
-      );
+      const data =
+        await this.notificationRepository.notificationDashboard(userId);
 
       return data;
     } catch (error) {
@@ -117,7 +116,10 @@ export class NotificationService {
   }
 
   async filterNotifications(filters: FilterNotificationsDto, userId: string) {
-   const data  =  await this.notificationRepository.filterNotifications(filters, userId); 
-   return data;
+    const data = await this.notificationRepository.filterNotifications(
+      filters,
+      userId,
+    );
+    return data;
   }
 }

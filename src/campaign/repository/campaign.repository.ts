@@ -94,6 +94,17 @@ export class CampaignRepository {
 
     return campaigns;
   }
+  async findCampaignByCampaignId(campaignId: string) {
+    const [campaigns] = await this.DbProvider.select({
+      campaignTitle: campaignTable.campaignName, 
+    })
+      .from(campaignTable)
+      .where(and(eq(campaignTable.id, campaignId)));
+
+    return campaigns;
+  }
+
+  
 
   async updateCampaignStatusToCompleted() {
     const now = new Date();
