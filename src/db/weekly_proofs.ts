@@ -47,13 +47,13 @@ export const weeklyProofTable = pgTable('weekly_proofs', {
   comment: text('comment'),
   month: integer('month'),
   weekNumber: integer('week_number'),
-  year: integer('year'), 
+  year: integer('year'),
   statusType: weeklyProofStatusType('weekly_proof_status')
     .notNull()
     .default('pending_review'),
   rejectionReason: text('rejection_reason'),
-  createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
 });
 
 export type weeklyProofInsertType = typeof weeklyProofTable.$inferInsert;
