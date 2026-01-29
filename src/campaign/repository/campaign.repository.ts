@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import { and, eq, ne, lt, count, lte, gt } from 'drizzle-orm';
+import { and, eq, ne, lt, count, lte, gt, or } from 'drizzle-orm';
 import { campaignTable } from '@src/db/campaigns';
 import { MaintenanceType } from '../dto/publishCampaignDto';
 import {
@@ -393,7 +393,12 @@ export class CampaignRepository {
       isActive: driverCampaignTable.active,
     })
       .from(driverCampaignTable)
-      .where(eq(driverCampaignTable.userId, userId))
+      .where(
+        and(
+          eq(driverCampaignTable.userId, userId),
+          or(eq(driverCampaignTable.campaignStatus, 'approved'), eq(driverCampaignTable.campaignStatus, 'completed')),
+        ),
+      )
       .leftJoin(
         campaignTable,
         eq(campaignTable.id, driverCampaignTable.campaignId),

@@ -203,7 +203,7 @@ export class UserRepository {
       totalBalance: businessOwnerTable.balance,
       status: businessOwnerTable.status,
       totalSpent: sql<number>`COALESCE(SUM(CASE WHEN ${paymentTable.userId} IS NOT NULL THEN ${paymentTable.amount} ELSE 0 END), 0)`,
-      campaigns: sql<number>`COUNT(DISTINCT CASE WHEN ${campaignTable.paymentStatus} = 'spent' THEN ${campaignTable.id} END)`,
+      campaigns: sql<number>`COUNT(DISTINCT CASE WHEN ${campaignTable.paymentStatus} = true THEN ${campaignTable.id} END)`,
     })
       .from(businessOwnerTable)
       .leftJoin(userTable, eq(userTable.id, businessOwnerTable.userId))
