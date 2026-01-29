@@ -201,6 +201,23 @@ export class CampaignRepository {
     return campaign;
   }
 
+  async startDriverCampaign(campaignId: string, userId: string) {
+        const [campaign] = await this.DbProvider.update(driverCampaignTable)
+          .set({
+            startDate: new Date(),
+            active: true, 
+          })
+          .where(
+            and(
+              eq(driverCampaignTable.userId, userId),
+              eq(driverCampaignTable.campaignId, campaignId),
+            ),
+          )
+          .returning();
+
+        return campaign;
+  }
+
   async getFullCampaignInformation(campaignId: string) {
     const [campaign] = await this.DbProvider.select({
       campaignName: campaignTable.campaignName,
