@@ -155,7 +155,21 @@ export class WeeklyProofsRepository {
     }
 
     async campaignAllWeeklyProofs (campaignId: string) {
-        const weeklyProofs = await this.DbProvider.select().from(weeklyProofTable).where(eq(weeklyProofTable.campaignId, campaignId));
+        const weeklyProofs = await this.DbProvider.select({
+          id: weeklyProofTable.id, 
+          campaignId: weeklyProofTable.campaignId, 
+          userId: weeklyProofTable.userId, 
+          backview: weeklyProofTable.backview, 
+          comment: weeklyProofTable.comment, 
+          month: weeklyProofTable.month, 
+          weekNumber: weeklyProofTable.weekNumber, 
+          year: weeklyProofTable.year, 
+          statusType: weeklyProofTable.statusType, 
+          rejectionReason: weeklyProofTable.rejectionReason, 
+          createdAt: weeklyProofTable.createdAt, 
+          updatedAt: weeklyProofTable.updatedAt, 
+          campaignTitle: campaignTable.campaignName, 
+        }).from(weeklyProofTable).where(eq(weeklyProofTable.campaignId, campaignId)).leftJoin(campaignTable, eq(campaignTable.id, campaignId));
 
         return weeklyProofs;
 
