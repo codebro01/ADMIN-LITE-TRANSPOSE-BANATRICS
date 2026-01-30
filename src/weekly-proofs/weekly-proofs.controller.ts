@@ -86,13 +86,13 @@ export class WeeklyProofsController {
   @ApiCookieAuth('access_token')
   @ApiOperation({
     summary: 'Approve or reject weekly proof',
-    description: 'Admin approves or reject week proofs =',
+    description: 'Admin approves or reject week proofs',
   })
   @HttpCode(HttpStatus.OK)
   async approveOrRejectWeeklyProof(
     @Param('campaignId') campaignId: string,
     @Param('driverId') driverId: string,
-    @Body('status') body: ApproveOrRejectWeeklyProofDto,
+    @Body() body: ApproveOrRejectWeeklyProofDto,
   ) {
     const weeklyProofs =
       await this.weeklyProofsService.approveOrRejectWeeklyProof(
