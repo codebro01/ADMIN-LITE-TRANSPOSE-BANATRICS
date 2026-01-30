@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { UpdateInstallmentProofDto } from './dto/update-installment-proof.dto';
+import { InstallmentProofStatusType, UpdateInstallmentProofDto } from './dto/update-installment-proof.dto';
 import { InstallmentProofRepository } from '@src/installment-proofs/repository/installment-proofs.repository';
 import { CampaignRepository } from '@src/campaign/repository/campaign.repository';
 
@@ -25,10 +25,20 @@ export class InstallmentProofsService {
     userId: string,
   ) {
 
-    const startDriverCampaign =
-      await this.campaignRepository.startDriverCampaign(campaignId, userId)
+    if(data.statusType === InstallmentProofStatusType.APPROVED) {
 
-      if(!startDriverCampaign) throw new BadRequestException('Could not set startDate for driver campaign')
+      const startDriverCampaign =
+        await this.campaignRepository.startDriverCampaign(campaignId, userId)
+  
+        if(!startDriverCampaign) throw new BadRequestException('Could not set startDate for driver campaign')
+      const installmentProof =
+        await this.installmentProofRepository.updateCampaignInstallmentProof(
+          data,
+          campaignId,
+          userId,
+        );
+        return installmentProof;
+    } else {
     const installmentProof =
       await this.installmentProofRepository.updateCampaignInstallmentProof(
         data,
@@ -36,5 +46,6 @@ export class InstallmentProofsService {
         userId,
       );
     return installmentProof;
+    }
   }
 }
