@@ -8,13 +8,14 @@ import {
   HttpCode,
   HttpStatus,
   ParseUUIDPipe,
+  Query,
 } from '@nestjs/common';
 import { InstallmentProofsService } from './installment-proofs.service';
 import { UpdateInstallmentProofDto } from '@src/installment-proofs/dto/update-installment-proof.dto';
 import { JwtAuthGuard } from '@src/auth/guards/jwt-auth.guard';
 import { RolesGuard } from '@src/auth/guards/roles.guard';
 import { Roles } from '@src/auth/decorators/roles.decorators';
-import { ApiCookieAuth, ApiOperation, ApiParam } from '@nestjs/swagger';
+import { ApiCookieAuth, ApiOperation, ApiQuery } from '@nestjs/swagger';
 
 @Controller('installment-proofs')
 export class InstallmentProofsController {
@@ -22,30 +23,30 @@ export class InstallmentProofsController {
     private readonly installmentProofsService: InstallmentProofsService,
   ) {}
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
-  @Get(':driverId/:campaignId')
+  @Get()
   @ApiCookieAuth('access_token')
   @ApiOperation({
     summary: 'List installment proofs',
     description: 'List installment proofs for a campaign by driver Id',
   })
   @HttpCode(HttpStatus.OK)
-  @ApiParam({
-    name: 'campaignId',
-    required: false,
-    type: String,
-    description: 'Optional campaign ID to filter applications',
-  })
-  @ApiParam({
+  @ApiQuery({
     name: 'driverId',
     required: false,
     type: String,
     description: 'Optional driver ID to filter applications',
   })
+  @ApiQuery({
+    name: 'campaignId',
+    required: false,
+    type: String,
+    description: 'Optional campaign ID to filter applications',
+  })
   async getCampaignInstallmentProof(
-    @Param('driverId', ParseUUIDPipe) driverId?: string,
-    @Param('campaignId', ParseUUIDPipe) campaignId?: string,
+    @Query('driverId', new ParseUUIDPipe({ optional: true })) driverId?: string,
+    @Query('campaignId', new ParseUUIDPipe({ optional: true })) campaignId?: string,
   ) {
     const installmentProofs =
       await this.installmentProofsService.getCampaignInstallmentProof(
