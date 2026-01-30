@@ -10,7 +10,7 @@ export class InstallmentProofsService {
     private readonly campaignRepository: CampaignRepository,
   ) {}
 
-  async getCampaignInstallmentProof(campaignId: string, userId: string) {
+  async getCampaignInstallmentProof(campaignId?: string, userId?: string) {
     const installmentProof =
       await this.installmentProofRepository.getCampaignInstallmentProof(
         campaignId,
