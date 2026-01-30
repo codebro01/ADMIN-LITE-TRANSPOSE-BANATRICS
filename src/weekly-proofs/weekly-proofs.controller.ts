@@ -11,9 +11,6 @@ import {
   ParseUUIDPipe,
 } from '@nestjs/common';
 import { WeeklyProofsService } from './weekly-proofs.service';
-import {
-  WeeklyProofStatus,
-} from './dto/create-weekly-proof.dto';
 import { JwtAuthGuard } from '@src/auth/guards/jwt-auth.guard';
 import { RolesGuard } from '@src/auth/guards/roles.guard';
 import { Roles } from '@src/auth/decorators/roles.decorators';
@@ -22,6 +19,7 @@ import {
   ApiOperation,
 } from '@nestjs/swagger';
 import { QueryWeeklyProofDto } from '@src/weekly-proofs/dto/query-weekly-proofs.dto';
+import { ApproveOrRejectWeeklyProofDto } from '@src/weekly-proofs/dto/approve-reject-weekly-proof.dto';
 
 @Controller('weekly-proofs')
 export class WeeklyProofsController {
@@ -94,11 +92,11 @@ export class WeeklyProofsController {
   async approveOrRejectWeeklyProof(
     @Param('campaignId') campaignId: string,
     @Param('driverId') driverId: string,
-    @Body('status') status: WeeklyProofStatus,
+    @Body('status') body: ApproveOrRejectWeeklyProofDto,
   ) {
     const weeklyProofs =
       await this.weeklyProofsService.approveOrRejectWeeklyProof(
-        { statusType: status },
+        body,
         campaignId,
         driverId,
       );
@@ -115,7 +113,9 @@ export class WeeklyProofsController {
     description: 'List all weekly proofs submitted by a driver',
   })
   @HttpCode(HttpStatus.OK)
-  async listDriverWeeklyProofs(@Param('driverId', ParseUUIDPipe) driverId: string) {
+  async listDriverWeeklyProofs(
+    @Param('driverId', ParseUUIDPipe) driverId: string,
+  ) {
     const weeklyProofs =
       await this.weeklyProofsService.listDriverWeeklyProofs(driverId);
 
@@ -131,7 +131,9 @@ export class WeeklyProofsController {
     description: 'List all weekly proofs for a campaign',
   })
   @HttpCode(HttpStatus.OK)
-  async campaignAllWeeklyProofs(@Param('campaignId', ParseUUIDPipe) campaignId: string) {
+  async campaignAllWeeklyProofs(
+    @Param('campaignId', ParseUUIDPipe) campaignId: string,
+  ) {
     const weeklyProofs =
       await this.weeklyProofsService.campaignAllWeeklyProofs(campaignId);
 

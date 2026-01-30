@@ -127,13 +127,14 @@ export class WeeklyProofsRepository {
   }
 
     async approveOrRejectWeeklyProof(
-      status: Pick<weeklyProofInsertType, 'statusType'>,
+      data: Pick<weeklyProofInsertType, 'statusType'| 'comment'>,
       campaignId: string,
       userId: string,
     ) {
       const [weeklyProof] = await this.DbProvider.update(weeklyProofTable)
         .set({
-          statusType: status.statusType,
+          statusType: data.statusType,
+          comment: data.comment,
         })
         .where(
           and(

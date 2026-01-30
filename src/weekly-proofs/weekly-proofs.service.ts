@@ -24,12 +24,12 @@ export class WeeklyProofsService {
   }
 
   async approveOrRejectWeeklyProof(
-    status: Pick<weeklyProofInsertType, 'statusType'>,
+    data: Pick<weeklyProofInsertType, 'statusType' | 'comment'>,
     campaignId: string,
     userId: string,
   ) {
     return await this.weeklyProofsRepository.approveOrRejectWeeklyProof(
-      status,
+      data,
       campaignId,
       userId,
     );
