@@ -14,7 +14,7 @@ import { UpdateInstallmentProofDto } from '@src/installment-proofs/dto/update-in
 import { JwtAuthGuard } from '@src/auth/guards/jwt-auth.guard';
 import { RolesGuard } from '@src/auth/guards/roles.guard';
 import { Roles } from '@src/auth/decorators/roles.decorators';
-import { ApiCookieAuth, ApiOperation, ApiQuery } from '@nestjs/swagger';
+import { ApiCookieAuth, ApiOperation, ApiParam } from '@nestjs/swagger';
 
 @Controller('installment-proofs')
 export class InstallmentProofsController {
@@ -31,13 +31,13 @@ export class InstallmentProofsController {
     description: 'List installment proofs for a campaign by driver Id',
   })
   @HttpCode(HttpStatus.OK)
-  @ApiQuery({
+  @ApiParam({
     name: 'campaignId',
     required: false,
     type: String,
     description: 'Optional campaign ID to filter applications',
   })
-  @ApiQuery({
+  @ApiParam({
     name: 'driverId',
     required: false,
     type: String,
