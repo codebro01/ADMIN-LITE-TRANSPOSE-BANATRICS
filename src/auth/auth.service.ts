@@ -1,7 +1,6 @@
 import {
   BadRequestException,
   Injectable,
-  InternalServerErrorException,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -45,21 +44,8 @@ export class AuthService {
       secret: jwtConstants.accessTokenSecret,
       expiresIn: '1h',
     });
-    const refreshToken = await this.jwtService.signAsync(payload, {
-      secret: jwtConstants.refreshTokenSecret,
-      expiresIn: '30d',
-    });
 
-    const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
-
-    const updateUserToken = await this.authRepository.updateUserRefreshToken(
-      user.id,
-      hashedRefreshToken,
-    );
-
-    if (!updateUserToken) throw new InternalServerErrorException();
-
-    return { user, accessToken, refreshToken };
+    return { user, accessToken };
   }
 
   async logoutUser(res: Response, req: Request) {

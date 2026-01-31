@@ -102,21 +102,9 @@ export class UserService {
       secret: jwtConstants.accessTokenSecret,
       expiresIn: '1h',
     });
-    const refreshToken = await this.jwtService.signAsync(payload, {
-      secret: jwtConstants.refreshTokenSecret,
-      expiresIn: '30d',
-    });
+  
 
-    const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
-
-    const updateUserToken = await this.userRepository.updateUserToken(
-      hashedRefreshToken,
-      savedUser.id,
-    );
-
-    if (!updateUserToken) throw new InternalServerErrorException();
-
-    return { user: result.savedUser, accessToken, refreshToken };
+    return { user: result.savedUser, accessToken };
   }
 
   async updateAdmin(data: Pick<adminInsertType, 'fullName'>, userId: string) {

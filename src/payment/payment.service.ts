@@ -24,6 +24,7 @@ import {
 import { InitializePayoutDto } from '@src/payment/dto/initialize-payout.dto';
 import { BankDetailsRepository } from '@src/bank-details/repository/create-bank-details-repository';
 import { ApprovalStatusType } from '@src/earning/dto/create-earning.dto';
+import { WeeklyProofsRepository } from '@src/weekly-proofs/repository/weekly-proofs.repository';
 
 @Injectable()
 export class PaymentService {
@@ -38,6 +39,7 @@ export class PaymentService {
     private notificationService: NotificationService,
     private earningRepository: EarningRepository,
     private bankDetailsRepository: BankDetailsRepository,
+    private weeklyProofsRepository: WeeklyProofsRepository,
   ) {
     const key = this.configService.get<string>('PAYSTACK_SECRET_KEY');
     if (!key) {
@@ -59,20 +61,56 @@ export class PaymentService {
     campaignId: string,
     userId: string,
   ) {
-    const driverBankInfo =
-      await this.bankDetailsRepository.findBankDetailsByUserId(userId);
+    // ! count number of approved weekly proofs
+
+
+
+    const campaign =
+      await this.campaignRepository.findCampaignByCampaignId(campaignId);
+
+    if (!campaign)
+      throw new NotFoundException('Error loading campaign information');
+
+    const weeklyProofs =
+      await this.weeklyProofsRepository.getAllApprovedWeeklyProofsForCampaign(
+        campaignId,
+        userId,
+      );
+    if (weeklyProofs.total < 1)
+      throw new NotFoundException(
+        'No weekly proof found for user for this campaign',
+      );
+
+      if(!campaign.earningPerDriver || !campaign.duration) throw new BadRequestException('Property price or duration is missing from campaign')
+
+    const {withdrawableAmount} = this.calculateWithdrawableAmount(
+      campaign.duration,
+      campaign.earningPerDriver,
+      weeklyProofs.total,
+    );
+
+    console.log('withdrawableAmount', withdrawableAmount);
+
+    const totalPossibleWeeklyProofs = campaign.duration / 7;
+
+    if (weeklyProofs.total > totalPossibleWeeklyProofs + 1) throw new BadRequestException('User have more than the required weekly proofs');
+
+      const driverBankInfo =
+        await this.bankDetailsRepository.findBankDetailsByUserId(userId);
 
     if (!driverBankInfo.bank_details.recipientCode)
       throw new NotFoundException('Error loading driver account information.');
 
     if (!data.approve) {
-      await this.earningRepository.rejectPayouts(
+      const rejectApproval = await this.earningRepository.rejectPayouts(
         {
           rejectionReason: data.reason,
           recipientCode: driverBankInfo.bank_details.recipientCode,
         },
         userId,
       );
+
+      return rejectApproval;
     }
     const earning = await this.earningRepository.findUnapprovedEarningById(
       earningId,
@@ -89,18 +127,13 @@ export class PaymentService {
       userId,
     );
 
-    const campaign = await this.campaignRepository.findCampaignById(campaignId);
-
-    if (!campaign)
-      throw new NotFoundException('Error loading campaign information');
-
     const response = await firstValueFrom(
       this.httpService.post(
         `${this.baseUrl}/transfer`,
         {
           source: 'balance',
           recipient: driverBankInfo.bank_details.recipientCode,
-          amount: campaign.price,
+          amount: withdrawableAmount,
           reason: data.reason,
           reference: generateSecureRef(),
         },
@@ -109,6 +142,21 @@ export class PaymentService {
     );
 
     return response.data;
+  }
+
+  // ! calculate withdrawable amount
+
+  calculateWithdrawableAmount(
+    duration: number,
+    price: number,
+    totalWeeklyProofs: number,
+  ) {
+    const durationInWeeks = duration / 7;
+    const pricePerWeek = price / durationInWeeks;
+
+    const withdrawableAmount = pricePerWeek * totalWeeklyProofs;
+
+    return {withdrawableAmount, durationInWeeks};
   }
 
   //! paystack query

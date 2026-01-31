@@ -70,7 +70,7 @@ export class AuthController {
     @Body() body: LoginUserDto,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const { user, accessToken, refreshToken } =
+    const { user, accessToken } =
       await this.authService.loginUser(body);
 
     res.cookie('access_token', accessToken, {
@@ -79,14 +79,8 @@ export class AuthController {
       sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
       maxAge: 1000 * 60 * 60, // 1h
     });
-    res.cookie('refresh_token', refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-      maxAge: 1000 * 60 * 60 * 24 * 30, // 30d
-    });
 
-    const safeUser = omit(user, ['password', 'refreshToken']);
+    const safeUser = omit(user, ['password']);
 
     return { success: true, user: safeUser };
   }

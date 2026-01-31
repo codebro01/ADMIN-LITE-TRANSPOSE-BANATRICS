@@ -242,7 +242,7 @@ export class EarningRepository {
           eq(earningsTable.userId, userId),
           eq(earningsTable.recipientCode, data.recipientCode),
         ),
-      );
+      ).returning();
 
     return earnings;
   }

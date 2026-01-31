@@ -15,8 +15,8 @@ export class InitializePayoutDto {
   reason: string;
 
   @ApiPropertyOptional({
-    description: 'This is the reason for the transfer',
-    example: 'Earning for campaign Big Cola Africa',
+    description: 'True is approved and false if not approved',
+    example: true,
     maxLength: 200,
     type: String,
   })
