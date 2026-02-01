@@ -26,9 +26,11 @@ export class InstallmentProofsService {
   ) {
 
     if(data.statusType === InstallmentProofStatusType.APPROVED) {
-
+        if(data.rejectionReason) throw new BadRequestException('You cannot provide rejection reason when approving an installment proof')
       const startDriverCampaign =
-        await this.campaignRepository.startDriverCampaign(campaignId, userId)
+        await this.campaignRepository.startDriverCampaign(campaignId, userId);
+
+        // console.log(startDriverCampaign, campaignId, userId)
   
         if(!startDriverCampaign) throw new BadRequestException('Could not set startDate for driver campaign')
       const installmentProof =
@@ -39,6 +41,10 @@ export class InstallmentProofsService {
         );
         return installmentProof;
     } else {
+          if (!data.rejectionReason)
+            throw new BadRequestException(
+              'You must provide rejection reason when using the rejecting an installment proof',
+            );
     const installmentProof =
       await this.installmentProofRepository.updateCampaignInstallmentProof(
         data,

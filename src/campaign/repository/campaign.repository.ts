@@ -276,7 +276,7 @@ export class CampaignRepository {
       .where(
         and(
           eq(driverCampaignTable.campaignId, campaignId),
-          ne(driverCampaignTable.campaignStatus, 'rejected'),
+          eq(driverCampaignTable.campaignStatus, 'approved'),
         ),
       );
 

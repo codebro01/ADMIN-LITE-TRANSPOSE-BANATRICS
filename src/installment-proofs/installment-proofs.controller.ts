@@ -70,7 +70,7 @@ export class InstallmentProofsController {
   })
   @HttpCode(HttpStatus.OK)
   async approveOrRejectInstallmentProof(
-    @Body('body') body: UpdateInstallmentProofDto,
+    @Body() body: UpdateInstallmentProofDto,
     @Param('driverId', ParseUUIDPipe) driverId: string,
     @Param('campaignId', ParseUUIDPipe) campaignId: string,
   ) {

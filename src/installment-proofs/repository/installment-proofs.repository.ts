@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { installmentProofTable, campaignTable } from '@src/db';
+import { installmentProofTable, campaignTable, driverTable } from '@src/db';
 import { UpdateInstallmentProofDto } from '@src/installment-proofs/dto/update-installment-proof.dto';
 import { and, eq, sql } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
@@ -20,6 +20,8 @@ export class InstallmentProofRepository {
 
     let query = this.DbProvider.select({
       id: installmentProofTable.id,
+      firstName: driverTable.firstname, 
+      lastName: driverTable.lastname, 
       campaignId: installmentProofTable.campaignId,
       userId: installmentProofTable.userId,
       backview: installmentProofTable.backview,
@@ -32,7 +34,7 @@ export class InstallmentProofRepository {
         : sql`NULL`.as('campaignTitle'),
     })
       .from(installmentProofTable)
-      .where(and(...conditions));
+      .where(and(...conditions)).leftJoin(driverTable, eq(driverTable.userId, installmentProofTable.userId));
 
     if (campaignId) {
       query = query.leftJoin(
@@ -57,7 +59,7 @@ export class InstallmentProofRepository {
           eq(installmentProofTable.campaignId, campaignId),
           eq(installmentProofTable.userId, userId),
         ),
-      );
+      ).returning();
 
     return installmentProof;
   }
