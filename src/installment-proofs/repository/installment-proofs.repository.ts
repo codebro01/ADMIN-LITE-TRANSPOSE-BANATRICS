@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { installmentProofTable, campaignTable, driverTable } from '@src/db';
 import { UpdateInstallmentProofDto } from '@src/installment-proofs/dto/update-installment-proof.dto';
-import { and, eq, sql } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
 @Injectable()
@@ -18,7 +18,7 @@ export class InstallmentProofRepository {
       conditions.push(eq(installmentProofTable.campaignId, campaignId));
     if (userId) conditions.push(eq(installmentProofTable.userId, userId));
 
-    let query = this.DbProvider.select({
+    const query = this.DbProvider.select({
       id: installmentProofTable.id,
       firstName: driverTable.firstname, 
       lastName: driverTable.lastname, 
@@ -29,19 +29,17 @@ export class InstallmentProofRepository {
       rejectionReason: installmentProofTable.rejectionReason,
       createdAt: installmentProofTable.createdAt,
       updatedAt: installmentProofTable.updatedAt,
-      campaignTitle: campaignId
-        ? campaignTable.campaignName
-        : sql`NULL`.as('campaignTitle'),
+      campaignTitle: campaignTable.campaignName,
     })
       .from(installmentProofTable)
-      .where(and(...conditions)).leftJoin(driverTable, eq(driverTable.userId, installmentProofTable.userId));
+      .where(and(...conditions)).leftJoin(driverTable, eq(driverTable.userId, installmentProofTable.userId)).leftJoin(campaignTable, eq(campaignTable.id, installmentProofTable.campaignId));
 
-    if (campaignId) {
-      query = query.leftJoin(
-        campaignTable,
-        eq(campaignTable.id, installmentProofTable.campaignId),
-      );
-    }
+    // if (campaignId) {
+    //   query = query.leftJoin(
+    //     campaignTable,
+    //     eq(campaignTable.id, installmentProofTable.campaignId),
+    //   );
+    // }
 
     const installmentProof = await query;
 

@@ -82,7 +82,9 @@ export class WeeklyProofsRepository {
     const weeklyProofs = await this.DbProvider.select({
       firstname: driverTable.firstname,
       lastname: driverTable.lastname,
-      id: weeklyProofTable.userId,
+      driverId: driverTable.userId, 
+      campaignId: weeklyProofTable.campaignId, 
+      id: weeklyProofTable.id,
       campaignTitle: campaignTable.campaignName,
       week: weeklyProofTable.createdAt,
       proofsCount: count(weeklyProofTable.userId),

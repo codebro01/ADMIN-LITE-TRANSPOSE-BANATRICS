@@ -32,7 +32,7 @@ export class InstallmentProofsService {
 
         // console.log(startDriverCampaign, campaignId, userId)
   
-        if(!startDriverCampaign) throw new BadRequestException('Could not set startDate for driver campaign')
+        if(!startDriverCampaign) throw new BadRequestException('This driver is not part of the campaign!')
       const installmentProof =
         await this.installmentProofRepository.updateCampaignInstallmentProof(
           data,

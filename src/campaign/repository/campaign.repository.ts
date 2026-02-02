@@ -8,6 +8,7 @@ import {
   campaignDesignsTable,
   driverCampaignTable,
   driverTable,
+  installmentProofTable,
   userTable,
 } from '@src/db';
 
@@ -271,13 +272,31 @@ export class CampaignRepository {
   }
 
   async listAllAssignedDriversForCampaign(campaignId: string) {
-    const drivers = await this.DbProvider.select()
+    const drivers = await this.DbProvider.select({
+      id: driverCampaignTable.id,
+      userId: driverCampaignTable.userId,
+      campaignId: driverCampaignTable.campaignId,
+      campaignStatus: driverCampaignTable.campaignStatus,
+      paid: driverCampaignTable.paid,
+      active: driverCampaignTable.active,
+      startDate: driverCampaignTable.startDate,
+      createdAt: driverCampaignTable.createdAt,
+      updatedAt: driverCampaignTable.updatedAt,
+      firstName: driverTable.firstname,
+      lastname: driverTable.lastname,
+      installmentProofStatus: installmentProofTable.statusType,
+    })
       .from(driverCampaignTable)
       .where(
         and(
           eq(driverCampaignTable.campaignId, campaignId),
           eq(driverCampaignTable.campaignStatus, 'approved'),
         ),
+      )
+      .leftJoin(driverTable, eq(driverTable.userId, driverCampaignTable.userId))
+      .leftJoin(
+        installmentProofTable,
+        eq(installmentProofTable.campaignId, campaignId),
       );
 
     return drivers;
@@ -429,6 +448,7 @@ export class CampaignRepository {
       expires: campaignTable.endDate,
       campaignStatus: driverCampaignTable.campaignStatus,
       isActive: driverCampaignTable.active,
+      installmentProofStatus: installmentProofTable.statusType,
     })
       .from(driverCampaignTable)
       .where(
@@ -443,6 +463,13 @@ export class CampaignRepository {
       .leftJoin(
         campaignTable,
         eq(campaignTable.id, driverCampaignTable.campaignId),
+      )
+      .leftJoin(
+        installmentProofTable,
+        and(
+          eq(installmentProofTable.userId, driverCampaignTable.userId),
+          eq(installmentProofTable.campaignId, driverCampaignTable.campaignId),
+        ),
       );
 
     return campaigns;

@@ -27,7 +27,7 @@ export class JwtAuthGuard implements CanActivate {
     // console.log('tokens', access_token, refresh_token)
 
     if (!access_token) {
-      throw new UnauthorizedException('No token provided');
+      throw new UnauthorizedException('Not authorized');
     }
 
     // console.log('access token', access_token)
