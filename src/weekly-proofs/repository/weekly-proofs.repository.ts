@@ -129,7 +129,7 @@ export class WeeklyProofsRepository {
   }
 
   async approveOrRejectWeeklyProof(
-    data: Pick<weeklyProofInsertType, 'statusType' | 'comment'>,
+    data: Pick<weeklyProofInsertType, 'statusType' | 'comment'> & {weeklyProofId: string},
     campaignId: string,
     userId: string,
   ) {
@@ -143,6 +143,7 @@ export class WeeklyProofsRepository {
         and(
           eq(weeklyProofTable.campaignId, campaignId),
           eq(weeklyProofTable.userId, userId),
+          eq(weeklyProofTable.id, data.weeklyProofId),
         ),
       )
       .returning();

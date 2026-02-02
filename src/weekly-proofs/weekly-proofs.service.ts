@@ -24,7 +24,7 @@ export class WeeklyProofsService {
   }
 
   async approveOrRejectWeeklyProof(
-    data: Pick<weeklyProofInsertType, 'statusType' | 'comment'>,
+    data: Pick<weeklyProofInsertType, 'statusType' | 'comment'> & {weeklyProofId: string},
     campaignId: string,
     userId: string,
   ) {
