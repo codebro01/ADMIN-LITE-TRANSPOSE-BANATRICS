@@ -133,6 +133,7 @@ export class WeeklyProofsRepository {
     campaignId: string,
     userId: string,
   ) {
+    
     const [weeklyProof] = await this.DbProvider.update(weeklyProofTable)
       .set({
         statusType: data.statusType,

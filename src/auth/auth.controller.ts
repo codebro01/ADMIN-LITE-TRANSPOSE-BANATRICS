@@ -23,6 +23,9 @@ import {
 import { UserService } from '@src/users/users.service';
 import omit from 'lodash.omit';
 import { JwtAuthGuard } from '@src/auth/guards/jwt-auth.guard';
+import { LoginThrottlerGuard } from '@src/auth/guards/login-throttler.guard';
+import { Throttle } from '@nestjs/throttler';
+
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -34,6 +37,8 @@ export class AuthController {
   ) {}
 
   // ! local signin (password and email)
+  @UseGuards(LoginThrottlerGuard)
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   @Post('signin')
   @ApiOperation({
     summary: 'User login',
@@ -70,8 +75,7 @@ export class AuthController {
     @Body() body: LoginUserDto,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const { user, accessToken } =
-      await this.authService.loginUser(body);
+    const { user, accessToken } = await this.authService.loginUser(body);
 
     res.cookie('access_token', accessToken, {
       httpOnly: true,

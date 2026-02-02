@@ -13,7 +13,7 @@ export class ApproveOrRejectWeeklyProofDto {
   })
   @IsNotEmpty()
   @IsEnum(WeeklyProofStatus)
-  approvalStatus: WeeklyProofStatus;
+  statusType: WeeklyProofStatus;
 
   @ApiProperty({
     example: 'Well captured',

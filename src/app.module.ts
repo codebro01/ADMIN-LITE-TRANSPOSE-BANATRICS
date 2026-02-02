@@ -32,10 +32,28 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { InvoicesModule } from './invoices/invoices.module';
 import { ReportsModule } from './reports/reports.module';
 import { InstallmentProofsModule } from './installment-proofs/installment-proofs.module';
-
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 
 @Module({
   imports: [
+    ThrottlerModule.forRoot([
+      {
+        name: 'short',
+        ttl: 1000, // 1 second
+        limit: 3, // 3 requests
+      },
+      {
+        name: 'medium',
+        ttl: 10000, // 10 seconds
+        limit: 20, // 20 requests
+      },
+      {
+        name: 'long',
+        ttl: 60000, // 1 minute
+        limit: 100, // 100 requests
+      },
+    ]),
     ConfigModule.forRoot({
       isGlobal: true,
     }),
@@ -62,7 +80,7 @@ import { InstallmentProofsModule } from './installment-proofs/installment-proofs
       }),
       inject: [ConfigService],
     }),
-    ScheduleModule.forRoot(), 
+    ScheduleModule.forRoot(),
     UserModule,
     AuthModule,
     SupabaseModule,
@@ -89,6 +107,14 @@ import { InstallmentProofsModule } from './installment-proofs/installment-proofs
     InstallmentProofsModule,
   ],
   controllers: [AppController, UploadController],
-  providers: [AppService, NeonProvider, MulterService],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+    AppService,
+    NeonProvider,
+    MulterService,
+  ],
 })
 export class AppModule {}
