@@ -82,7 +82,7 @@ export class WeeklyProofsRepository {
     const weeklyProofs = await this.DbProvider.select({
       firstname: driverTable.firstname,
       lastname: driverTable.lastname,
-      driverId: driverTable.userId, 
+      driverId: weeklyProofTable.userId, 
       campaignId: weeklyProofTable.campaignId, 
       id: weeklyProofTable.id,
       campaignTitle: campaignTable.campaignName,
@@ -101,6 +101,7 @@ export class WeeklyProofsRepository {
       .where(and(...conditions))
       .groupBy(
         weeklyProofTable.userId,
+        weeklyProofTable.campaignId,
         driverTable.firstname,
         driverTable.lastname,
         campaignTable.campaignName,
