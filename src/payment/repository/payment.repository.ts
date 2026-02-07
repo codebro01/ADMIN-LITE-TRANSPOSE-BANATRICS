@@ -45,11 +45,13 @@ export class PaymentRepository {
     });
   }
 
+
+
   async listAllWithdrawals() {
     const withdrawals = await this.DbProvider.select({
       id: earningsTable.id,
       userId: earningsTable.userId,
-      campaignId: earningsTable.campaignId, 
+      campaignId: earningsTable.campaignId,
       firstname: driverTable.firstname,
       lastname: driverTable.lastname,
       campaign: campaignTable.campaignName,

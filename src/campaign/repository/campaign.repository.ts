@@ -2,7 +2,6 @@ import { Inject, Injectable } from '@nestjs/common';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { and, eq, ne, lt, count, lte, gt, or } from 'drizzle-orm';
 import { campaignTable } from '@src/db/campaigns';
-import { MaintenanceType } from '../dto/publishCampaignDto';
 import {
   businessOwnerTable,
   campaignDesignsTable,
@@ -29,61 +28,20 @@ export type uploadType = {
   public_id: string;
 };
 
-export interface CreateCampaignData {
-  packageType?: packageType;
-  duration?: number;
-  revisions?: string;
-  price?: number;
-  noOfDrivers?: number;
-  campaignName?: string;
-  campaignDescriptions?: string;
-  startDate?: Date | null;
-  endDate?: Date | null;
-  companyLogo?: uploadType;
-  colorPallete?: string[];
-  callToAction?: string;
-  mainMessage?: string;
-  slogan?: string;
-  responseOnSeeingBanner?: string;
-  uploadedImages?: uploadType[];
-  statusType: CampaignStatus;
-  updatedAt?: Date;
-  maintenanceType?: MaintenanceType;
-  lgaCoverage?: string;
-}
-
-export interface UpdateCampaignData {
-  packageType?: packageType;
-  duration?: number;
-  revisions?: string;
-  price?: number;
-  noOfDrivers?: number;
-  campaignName?: string;
-  campaignDescriptions?: string;
-  startDate?: Date | null;
-  endDate?: Date | null;
-  colorPallete?: string[];
-  callToAction?: string;
-  mainMessage?: string;
-  companyLogo?: {
-    secure_url: string;
-    public_id: string;
-  };
-  slogan?: string;
-  responseOnSeeingBanner?: string;
-  uploadedImages?: uploadType[];
-  statusType?: CampaignStatus;
-  updatedAt?: Date;
-  maintenanceType?: MaintenanceType;
-  lgaCoverage?: string;
-}
-
 @Injectable()
 export class CampaignRepository {
   constructor(
     @Inject('DB')
     private DbProvider: NodePgDatabase<typeof import('@src/db')>,
   ) {}
+
+  async executeInTransaction<T>(
+    callback: (trx: any) => Promise<T>,
+  ): Promise<T> {
+    return await this.DbProvider.transaction(async (trx) => {
+      return await callback(trx);
+    });
+  }
 
   // ! ============================ admin section ===============================
 
@@ -159,6 +117,34 @@ export class CampaignRepository {
 
     return result;
   }
+  async updateCampaignPaymentStatus(
+    campaignId: string,
+    userId: string,
+    trx?: any,
+  ) {
+    const Trx = trx || this.DbProvider;
+    const now = new Date();
+
+    const result = await Trx.update(campaignTable)
+      .set({
+        paymentStatus: true,
+        updatedAt: now,
+      })
+      .where(
+        and(
+          eq(campaignTable.statusType, 'approved'),
+          eq(campaignTable.active, false),
+          eq(campaignTable.id, campaignId),
+          eq(campaignTable.userId, userId),
+        ),
+      )
+      .returning({
+        id: campaignTable.id,
+        campaignName: campaignTable.campaignName,
+      });
+
+    return result;
+  }
 
   async updateCampaignStatusManually() {
     const now = new Date();
@@ -186,10 +172,20 @@ export class CampaignRepository {
     };
   }
 
-  async updatePricePerDriverPerCampaign(amount: number, campaignId: string) {
-    const campaign = await this.DbProvider.update(campaignTable)
+  async updatePricePerDriverPerCampaign(
+    amount: number,
+    campaignId: string,
+    trx?: any,
+  ) {
+    const Trx = trx || this.DbProvider;
+    const [campaign] = await Trx.update(campaignTable)
       .set({ earningPerDriver: amount })
-      .where(eq(campaignTable.id, campaignId));
+      .where(eq(campaignTable.id, campaignId))
+      .returning({
+        campaignId: campaignTable.id,
+        amount: campaignTable.price,
+        userId: campaignTable.userId,
+      });
     return campaign;
   }
 
@@ -360,8 +356,9 @@ export class CampaignRepository {
     return designs;
   }
 
-  async approveCampaign(data: ApproveCampaignDto, campaignId: string) {
-    const [campaign] = await this.DbProvider.update(campaignTable)
+  async approveCampaign(data: ApproveCampaignDto, campaignId: string, trx?: any) {
+    const Trx = trx || this.DbProvider;
+    const [campaign] = await Trx.update(campaignTable)
       .set({
         statusType: data.approveCampaignType,
         printHousePhoneNo: data.printHousePhoneNo,

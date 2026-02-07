@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 
 import { CloudinaryService } from '@src/cloudinary/cloudinary.service';
 import { CampaignRepository } from '@src/campaign/repository/campaign.repository';
@@ -17,6 +21,7 @@ import {
   StatusType,
   VariantType,
 } from '@src/notification/dto/createNotificationDto';
+import { UserRepository } from '@src/users/repository/user.repository';
 
 @Injectable()
 export class CampaignService {
@@ -25,6 +30,7 @@ export class CampaignService {
     private readonly cloudinaryService: CloudinaryService,
     private readonly notificationService: NotificationService,
     private readonly packageRepository: PackageRepository,
+    private readonly userRepository: UserRepository,
   ) {}
 
   // !====================== admin section ===================================================
@@ -134,12 +140,33 @@ export class CampaignService {
         'Please make sure the design of the campaign is approved before approving the campaign',
       );
 
-    await this.campaignRepository.updatePricePerDriverPerCampaign(
-      data.pricePerDriver,
-      campaignId,
-    );
+    const Trx = await this.campaignRepository.executeInTransaction(
+      async (trx) => {
+        const campaign =
+          await this.campaignRepository.updatePricePerDriverPerCampaign(
+            data.pricePerDriver,
+            campaignId,
+            trx
+          );
 
-    return this.campaignRepository.approveCampaign(data, campaignId);
+        await this.campaignRepository.updateCampaignPaymentStatus(
+          campaign.campaignId,
+          campaign.userId,
+          trx
+        );
+
+        if (!campaign.amount)
+          throw new NotFoundException('Could not get price of the campaign');
+
+        await this.userRepository.updateBusinessOwnerPendingBalance(
+          campaign.amount,
+          campaign.userId,
+          trx
+        );
+        return await this.campaignRepository.approveCampaign(data, campaignId, trx);
+      },
+    );
+    return Trx;
   }
   async listAllAvailableCampaigns(query: QueryCampaignDto) {
     return this.campaignRepository.listAllAvailableCampaigns(query);

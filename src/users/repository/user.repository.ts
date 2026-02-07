@@ -22,7 +22,7 @@ import {
   UserApprovalStatusType,
 } from '@src/db/users';
 
-import { eq, or, count, and, sql } from 'drizzle-orm';
+import { eq, or, count, and, sql, gte } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { bankDetails } from 'drizzle/schema';
 
@@ -121,6 +121,27 @@ export class UserRepository {
       .returning();
 
     return user;
+  }
+
+  async updateBusinessOwnerPendingBalance(
+    amount: number,
+    userId: string,
+    trx?: any,
+  ) {
+    const Trx = trx || this.DbProvider;
+    const [update] = await Trx.update(businessOwnerTable)
+      .set({
+        pending: sql`${businessOwnerTable.pending} - ${amount}`,
+      })
+      .where(
+        and(
+          eq(businessOwnerTable.userId, userId),
+          gte(businessOwnerTable.balance, amount),
+        ),
+      )
+      .returning();
+
+    return update;
   }
 
   async updateByUserId(

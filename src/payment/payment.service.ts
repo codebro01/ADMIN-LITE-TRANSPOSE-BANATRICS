@@ -63,8 +63,6 @@ export class PaymentService {
   ) {
     // ! count number of approved weekly proofs
 
-
-
     const campaign =
       await this.campaignRepository.findCampaignByCampaignId(campaignId);
 
@@ -81,9 +79,12 @@ export class PaymentService {
         'No weekly proof found for user for this campaign',
       );
 
-      if(!campaign.earningPerDriver || !campaign.duration) throw new BadRequestException('Property price or duration is missing from campaign')
+    if (!campaign.earningPerDriver || !campaign.duration)
+      throw new BadRequestException(
+        'Property price or duration is missing from campaign',
+      );
 
-    const {withdrawableAmount} = this.calculateWithdrawableAmount(
+    const { withdrawableAmount } = this.calculateWithdrawableAmount(
       campaign.duration,
       campaign.earningPerDriver,
       weeklyProofs.total,
@@ -93,10 +94,13 @@ export class PaymentService {
 
     const totalPossibleWeeklyProofs = campaign.duration / 7;
 
-    if (weeklyProofs.total > totalPossibleWeeklyProofs + 1) throw new BadRequestException('User have more than the required weekly proofs');
+    if (weeklyProofs.total > totalPossibleWeeklyProofs + 1)
+      throw new BadRequestException(
+        'User have more than the required weekly proofs',
+      );
 
-      const driverBankInfo =
-        await this.bankDetailsRepository.findBankDetailsByUserId(userId);
+    const driverBankInfo =
+      await this.bankDetailsRepository.findBankDetailsByUserId(userId);
 
     if (!driverBankInfo.bank_details.recipientCode)
       throw new NotFoundException('Error loading driver account information.');
@@ -156,7 +160,7 @@ export class PaymentService {
 
     const withdrawableAmount = pricePerWeek * totalWeeklyProofs;
 
-    return {withdrawableAmount, durationInWeeks};
+    return { withdrawableAmount, durationInWeeks };
   }
 
   //! paystack query
