@@ -183,6 +183,13 @@
       "when": 1769687807178,
       "tag": "0025_smooth_scrambler",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1770429638780,
+      "tag": "0026_overconfident_ghost_rider",
+      "breakpoints": true
     }
   ]
 }

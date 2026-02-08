@@ -8,7 +8,7 @@ import {
 } from '@src/db';
 import { InvoiceStatusType } from '@src/invoices/dto/create-invoice.dto';
 import { PaymentStatusType } from '@src/payment/dto/paystackMetadataDto';
-import { count, eq, sum } from 'drizzle-orm';
+import { and, count, eq, sum } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
 @Injectable()
@@ -74,5 +74,35 @@ export class InvoicesRepository {
       );
 
     return invoices;
+  }
+
+
+  async getInvoice(campaignId: string, userId: string, trx?:any) {
+    const Trx = trx || this.DbProvider
+    const invoice = await Trx.select()
+      .from(invoicesTable)
+      .where(
+        and(
+          eq(invoicesTable.userId, userId),
+          eq(invoicesTable.campaignId, campaignId),
+        ),
+      );
+
+    return invoice;
+  }
+  async updateInvoiceStatus(status: InvoiceStatusType, campaignId: string, userId: string, trx?:any) {
+    const Trx = trx || this.DbProvider
+    const invoice = await Trx.update(invoicesTable)
+      .set({
+        status
+      })
+      .where(
+        and(
+          eq(invoicesTable.userId, userId),
+          eq(invoicesTable.campaignId, campaignId),
+        ),
+      );
+
+    return invoice;
   }
 }

@@ -22,6 +22,10 @@ import {
   VariantType,
 } from '@src/notification/dto/createNotificationDto';
 import { UserRepository } from '@src/users/repository/user.repository';
+import { InvoicesRepository } from '@src/invoices/repository/invoices.repository';
+import { InvoiceStatusType } from '@src/db';
+import { EmailService } from '../email/email.service';
+import { EmailTemplateType } from '@src/email/types/types';
 
 @Injectable()
 export class CampaignService {
@@ -30,7 +34,9 @@ export class CampaignService {
     private readonly cloudinaryService: CloudinaryService,
     private readonly notificationService: NotificationService,
     private readonly packageRepository: PackageRepository,
+    private readonly invoicesRepository: InvoicesRepository,
     private readonly userRepository: UserRepository,
+    private readonly emailService: EmailService,
   ) {}
 
   // !====================== admin section ===================================================
@@ -146,13 +152,13 @@ export class CampaignService {
           await this.campaignRepository.updatePricePerDriverPerCampaign(
             data.pricePerDriver,
             campaignId,
-            trx
+            trx,
           );
 
         await this.campaignRepository.updateCampaignPaymentStatus(
           campaign.campaignId,
           campaign.userId,
-          trx
+          trx,
         );
 
         if (!campaign.amount)
@@ -161,12 +167,46 @@ export class CampaignService {
         await this.userRepository.updateBusinessOwnerPendingBalance(
           campaign.amount,
           campaign.userId,
-          trx
+          trx,
         );
-        return await this.campaignRepository.approveCampaign(data, campaignId, trx);
+
+        const invoice = await this.invoicesRepository.updateInvoiceStatus(
+          InvoiceStatusType.SUCCESS,
+          campaignId,
+          campaign.userId,
+          trx,
+        );
+        const approveCampaign = await this.campaignRepository.approveCampaign(
+          data,
+          campaignId,
+          trx,
+        );
+
+        return { invoice, approveCampaign };
       },
     );
-    return Trx;
+
+    const user = await this.userRepository.findUserById(
+      Trx.approveCampaign.userId,
+    );
+
+    await this.emailService.queueTemplatedEmail(
+      EmailTemplateType.CAMPAIGN_APPROVED,
+      user.email,
+      {
+        invoiceId: Trx.invoice.id,
+        campaignTitle: Trx.approveCampaign.campaignTitle,
+        startDate: Trx.approveCampaign.startDate,
+        endDate: Trx.approveCampaign.endDate,
+        amountPaid: Trx.approveCampaign.price,
+        noOfDrivers: Trx.approveCampaign.noOfDrivers,
+        invoiceStatus: Trx.invoice.Status,
+        packageType: Trx.approveCampaign.packageType,
+        campaignStatus: Trx.approveCampaign.statusType,
+      },
+    );
+
+    return Trx.approveCampaign;
   }
   async listAllAvailableCampaigns(query: QueryCampaignDto) {
     return this.campaignRepository.listAllAvailableCampaigns(query);

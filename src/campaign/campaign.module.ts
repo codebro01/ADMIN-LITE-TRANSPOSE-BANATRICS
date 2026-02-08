@@ -7,9 +7,11 @@ import { CloudinaryService } from '@src/cloudinary/cloudinary.service';
 import { NotificationModule } from '@src/notification/notification.module';
 import { PackageModule } from '@src/package/package.module';
 import { UserModule } from '@src/users/users.module';
+import { InvoicesModule } from '@src/invoices/invoices.module';
+import { EmailModule } from '@src/email/email.module';
 
 @Module({
-  imports: [NotificationModule, PackageModule, forwardRef(() => UserModule)],
+  imports: [NotificationModule, PackageModule, forwardRef(() => UserModule), InvoicesModule, EmailModule],
   controllers: [CampaignController],
   providers: [
     CampaignService,

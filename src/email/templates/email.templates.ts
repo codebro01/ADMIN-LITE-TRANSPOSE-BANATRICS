@@ -131,4 +131,115 @@ ${data.resetCode}            </a>
       </html>
     `;
   }
+
+  getInvoiceTemplate(data: {
+    invoiceId: string;
+    campaignTitle: string;
+    startDate: string;
+    endDate: string;
+    amountPaid: number;
+    noOfDrivers: number;
+    invoiceStatus: string;
+    packageType: string;
+    campaignStatus: string;
+  }): string {
+    return `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+          .container { max-width: 650px; margin: 0 auto; padding: 20px; background: #ffffff; }
+          .header { background: #2c3e50; color: white; padding: 30px 20px; text-align: center; }
+          .header h1 { margin: 0; font-size: 28px; }
+          .invoice-id { color: #ecf0f1; font-size: 14px; margin-top: 10px; }
+          .content { padding: 30px 20px; }
+          .invoice-details { background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; }
+          .detail-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #e0e0e0; }
+          .detail-row:last-child { border-bottom: none; }
+          .detail-label { font-weight: 600; color: #555; }
+          .detail-value { color: #333; text-align: right; }
+          .amount-section { background: #e8f5e9; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: center; }
+          .amount-label { font-size: 14px; color: #666; margin-bottom: 8px; }
+          .amount-value { font-size: 32px; font-weight: bold; color: #2e7d32; }
+          .status-badge { display: inline-block; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; text-transform: uppercase; }
+          .status-paid { background: #4CAF50; color: white; }
+          .status-pending { background: #FF9800; color: white; }
+          .status-failed { background: #f44336; color: white; }
+          .status-active { background: #2196F3; color: white; }
+          .status-completed { background: #4CAF50; color: white; }
+          .status-paused { background: #9E9E9E; color: white; }
+          .footer { text-align: center; padding: 20px; color: #777; font-size: 13px; border-top: 1px solid #e0e0e0; margin-top: 30px; }
+          .button { display: inline-block; padding: 12px 30px; background: #2c3e50; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>Invoice from Banatrics</h1>
+            <div class="invoice-id">Invoice #${data.invoiceId}</div>
+          </div>
+          
+          <div class="content">
+            <h2>Campaign Invoice</h2>
+            <p>Thank you for your business! Below are the details of your campaign invoice.</p>
+            
+            <div class="amount-section">
+              <div class="amount-label">Amount Paid</div>
+              <div class="amount-value">₦${data.amountPaid.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+            </div>
+            
+            <div class="invoice-details">
+              <div class="detail-row">
+                <span class="detail-label">Campaign Title</span>
+                <span class="detail-value">${data.campaignTitle}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Package Type</span>
+                <span class="detail-value">${data.packageType}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Number of Drivers</span>
+                <span class="detail-value">${data.noOfDrivers}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Start Date</span>
+                <span class="detail-value">${new Date(data.startDate).toLocaleDateString('en-NG', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">End Date</span>
+                <span class="detail-value">${new Date(data.endDate).toLocaleDateString('en-NG', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Invoice Status</span>
+                <span class="detail-value">
+                  <span class="status-badge status-${data.invoiceStatus.toLowerCase()}">${data.invoiceStatus}</span>
+                </span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Campaign Status</span>
+                <span class="detail-value">
+                  <span class="status-badge status-${data.campaignStatus.toLowerCase()}">${data.campaignStatus}</span>
+                </span>
+              </div>
+            </div>
+            
+            <div style="text-align: center;">
+              <a href="https://banatrics.com/invoices/${data.invoiceId}" class="button">View Full Invoice</a>
+            </div>
+            
+            <p style="margin-top: 30px; font-size: 14px; color: #666;">
+              If you have any questions about this invoice, please contact our support team.
+            </p>
+          </div>
+          
+          <div class="footer">
+            <p>© ${new Date().getFullYear()} Banatrics. All rights reserved.</p>
+            <p>This is an automated invoice notification.</p>
+          </div>
+        </div>
+      </body>
+    </html>
+  `;
+  }
 }
