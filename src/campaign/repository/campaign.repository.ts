@@ -61,10 +61,12 @@ export class CampaignRepository {
   // }
   async findCampaignByCampaignId(campaignId: string) {
     const [campaigns] = await this.DbProvider.select({
+      userId: campaignTable.userId, 
       duration: campaignTable.duration,
       price: campaignTable.price,
       campaignTitle: campaignTable.campaignName,
       earningPerDriver: campaignTable.earningPerDriver,
+      statusType: campaignTable.statusType
     })
       .from(campaignTable)
       .where(and(eq(campaignTable.id, campaignId)));
@@ -185,6 +187,7 @@ export class CampaignRepository {
         campaignId: campaignTable.id,
         amount: campaignTable.price,
         userId: campaignTable.userId,
+        statusType: campaignTable.statusType
       });
     return campaign;
   }

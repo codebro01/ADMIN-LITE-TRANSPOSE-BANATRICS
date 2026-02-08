@@ -135,6 +135,25 @@ export class CampaignService {
     return this.campaignRepository.getDesignsForCampaign(campaignId);
   }
   async approveCampaign(data: ApproveCampaignDto, campaignId: string) {
+    if (data.approveCampaignType === approveCampaignType.REJECT) {
+      const campaign =
+        await this.campaignRepository.findCampaignByCampaignId(campaignId);
+
+      if (campaign.statusType === 'rejected')
+        throw new BadRequestException('Campaign is already rejected');
+
+      if (!campaign.price)
+        throw new NotFoundException('Could not get campaign price');
+      await this.userRepository.updateBusinessOwnerBalance(
+        campaign.price,
+        campaign.userId,
+      );
+
+      return {
+        message: 'Campaign Rejected',
+      };
+    }
+
     const [design] =
       await this.campaignRepository.getDesignsForCampaign(campaignId);
     if (!design)
@@ -154,6 +173,9 @@ export class CampaignService {
             campaignId,
             trx,
           );
+
+        if (campaign.statusType === 'approved')
+          throw new BadRequestException('Campaign has already been approved');
 
         await this.campaignRepository.updateCampaignPaymentStatus(
           campaign.campaignId,
@@ -191,22 +213,24 @@ export class CampaignService {
     );
 
     await this.emailService.queueTemplatedEmail(
-      EmailTemplateType.CAMPAIGN_APPROVED,
+      EmailTemplateType.CAMPAIGN_INVOICE,
       user.email,
       {
-        invoiceId: Trx.invoice.id,
-        campaignTitle: Trx.approveCampaign.campaignTitle,
+        invoiceNo: Trx.invoice.invoiceId,
+        campaignTitle: Trx.approveCampaign.campaignName,
         startDate: Trx.approveCampaign.startDate,
         endDate: Trx.approveCampaign.endDate,
         amountPaid: Trx.approveCampaign.price,
         noOfDrivers: Trx.approveCampaign.noOfDrivers,
-        invoiceStatus: Trx.invoice.Status,
+        invoiceStatus: Trx.invoice.status,
         packageType: Trx.approveCampaign.packageType,
         campaignStatus: Trx.approveCampaign.statusType,
       },
     );
-
-    return Trx.approveCampaign;
+    // console.log(Trx)
+    return {
+      message: 'Campaign Rejected',
+    };
   }
   async listAllAvailableCampaigns(query: QueryCampaignDto) {
     return this.campaignRepository.listAllAvailableCampaigns(query);

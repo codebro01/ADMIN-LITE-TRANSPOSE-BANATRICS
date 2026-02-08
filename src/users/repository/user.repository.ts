@@ -143,6 +143,27 @@ export class UserRepository {
 
     return update;
   }
+  async updateBusinessOwnerBalance(
+    amount: number,
+    userId: string,
+    trx?: any,
+  ) {
+    const Trx = trx || this.DbProvider;
+    const [update] = await Trx.update(businessOwnerTable)
+      .set({
+        pending: sql`${businessOwnerTable.pending} - ${amount}`,
+        balance: sql`${businessOwnerTable.balance} + ${amount}`,
+      })
+      .where(
+        and(
+          eq(businessOwnerTable.userId, userId),
+          gte(businessOwnerTable.balance, amount),
+        ),
+      )
+      .returning();
+
+    return update;
+  }
 
   async updateByUserId(
     data: Partial<userInsertType>,

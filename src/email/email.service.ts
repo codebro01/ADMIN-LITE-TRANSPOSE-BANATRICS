@@ -13,6 +13,7 @@ import {
   PasswordResetTemplateData,
   EmailVerificationTemplateData,
   EmailResponse,
+  CampaignInvoiceTempleteData,
 } from '@src/email/types/types';
 
 @Injectable()
@@ -52,20 +53,22 @@ export class EmailService {
     }
   }
 
-
   async queueTemplatedEmail(
     template: EmailTemplateType,
     to: string | string[],
     data: Record<string, any>,
   ): Promise<string> {
-            console.log('got into queue');
+    console.log('got into queue');
 
     const emailData = this.buildTemplateEmail(template, to, data);
-    const queueEmail =  await this.queueEmail(emailData, this.getTemplatePriority(template));
-    console.log(queueEmail)
-    return queueEmail
+    console.log('past queue');
+    const queueEmail = await this.queueEmail(
+      emailData,
+      this.getTemplatePriority(template),
+    );
+    console.log(queueEmail);
+    return queueEmail;
   }
-
 
   private buildTemplateEmail(
     template: EmailTemplateType,
@@ -106,6 +109,15 @@ export class EmailService {
           subject: 'Reset Your Password',
           html: this.emailTemplate.getPasswordResetTemplate(
             data as PasswordResetTemplateData,
+          ),
+        };
+
+      case EmailTemplateType.CAMPAIGN_INVOICE:
+        return {
+          to,
+          subject: 'Campaign Invoice',
+          html: this.emailTemplate.getInvoiceTemplate(
+            data as CampaignInvoiceTempleteData,
           ),
         };
 
@@ -166,6 +178,7 @@ export class EmailService {
       [EmailTemplateType.CAMPAIGN_REJECTED]: 2,
       [EmailTemplateType.WELCOME]: 3,
       [EmailTemplateType.CAMPAIGN_CREATED]: 3,
+      [EmailTemplateType.CAMPAIGN_INVOICE]: 2,
     };
     return priorities[template] || 5;
   }

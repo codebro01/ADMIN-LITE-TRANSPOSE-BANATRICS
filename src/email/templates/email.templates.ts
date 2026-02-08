@@ -133,7 +133,7 @@ ${data.resetCode}            </a>
   }
 
   getInvoiceTemplate(data: {
-    invoiceId: string;
+    invoiceNo: string;
     campaignTitle: string;
     startDate: string;
     endDate: string;
@@ -143,6 +143,7 @@ ${data.resetCode}            </a>
     packageType: string;
     campaignStatus: string;
   }): string {
+    // console.log(data.invoiceStatus)
     return `
     <!DOCTYPE html>
     <html>
@@ -177,7 +178,7 @@ ${data.resetCode}            </a>
         <div class="container">
           <div class="header">
             <h1>Invoice from Banatrics</h1>
-            <div class="invoice-id">Invoice #${data.invoiceId}</div>
+            <div class="invoice-id">Invoice #${data.invoiceNo}</div>
           </div>
           
           <div class="content">
@@ -192,40 +193,36 @@ ${data.resetCode}            </a>
             <div class="invoice-details">
               <div class="detail-row">
                 <span class="detail-label">Campaign Title</span>
-                <span class="detail-value">${data.campaignTitle}</span>
+                <span class="detail-value">: ${data.campaignTitle}</span>
               </div>
               <div class="detail-row">
                 <span class="detail-label">Package Type</span>
-                <span class="detail-value">${data.packageType}</span>
+                <span class="detail-value">: ${data.packageType}</span>
               </div>
               <div class="detail-row">
                 <span class="detail-label">Number of Drivers</span>
-                <span class="detail-value">${data.noOfDrivers}</span>
+                <span class="detail-value">: ${data.noOfDrivers}</span>
               </div>
               <div class="detail-row">
                 <span class="detail-label">Start Date</span>
-                <span class="detail-value">${new Date(data.startDate).toLocaleDateString('en-NG', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                <span class="detail-value">: ${new Date(data.startDate).toLocaleDateString('en-NG', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
               </div>
               <div class="detail-row">
                 <span class="detail-label">End Date</span>
-                <span class="detail-value">${new Date(data.endDate).toLocaleDateString('en-NG', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                <span class="detail-value">: ${new Date(data.endDate).toLocaleDateString('en-NG', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
               </div>
               <div class="detail-row">
                 <span class="detail-label">Invoice Status</span>
                 <span class="detail-value">
-                  <span class="status-badge status-${data.invoiceStatus.toLowerCase()}">${data.invoiceStatus}</span>
+                  <span class="status-badge status-${data.invoiceStatus?.toLowerCase()}">: ${data.invoiceStatus}</span>
                 </span>
               </div>
               <div class="detail-row">
                 <span class="detail-label">Campaign Status</span>
                 <span class="detail-value">
-                  <span class="status-badge status-${data.campaignStatus.toLowerCase()}">${data.campaignStatus}</span>
+                  <span class="status-badge status-${data.campaignStatus.toLowerCase()}">: ${data.campaignStatus}</span>
                 </span>
               </div>
-            </div>
-            
-            <div style="text-align: center;">
-              <a href="https://banatrics.com/invoices/${data.invoiceId}" class="button">View Full Invoice</a>
             </div>
             
             <p style="margin-top: 30px; font-size: 14px; color: #666;">

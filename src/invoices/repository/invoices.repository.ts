@@ -92,7 +92,7 @@ export class InvoicesRepository {
   }
   async updateInvoiceStatus(status: InvoiceStatusType, campaignId: string, userId: string, trx?:any) {
     const Trx = trx || this.DbProvider
-    const invoice = await Trx.update(invoicesTable)
+    const [invoice] = await Trx.update(invoicesTable)
       .set({
         status
       })
@@ -101,7 +101,7 @@ export class InvoicesRepository {
           eq(invoicesTable.userId, userId),
           eq(invoicesTable.campaignId, campaignId),
         ),
-      );
+      ).returning();
 
     return invoice;
   }

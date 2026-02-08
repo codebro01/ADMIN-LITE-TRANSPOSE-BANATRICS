@@ -165,9 +165,9 @@ export class CampaignController {
     @Body() body: ApproveCampaignDto,
     @Param('campaignId', ParseUUIDPipe) campaignId: string,
   ) {
-    await this.campaignService.approveCampaign(body, campaignId);
+    const campaign = await this.campaignService.approveCampaign(body, campaignId);
 
-    return { success: true, message: 'campaign Approved' };
+    return { success: true, message: campaign.message };
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)

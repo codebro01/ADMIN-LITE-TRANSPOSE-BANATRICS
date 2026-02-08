@@ -22,6 +22,7 @@ export enum EmailTemplateType {
   CAMPAIGN_REJECTED = 'campaign-rejected',
   PASSWORD_RESET = 'password-reset',
   EMAIL_VERIFICATION = 'email-verification',
+  CAMPAIGN_INVOICE = 'campaign-invoice',
 }
 
 export interface EmailResponse {
@@ -54,6 +55,18 @@ export interface CampaignApprovedTemplateData {
 
 export interface PasswordResetTemplateData {
   resetCode: string;
+}
+
+export interface CampaignInvoiceTempleteData {
+  invoiceNo: string;
+  campaignTitle: string;
+  startDate: string;
+  endDate: string;
+  amountPaid: number;
+  noOfDrivers: number;
+  invoiceStatus: string;
+  packageType: string;
+  campaignStatus: string;
 }
 
 export interface EmailVerificationTemplateData {
