@@ -49,7 +49,7 @@ export class PaymentRepository {
 
   async listAllWithdrawals() {
     const withdrawals = await this.DbProvider.select({
-      id: earningsTable.id,
+      earningId: earningsTable.id,
       userId: earningsTable.userId,
       campaignId: earningsTable.campaignId,
       firstname: driverTable.firstname,

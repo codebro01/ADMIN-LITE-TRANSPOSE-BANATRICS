@@ -123,7 +123,25 @@ export class CampaignService {
       throw new BadRequestException(
         `This campaign currently has an uploaded design, please update the design.`,
       );
-    return this.campaignRepository.createCampaignDesigns(data, campaignId);
+    const design = await this.campaignRepository.createCampaignDesigns(data, campaignId);
+    const campaign = await this.campaignRepository.findCampaignByCampaignId(campaignId);
+
+await this.notificationService.createNotification(
+  {
+    title: 'Campaign Design Completed',
+    message: `Your design is ready for "${campaign.campaignTitle} has been approved, please provide an installation proof within 24 hours. Thank you.`,
+    category: CategoryType.CAMPAIGN,
+    variant: VariantType.INFO,
+    priority: 'important',
+    status: StatusType.UNREAD,
+  },
+  campaign.userId,
+  'driver',
+);
+
+    return design
+
+
   }
   async updateCampaignDesigns(
     data: UploadCampaignDesignDto,

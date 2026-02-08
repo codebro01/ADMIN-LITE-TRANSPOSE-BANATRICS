@@ -379,6 +379,7 @@ export class CampaignRepository {
       conditions.push(eq(campaignTable.statusType, query.status));
     const campaigns = await this.DbProvider.select({
       id: campaignTable.id,
+      packageType: campaignTable.packageType,
       campaignTitle: campaignTable.campaignName,
       startDate: campaignTable.startDate,
       endDate: campaignTable.endDate,
