@@ -146,8 +146,9 @@ export class UserController {
     @Param('userId', ParseUUIDPipe) userId: string,
     @Body() dto: SuspendUserDto,
   ) {
-    await this.userService.suspendUser(userId, dto.roleType);
-    return { success: true, message: 'User suspended' };
+    const suspendUser = await this.userService.suspendUser(userId, dto.roleType);
+    // console.log(suspendUser)
+    return { success: true, message: 'User suspended', data: suspendUser };
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -163,8 +164,8 @@ export class UserController {
     @Param('userId', ParseUUIDPipe) userId: string,
     @Body() dto: ActivateUserDto,
   ) {
-    await this.userService.activateUserByRoleType(userId, dto.roleType);
-    return { success: true, message: 'User Activated' };
+    const activateUser = await this.userService.activateUserByRoleType(userId, dto.roleType);
+    return { success: true, message: 'User Activated', data: activateUser };
   }
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')

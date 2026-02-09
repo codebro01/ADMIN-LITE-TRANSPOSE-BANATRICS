@@ -209,6 +209,7 @@ export class UserRepository {
       totalCampaigns: count(driverCampaignTable.id),
       totalEarnings: sql<number>`COALESCE(SUM(${earningsTable.amount}), 0)`, // Sum earnings, default to 0
       status: driverTable.approvedStatus,
+      activeStatus: driverTable.activeStatus
     })
       .from(driverTable)
       .leftJoin(userTable, eq(userTable.id, driverTable.userId))
@@ -363,11 +364,15 @@ export class UserRepository {
     return true;
   }
   async suspendDriver(userId: string) {
-    await this.DbProvider.update(driverTable)
+    const suspendDrivers = await this.DbProvider.update(driverTable)
       .set({ activeStatus: UserApprovalStatusType.SUSPENDED })
-      .where(eq(driverTable.userId, userId));
-
-    return true;
+      .where(eq(driverTable.userId, userId)).returning({
+        id: userTable.id,
+      lastname: driverTable.lastname,
+      firstname: driverTable.firstname,
+      activeStatus: driverTable.activeStatus,
+      });
+    return suspendDrivers;
   }
   async suspendBusinessOwner(userId: string) {
     await this.DbProvider.update(businessOwnerTable)
