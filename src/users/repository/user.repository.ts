@@ -157,7 +157,7 @@ export class UserRepository {
       .where(
         and(
           eq(businessOwnerTable.userId, userId),
-          gte(businessOwnerTable.balance, amount),
+          gte(businessOwnerTable.pending, amount),
         ),
       )
       .returning();

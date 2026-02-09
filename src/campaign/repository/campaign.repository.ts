@@ -122,6 +122,7 @@ export class CampaignRepository {
   async updateCampaignPaymentStatus(
     campaignId: string,
     userId: string,
+    paymentStatus: boolean,
     trx?: any,
   ) {
     const Trx = trx || this.DbProvider;
@@ -129,7 +130,7 @@ export class CampaignRepository {
 
     const result = await Trx.update(campaignTable)
       .set({
-        paymentStatus: true,
+        paymentStatus: paymentStatus,
         updatedAt: now,
       })
       .where(

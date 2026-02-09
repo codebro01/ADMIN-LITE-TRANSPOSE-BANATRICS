@@ -123,25 +123,27 @@ export class CampaignService {
       throw new BadRequestException(
         `This campaign currently has an uploaded design, please update the design.`,
       );
-    const design = await this.campaignRepository.createCampaignDesigns(data, campaignId);
-    const campaign = await this.campaignRepository.findCampaignByCampaignId(campaignId);
+    const design = await this.campaignRepository.createCampaignDesigns(
+      data,
+      campaignId,
+    );
+    const campaign =
+      await this.campaignRepository.findCampaignByCampaignId(campaignId);
 
-await this.notificationService.createNotification(
-  {
-    title: 'Campaign Design Completed',
-    message: `Your design is ready for "${campaign.campaignTitle} has been approved, please provide an installation proof within 24 hours. Thank you.`,
-    category: CategoryType.CAMPAIGN,
-    variant: VariantType.INFO,
-    priority: 'important',
-    status: StatusType.UNREAD,
-  },
-  campaign.userId,
-  'driver',
-);
+    await this.notificationService.createNotification(
+      {
+        title: 'Campaign Design Completed',
+        message: `Your design is ready for "${campaign.campaignTitle} has been approved, please provide an installation proof within 24 hours. Thank you.`,
+        category: CategoryType.CAMPAIGN,
+        variant: VariantType.INFO,
+        priority: 'important',
+        status: StatusType.UNREAD,
+      },
+      campaign.userId,
+      'driver',
+    );
 
-    return design
-
-
+    return design;
   }
   async updateCampaignDesigns(
     data: UploadCampaignDesignDto,
@@ -157,11 +159,20 @@ await this.notificationService.createNotification(
       const campaign =
         await this.campaignRepository.findCampaignByCampaignId(campaignId);
 
+      if (!campaign) throw new NotFoundException('Could not find campaign');
+
       if (campaign.statusType === 'rejected')
         throw new BadRequestException('Campaign is already rejected');
 
       if (!campaign.price)
         throw new NotFoundException('Could not get campaign price');
+
+      await this.campaignRepository.updateCampaignPaymentStatus(
+        campaignId,
+        campaign.userId,
+        false,
+      );
+
       await this.userRepository.updateBusinessOwnerBalance(
         campaign.price,
         campaign.userId,
@@ -198,6 +209,7 @@ await this.notificationService.createNotification(
         await this.campaignRepository.updateCampaignPaymentStatus(
           campaign.campaignId,
           campaign.userId,
+          true,
           trx,
         );
 
