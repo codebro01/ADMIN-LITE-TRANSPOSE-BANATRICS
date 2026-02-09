@@ -206,6 +206,7 @@ export class UserRepository {
       lastname: driverTable.lastname,
       firstname: driverTable.firstname,
       phone: userTable.phone,
+      email: userTable.email,
       totalCampaigns: count(driverCampaignTable.id),
       totalEarnings: sql<number>`COALESCE(SUM(${earningsTable.amount}), 0)`, // Sum earnings, default to 0
       status: driverTable.approvedStatus,
