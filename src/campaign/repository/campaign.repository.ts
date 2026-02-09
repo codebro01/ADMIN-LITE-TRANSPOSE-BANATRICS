@@ -135,7 +135,6 @@ export class CampaignRepository {
       })
       .where(
         and(
-          eq(campaignTable.statusType, 'approved'),
           eq(campaignTable.active, false),
           eq(campaignTable.id, campaignId),
           eq(campaignTable.userId, userId),

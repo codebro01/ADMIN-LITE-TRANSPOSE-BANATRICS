@@ -164,19 +164,23 @@ export class CampaignService {
       if (campaign.statusType === 'rejected')
         throw new BadRequestException('Campaign is already rejected');
 
-      if (!campaign.price)
-        throw new NotFoundException('Could not get campaign price');
+      await this.campaignRepository.executeInTransaction(async (trx) => {
+        await this.campaignRepository.updateCampaignPaymentStatus(
+          campaignId,
+          campaign.userId,
+          false,
+          trx,
+        );
+        if (!campaign.price)
+          throw new NotFoundException('Could not get campaign price');
+        await this.userRepository.updateBusinessOwnerBalance(
+          campaign.price,
+          campaign.userId,
+          trx,
+        );
 
-      await this.campaignRepository.updateCampaignPaymentStatus(
-        campaignId,
-        campaign.userId,
-        false,
-      );
-
-      await this.userRepository.updateBusinessOwnerBalance(
-        campaign.price,
-        campaign.userId,
-      );
+        await this.campaignRepository.approveCampaign(data, campaignId, trx);
+      });
 
       return {
         message: 'Campaign Rejected',
