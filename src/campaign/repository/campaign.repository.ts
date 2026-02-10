@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import { and, eq, ne, lt, count, lte, gt, or } from 'drizzle-orm';
+import { and, eq, ne, lt, count, lte, gt, or, desc } from 'drizzle-orm';
 import { campaignTable } from '@src/db/campaigns';
 import {
   businessOwnerTable,
@@ -407,7 +407,8 @@ export class CampaignRepository {
         driverCampaignTable,
         eq(driverCampaignTable.campaignId, campaignTable.id),
       )
-      .groupBy(campaignTable.id);
+      .groupBy(campaignTable.id)
+      .orderBy(desc(campaignTable.createdAt));
 
     return { campaigns };
   }
