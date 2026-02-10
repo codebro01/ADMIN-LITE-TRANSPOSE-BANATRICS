@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -67,6 +68,12 @@ export class CampaignService {
   }
 
   async approveDriverCampaign(campaignId: string, userId: string) {
+
+    const approvedDriverCampaign =
+      await this.campaignRepository.getApprovedDriverCampaign(userId);
+
+      if(approvedDriverCampaign) throw new ConflictException('User already have an incomplete approved campaign')
+
     const approvedCampaign =
       await this.campaignRepository.approveDriverCampaign(campaignId, userId);
 

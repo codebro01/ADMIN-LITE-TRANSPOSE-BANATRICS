@@ -158,6 +158,19 @@ export class DrizzleExceptionFilter implements ExceptionFilter {
         path: request.url,
       });
     }
+
+
+     if (exception?.response?.statusCode === 409 || exception.status === 409) {
+       return response.status(HttpStatus.CONFLICT).json({
+         statusCode: HttpStatus.CONFLICT,
+         message:
+           exception?.response?.message,
+         error: exception?.response?.error || 'Conflict Error',
+         timestamp: new Date().toISOString(),
+         path: request.url,
+       });
+     }
+
     //! Default fallback (true 500s only) - sanitized
     return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
       statusCode: HttpStatus.INTERNAL_SERVER_ERROR,

@@ -61,12 +61,12 @@ export class CampaignRepository {
   // }
   async findCampaignByCampaignId(campaignId: string) {
     const [campaigns] = await this.DbProvider.select({
-      userId: campaignTable.userId, 
+      userId: campaignTable.userId,
       duration: campaignTable.duration,
       price: campaignTable.price,
       campaignTitle: campaignTable.campaignName,
       earningPerDriver: campaignTable.earningPerDriver,
-      statusType: campaignTable.statusType
+      statusType: campaignTable.statusType,
     })
       .from(campaignTable)
       .where(and(eq(campaignTable.id, campaignId)));
@@ -187,7 +187,7 @@ export class CampaignRepository {
         campaignId: campaignTable.id,
         amount: campaignTable.price,
         userId: campaignTable.userId,
-        statusType: campaignTable.statusType
+        statusType: campaignTable.statusType,
       });
     return campaign;
   }
@@ -359,7 +359,11 @@ export class CampaignRepository {
     return designs;
   }
 
-  async approveCampaign(data: ApproveCampaignDto, campaignId: string, trx?: any) {
+  async approveCampaign(
+    data: ApproveCampaignDto,
+    campaignId: string,
+    trx?: any,
+  ) {
     const Trx = trx || this.DbProvider;
     const [campaign] = await Trx.update(campaignTable)
       .set({
@@ -474,5 +478,18 @@ export class CampaignRepository {
       );
 
     return campaigns;
+  }
+
+  async getApprovedDriverCampaign(userId: string) {
+    const [driverCampaign] = await this.DbProvider.select()
+      .from(driverCampaignTable)
+      .where(
+        and(
+          eq(driverCampaignTable.userId, userId),
+          eq(driverCampaignTable.campaignStatus, 'approved'),
+        ),
+      );
+
+      return driverCampaign
   }
 }
