@@ -177,13 +177,13 @@ ${data.resetCode}            </a>
       <body>
         <div class="container">
           <div class="header">
-            <h1>Invoice from Banatrics</h1>
-            <div class="invoice-id">Invoice #${data.invoiceNo}</div>
+            <h1>Reciept from Banatrics</h1>
+            <h3 class="invoice-id">Invoice No  #${data.invoiceNo}</h3>
           </div>
           
           <div class="content">
-            <h2>Campaign Invoice</h2>
-            <p>Thank you for your business! Below are the details of your campaign invoice.</p>
+            <h2>Campaign Receipt</h2>
+            <p>Thank you for your business! Below are the details of your campaign</p>
             
             <div class="amount-section">
               <div class="amount-label">Amount Paid</div>
