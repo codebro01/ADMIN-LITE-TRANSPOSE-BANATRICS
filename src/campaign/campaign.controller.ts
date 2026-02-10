@@ -172,7 +172,7 @@ export class CampaignController {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
-  @Patch('campaign/campaignId')
+  @Patch(':campaignId/designs')
   @ApiCookieAuth('access_token')
   @ApiOperation({
     summary: 'Update a campaign design',
