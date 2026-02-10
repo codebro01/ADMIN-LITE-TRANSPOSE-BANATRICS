@@ -192,7 +192,7 @@ ${data.resetCode}            </a>
             
             <div class="invoice-details">
               <div class="detail-row">
-                <span class="detail-label">Campaign Title</span>
+                <span class="detail-la'bel">Campaign Title</span>
                 <span class="detail-value">: ${data.campaignTitle}</span>
               </div>
               <div class="detail-row">

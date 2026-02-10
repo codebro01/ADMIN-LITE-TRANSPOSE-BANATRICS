@@ -265,7 +265,7 @@ export class CampaignRepository {
         businessOwnerTable.businessName,
         userTable.email,
         userTable.phone,
-      );p
+      );
 
     return campaign;
   }
