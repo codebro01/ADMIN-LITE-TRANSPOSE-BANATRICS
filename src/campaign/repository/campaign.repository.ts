@@ -346,7 +346,7 @@ export class CampaignRepository {
       campaignId: campaignId,
       designs: data.designs,
       comment: data.comment,
-    }).returning();
+    }).where(eq(campaignDesignsTable.campaignId, campaignId)).returning();
 
     return campaign;
   }
