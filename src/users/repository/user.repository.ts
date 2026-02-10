@@ -295,6 +295,7 @@ export class UserRepository {
       driverLicense: driverTable.driverLicense,
       vehiclePapers: driverTable.owershipDocument,
       totalEarnings: sql<number>`COALESCE(SUM(${earningsTable.amount}), 0)`,
+      pendingPayout: sql<number>`COALESCE(SUM(CASE WHEN ${earningsTable.paymentStatus} = 'pending' THEN ${earningsTable.amount} ELSE 0 END), 0)`,
     })
       .from(userTable)
       .where(eq(userTable.id, userId))
