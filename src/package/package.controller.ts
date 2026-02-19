@@ -10,6 +10,7 @@ import {
   Req,
   HttpStatus,
   HttpCode,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { PackageService } from './package.service';
 import { CreatePackageDto } from './dto/create-package.dto';
@@ -80,14 +81,16 @@ export class PackageController {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
-  @Delete(':id')
+  @Delete(':packageId')
   @ApiCookieAuth('access_token')
   @ApiOperation({
     summary: 'Deletes a package',
     description: 'Deletes a package forever',
   })
   @HttpCode(HttpStatus.OK)
-  remove(@Param('id') id: string) {
-    return this.packageService.remove(id);
+ async  remove(@Param('packageId', ParseUUIDPipe) packageId: string) {
+    const pkg = await  this.packageService.remove(packageId);
+
+    return {success:true, message: pkg}
   }
 }

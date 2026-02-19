@@ -52,7 +52,7 @@ export class PackageRepository {
     return pkg;
   }
 
-  async  delete(packageId: string) {
+  async  remove(packageId: string) {
     await this.DbProvider.delete(packageTable).where(eq(packageTable.id, packageId));
 
     return 'package deleted successfully!!!'

@@ -71,7 +71,7 @@ export class CreatePackageDto {
     example: 'starter',
   })
   @IsNotEmpty()
-  @IsEnum(PackageType, { message: 'noOfDrivers must be an integer' })
+  @IsEnum(PackageType, { message: 'Package type' })
   packageType: PackageType;
 
   @ApiProperty({

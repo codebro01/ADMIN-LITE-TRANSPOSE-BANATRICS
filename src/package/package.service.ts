@@ -28,7 +28,10 @@ export class PackageService {
         return pkg;
   }
 
-   remove(id: string) {
-    return `This action removes a #${id} package`;
+  async  remove(packageId: string) {
+
+           const pkg =  await this.packageRepository.remove(packageId);
+
+    return pkg;
   }
 }
