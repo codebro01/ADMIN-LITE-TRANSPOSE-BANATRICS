@@ -376,7 +376,7 @@ export class CampaignRepository {
     return campaign;
   }
 
-  async listAllAvailableCampaigns(query: QueryCampaignDto) {
+  async listAllAvailableCampaigns(query: QueryCampaignDto) { 
     const conditions = [];
     if (query.active) conditions.push(eq(campaignTable.active, query.active));
     if (query.status)

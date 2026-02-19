@@ -84,6 +84,7 @@ export class WeeklyProofsRepository {
       lastname: driverTable.lastname,
       driverId: weeklyProofTable.userId, 
       campaignId: weeklyProofTable.campaignId, 
+      backview: weeklyProofTable.backview, 
       id: weeklyProofTable.id,
       campaignTitle: campaignTable.campaignName,
       week: weeklyProofTable.createdAt,
@@ -147,6 +148,8 @@ export class WeeklyProofsRepository {
         ),
       )
       .returning();
+
+      console.log('weekProof', weeklyProof)
 
     return weeklyProof;
   }
