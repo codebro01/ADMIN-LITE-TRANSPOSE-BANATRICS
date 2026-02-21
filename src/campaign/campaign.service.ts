@@ -231,13 +231,10 @@ export class CampaignService {
         await this.campaignRepository.approveCampaign(data, campaignId, trx);
       });
 
-
-    
-
         await this.oneSignalService.sendNotificationToUser(
            campaign.userId,
            'Campaign Rejected',
-           `Your campaign with the title ${campaign.campaignTitle} has been rejected.`,
+           `Your campaign with the title ${campaign.campaignTitle} has been rejected and the campaign Price ${campaign.price} has been refunded to your balance`,
          );
     
 

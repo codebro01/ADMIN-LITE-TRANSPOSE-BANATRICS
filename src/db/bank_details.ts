@@ -1,5 +1,5 @@
 import { userTable } from '@src/db/users';
-import { pgTable, varchar, integer, uuid, timestamp } from 'drizzle-orm/pg-core';
+import { pgTable, varchar, integer, uuid, timestamp, index } from 'drizzle-orm/pg-core';
 
 export const bankDetailsTable = pgTable('bank_details', {
   id: uuid('id').defaultRandom().primaryKey().notNull(),
@@ -16,6 +16,10 @@ export const bankDetailsTable = pgTable('bank_details', {
   }).notNull().unique(),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
-});
+}, (table) => ({
+  bankDetailsUserIdIdx : index('bank_details_user_id_idx').on(table.userId),
+}));
+
+
 
 export type bankDetailsInsertType = typeof bankDetailsTable.$inferInsert;

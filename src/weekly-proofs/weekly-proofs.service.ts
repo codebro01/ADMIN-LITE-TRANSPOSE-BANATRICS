@@ -2,11 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { WeeklyProofsRepository } from '@src/weekly-proofs/repository/weekly-proofs.repository';
 import { weeklyProofInsertType } from '@src/db';
 import { QueryWeeklyProofDto } from '@src/weekly-proofs/dto/query-weekly-proofs.dto';
+import { WeeklyProofStatus } from '@src/weekly-proofs/dto/create-weekly-proof.dto';
+import { OneSignalService } from '@src/one-signal/one-signal.service';
 
 @Injectable()
 export class WeeklyProofsService {
   constructor(
     private readonly weeklyProofsRepository: WeeklyProofsRepository,
+    private readonly oneSignalService: OneSignalService,
   ) {}
 
   async weeklyProofDashboardCards() {
@@ -28,11 +31,24 @@ export class WeeklyProofsService {
     campaignId: string,
     userId: string,
   ) {
-    return await this.weeklyProofsRepository.approveOrRejectWeeklyProof(
+    const weeklyProof =  await this.weeklyProofsRepository.approveOrRejectWeeklyProof(
       data,
       campaignId,
       userId,
     );
+
+    if(weeklyProof.statusType === WeeklyProofStatus.APPROVED) await this.oneSignalService.sendNotificationToUser(
+      userId,
+      'Weekly Proof Approved',
+      `Your weekly proof has been approved`,
+    )
+    if(weeklyProof.statusType === WeeklyProofStatus.REJECTED) await this.oneSignalService.sendNotificationToUser(
+      userId,
+      'Weekly Proof Rejected',
+      `Your weekly proof has been rejected`,
+    );
+
+      return weeklyProof;
   }
 
   async listDriverWeeklyProofs(userId: string) {

@@ -2,12 +2,14 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { InstallmentProofStatusType, UpdateInstallmentProofDto } from './dto/update-installment-proof.dto';
 import { InstallmentProofRepository } from '@src/installment-proofs/repository/installment-proofs.repository';
 import { CampaignRepository } from '@src/campaign/repository/campaign.repository';
+import { OneSignalService } from '@src/one-signal/one-signal.service';
 
 @Injectable()
 export class InstallmentProofsService {
   constructor(
     private readonly installmentProofRepository: InstallmentProofRepository,
     private readonly campaignRepository: CampaignRepository,
+    private readonly oneSignalService: OneSignalService,
   ) {}
 
   async getCampaignInstallmentProof(campaignId?: string, userId?: string) {
@@ -39,6 +41,14 @@ export class InstallmentProofsService {
           campaignId,
           userId,
         );
+        
+        await this.oneSignalService.sendNotificationToUser(
+          userId,
+          'Installment Proof Approved.',
+          `Your installment proof has been approved`,
+        );
+
+        
         return installmentProof;
     } else {
           if (!data.rejectionReason)
@@ -51,6 +61,12 @@ export class InstallmentProofsService {
         campaignId,
         userId,
       );
+
+       await this.oneSignalService.sendNotificationToUser(
+         userId,
+         'Installment Proof rejected.',
+         `Your installment proof has been rejected, please capture and try again`,
+       );
     return installmentProof;
     }
   }
