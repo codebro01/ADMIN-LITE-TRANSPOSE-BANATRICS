@@ -34,6 +34,7 @@ import { ReportsModule } from './reports/reports.module';
 import { InstallmentProofsModule } from './installment-proofs/installment-proofs.module';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
+import {OneSignalModule} from "@src/one-signal/one-signal.module"
 
 @Module({
   imports: [
@@ -105,6 +106,7 @@ import { APP_GUARD } from '@nestjs/core';
     InvoicesModule,
     ReportsModule,
     InstallmentProofsModule,
+    OneSignalModule,
   ],
   controllers: [AppController, UploadController],
   providers: [
