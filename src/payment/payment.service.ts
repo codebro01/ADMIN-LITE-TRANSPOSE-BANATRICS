@@ -84,14 +84,17 @@ export class PaymentService {
         'Property price or duration is missing from campaign',
       );
 
-    const { withdrawableAmount } = this.calculateWithdrawableAmount(
+    const { withdrawableAmount, missedWeeks } = this.calculateWithdrawableAmount(
       campaign.duration,
       campaign.earningPerDriver,
       weeklyProofs.total,
     );
 
-    console.log('withdrawableAmount', withdrawableAmount);
-
+if (withdrawableAmount === 0) {
+  throw new BadRequestException(
+    `Driver missed ${missedWeeks} weeks and is not eligible for payout`,
+  );
+}
     const totalPossibleWeeklyProofs = campaign.duration / 7;
 
     if (weeklyProofs.total > totalPossibleWeeklyProofs + 1)
@@ -156,11 +159,18 @@ export class PaymentService {
     totalWeeklyProofs: number,
   ) {
     const durationInWeeks = duration / 7;
-    const pricePerWeek = price / durationInWeeks;
+    const missedWeeks = durationInWeeks - totalWeeklyProofs;
 
-    const withdrawableAmount = pricePerWeek * totalWeeklyProofs;
+    // 4 or more misses = no payout
+    if (missedWeeks >= 4) {
+      return { withdrawableAmount: 0, durationInWeeks, missedWeeks };
+    }
 
-    return { withdrawableAmount, durationInWeeks };
+    // Each missed week deducts 25% of the total price
+    const penaltyPercentage = missedWeeks * 0.25;
+    const withdrawableAmount = price * (1 - penaltyPercentage);
+
+    return { withdrawableAmount, durationInWeeks, missedWeeks };
   }
 
   //! paystack query

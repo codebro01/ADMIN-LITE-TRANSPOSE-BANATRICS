@@ -369,7 +369,7 @@ export class CampaignRepository {
     const [campaign] = await Trx.update(campaignTable)
       .set({
         statusType: data.approveCampaignType,
-        printHousePhoneNo: data.printHousePhoneNo,
+        printHousePhoneNo: data.printHousePhoneNo ? data.printHousePhoneNo : null,
       })
       .where(eq(campaignTable.id, campaignId))
       .returning();

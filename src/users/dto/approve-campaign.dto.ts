@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, Matches, IsEnum, IsNumber, Min,  } from "class-validator";
+import { IsNotEmpty, IsString, Matches, IsEnum, IsNumber, Min, IsOptional  } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
 
 export enum approveCampaignType  {
@@ -11,13 +11,14 @@ export class ApproveCampaignDto {
     description: 'Phone number with country code',
     example: '+2348012345678',
     type: String,
+    required: false, 
   })
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   @Matches(/^\+?[1-9]\d{1,14}$/, {
     message: 'Phone number must be in valid international format',
   })
-  printHousePhoneNo: string;
+  printHousePhoneNo?: string;
 
   
 
