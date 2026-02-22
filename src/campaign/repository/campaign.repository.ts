@@ -14,6 +14,7 @@ import {
 import { UploadCampaignDesignDto } from '@src/campaign/dto/upload-campaign-design.dto';
 import { ApproveCampaignDto } from '@src/users/dto/approve-campaign.dto';
 import { QueryCampaignDto } from '@src/campaign/dto/query-campaign.dto';
+import { ApproveDriverApplicationDto } from '@src/campaign/dto/approve-driver-application.dto';
 
 export type CampaignStatus =
   | 'draft'
@@ -192,11 +193,12 @@ export class CampaignRepository {
     return campaign;
   }
 
-  async approveDriverCampaign(campaignId: string, userId: string) {
-    console.log('approving', campaignId, userId);
+  async approveDriverCampaign(data: ApproveDriverApplicationDto,  campaignId: string, userId: string) {
+    ;
     const [campaign] = await this.DbProvider.update(driverCampaignTable)
       .set({
-        campaignStatus: 'approved',
+        campaignStatus: data.status,
+        rejectionReason: data.rejectionReason ? data.rejectionReason : null, 
       })
       .where(
         and(

@@ -61,16 +61,18 @@ export class CampaignController {
     res.status(HttpStatus.OK).json({ message: 'success', data: campaign });
   }
 
-  @Patch('drivers/:driverId/approve')
+  @Patch(':campaignId/drivers/:driverId/approve-reject')
   @ApiOperation({
     summary: 'Approve driver for campaign',
   })
-  async approveDriverCampaign(
-    @Param('driverId') driverId: string,
-    @Body() approveDto: ApproveDriverApplicationDto,
+  async approveRejectDriverCampaign(
+    @Param('driverId', ParseUUIDPipe) driverId: string,
+    @Param('campaignId', ParseUUIDPipe) campaignId: string,
+    @Body() data: ApproveDriverApplicationDto,
   ) {
-    const campaign = await this.campaignService.approveDriverCampaign(
-      approveDto.campaignId,
+    const campaign = await this.campaignService.approveOrRejectDriverCampaign(
+      data,
+      campaignId,
       driverId,
     );
     return { success: true, data: campaign };
@@ -165,7 +167,10 @@ export class CampaignController {
     @Body() body: ApproveCampaignDto,
     @Param('campaignId', ParseUUIDPipe) campaignId: string,
   ) {
-    const campaign = await this.campaignService.approveCampaign(body, campaignId);
+    const campaign = await this.campaignService.approveCampaign(
+      body,
+      campaignId,
+    );
 
     return { success: true, message: campaign.message };
   }

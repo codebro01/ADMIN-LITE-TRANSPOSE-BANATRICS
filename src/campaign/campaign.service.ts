@@ -27,7 +27,9 @@ import { InvoicesRepository } from '@src/invoices/repository/invoices.repository
 import { InvoiceStatusType } from '@src/db';
 import { EmailService } from '../email/email.service';
 import { EmailTemplateType } from '@src/email/types/types';
-import {OneSignalService} from "@src/one-signal/one-signal.service"
+import { OneSignalService } from '@src/one-signal/one-signal.service';
+import { DriverCampaignStatusType } from '@src/campaign/dto/create-driver-campaign.dto';
+import { ApproveDriverApplicationDto } from '@src/campaign/dto/approve-driver-application.dto';
 
 @Injectable()
 export class CampaignService {
@@ -69,15 +71,18 @@ export class CampaignService {
     return result;
   }
 
-  async approveDriverCampaign(campaignId: string, userId: string) {
-
+  async approveOrRejectDriverCampaign(data:ApproveDriverApplicationDto , campaignId: string, userId: string) {
     const approvedDriverCampaign =
       await this.campaignRepository.getApprovedDriverCampaign(userId);
 
-      if(approvedDriverCampaign) throw new ConflictException('User already have an incomplete approved campaign')
+    if (approvedDriverCampaign)
+      throw new ConflictException(
+        'User already have an incomplete approved campaign',
+      );
 
-    const approvedCampaign =
-      await this.campaignRepository.approveDriverCampaign(campaignId, userId);
+    if(data.status === DriverCampaignStatusType.APPROVED) {
+      const approvedCampaign =
+      await this.campaignRepository.approveDriverCampaign(data, campaignId, userId);
 
     const campaign = await this.campaignRepository.findCampaignByCampaignId(
       approvedCampaign.campaignId,
@@ -98,13 +103,44 @@ export class CampaignService {
 
     await this.oneSignalService.sendNotificationToUser(
       userId,
-      "Campaign Application Approval", 
+      'Campaign Application Approval',
       `Your campaign "${campaign.campaignTitle} has been approved, please provide an installation proof within 24 hours. Thank you.`,
     );
-
-    
-
     return approvedCampaign;
+    }
+    if(data.status === DriverCampaignStatusType.REJECTED) {
+
+      const rejectedCampaign =
+      await this.campaignRepository.approveDriverCampaign(data, campaignId, userId);
+
+    const campaign = await this.campaignRepository.findCampaignByCampaignId(
+      rejectedCampaign.campaignId,
+    );
+
+    await this.notificationService.createNotification(
+      {
+        title: 'Campaign application rejected',
+        message: `Your campaign application for the campaign titled "${campaign.campaignTitle} has been rejected. ${data.rejectionReason}`,
+        category: CategoryType.CAMPAIGN,
+        variant: VariantType.INFO,
+        priority: 'important',
+        status: StatusType.UNREAD,
+      },
+      userId,
+      'driver',
+    );
+
+    await this.oneSignalService.sendNotificationToUser(
+      userId,
+      'Campaign Application rejected',
+      `Your campaign application for the campaign titled "${campaign.campaignTitle} has been rejected. ${data.rejectionReason}`,
+    );
+    return rejectedCampaign;
+    }
+
+
+    return [];
+
   }
 
   async getFullCampaignInformation(campaignId: string) {
@@ -147,11 +183,48 @@ export class CampaignService {
     const campaign =
       await this.campaignRepository.findCampaignByCampaignId(campaignId);
 
-    await Promise.all([
+   const noti =  await Promise.all([
       this.notificationService.createNotification(
         {
           title: 'Campaign Design Completed',
-          message: `Your design is ready for "${campaign.campaignTitle} has been created, please access your dashboard to take an action on this design. Thank you.`,
+          message: `Your design is ready for the campaign titled "${campaign.campaignTitle} has been created, please access your dashboard to take an action on this design. Thank you.`,
+          category: CategoryType.CAMPAIGN,
+          variant: VariantType.INFO,
+          priority: 'important',
+          status: StatusType.UNREAD,
+        },
+        campaign.userId,
+        'driver',
+      ),
+      this.oneSignalService.sendNotificationToUser(
+        campaign.userId,
+        'Design Created',
+        `Your design for the campaign with title ${campaign.campaignTitle} has been created`,
+      ),
+      
+    ]);
+
+    console.log(noti)
+
+    return design;
+  }
+  async updateCampaignDesigns(
+    data: UploadCampaignDesignDto,
+    campaignId: string,
+  ) {
+    const updateDesign = await this.campaignRepository.updateCampaignDesigns(
+      data,
+      campaignId,
+    );
+
+    const campaign =
+      await this.campaignRepository.findCampaignByCampaignId(campaignId);
+
+    await Promise.all([
+      this.notificationService.createNotification(
+        {
+          title: 'Campaign Design Updated',
+          message: `Your design for the campaign: "${campaign.campaignTitle} has been updated, please access your dashboard to give a feedback on the updated design. Thank you`,
           category: CategoryType.CAMPAIGN,
           variant: VariantType.INFO,
           priority: 'important',
@@ -163,42 +236,11 @@ export class CampaignService {
       this.oneSignalService.sendNotificationToUser(
         campaign.userId,
         'Campaign Approved',
-        `Your design for the campaign with title ${campaign.campaignTitle} has been created`,
+        `Your design for the campaign with title ${campaign.campaignTitle} has been updated`,
       ),
     ]);
 
-    return design;
-  }
-  async updateCampaignDesigns(
-    data: UploadCampaignDesignDto,
-    campaignId: string,
-  ) {
-    const updateDesign = await this.campaignRepository.updateCampaignDesigns(data, campaignId);
-
-       const campaign =
-         await this.campaignRepository.findCampaignByCampaignId(campaignId);
-
-      await Promise.all([
-        this.notificationService.createNotification(
-          {
-            title: 'Campaign Design Updated',
-            message: `Your design for the campaign: "${campaign.campaignTitle} has been updated, please access your dashboard to give a feedback on the updated design. Thank you`,
-            category: CategoryType.CAMPAIGN,
-            variant: VariantType.INFO,
-            priority: 'important',
-            status: StatusType.UNREAD,
-          },
-          campaign.userId,
-          'driver',
-        ),
-        this.oneSignalService.sendNotificationToUser(
-          campaign.userId,
-          'Campaign Approved',
-          `Your design for the campaign with title ${campaign.campaignTitle} has been updated`,
-        ),
-      ]);
-
-      return updateDesign;
+    return updateDesign;
   }
   async getDesignsForCampaign(campaignId: string) {
     return this.campaignRepository.getDesignsForCampaign(campaignId);
@@ -231,12 +273,11 @@ export class CampaignService {
         await this.campaignRepository.approveCampaign(data, campaignId, trx);
       });
 
-        await this.oneSignalService.sendNotificationToUser(
-           campaign.userId,
-           'Campaign Rejected',
-           `Your campaign with the title ${campaign.campaignTitle} has been rejected and the campaign Price ${campaign.price} has been refunded to your balance`,
-         );
-    
+      await this.oneSignalService.sendNotificationToUser(
+        campaign.userId,
+        'Campaign Rejected',
+        `Your campaign with the title ${campaign.campaignTitle} has been rejected and the campaign Price ${campaign.price} has been refunded to your balance`,
+      );
 
       return {
         message: 'Campaign Rejected',
@@ -302,25 +343,29 @@ export class CampaignService {
       Trx.approveCampaign.userId,
     );
 
-  await Promise.all([
+    await Promise.all([
       this.emailService.queueTemplatedEmail(
-      EmailTemplateType.CAMPAIGN_INVOICE,
-      user.email,
-      {
-        invoiceNo: Trx.invoice.invoiceId,
-        campaignTitle: Trx.approveCampaign.campaignName,
-        startDate: Trx.approveCampaign.startDate,
-        endDate: Trx.approveCampaign.endDate,
-        amountPaid: Trx.approveCampaign.price,
-        noOfDrivers: Trx.approveCampaign.noOfDrivers,
-        invoiceStatus: Trx.invoice.status,
-        packageType: Trx.approveCampaign.packageType,
-        campaignStatus: Trx.approveCampaign.statusType,
-      },
-    ), 
+        EmailTemplateType.CAMPAIGN_INVOICE,
+        user.email,
+        {
+          invoiceNo: Trx.invoice.invoiceId,
+          campaignTitle: Trx.approveCampaign.campaignName,
+          startDate: Trx.approveCampaign.startDate,
+          endDate: Trx.approveCampaign.endDate,
+          amountPaid: Trx.approveCampaign.price,
+          noOfDrivers: Trx.approveCampaign.noOfDrivers,
+          invoiceStatus: Trx.invoice.status,
+          packageType: Trx.approveCampaign.packageType,
+          campaignStatus: Trx.approveCampaign.statusType,
+        },
+      ),
 
-    this.oneSignalService.sendNotificationToUser(user.id, 'Campaign Approved', `Your campaign with the title ${Trx.approveCampaign.campaignName} has been approved`)
-   ])
+      this.oneSignalService.sendNotificationToUser(
+        user.id,
+        'Campaign Approved',
+        `Your campaign with the title ${Trx.approveCampaign.campaignName} has been approved`,
+      ),
+    ]);
     // console.log(Trx)
     return {
       message: 'Campaign Rejected',

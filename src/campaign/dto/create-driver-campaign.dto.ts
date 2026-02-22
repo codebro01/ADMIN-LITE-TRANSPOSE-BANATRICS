@@ -7,6 +7,7 @@ export enum DriverCampaignStatusType  {
     PENDING_APPROVAL = 'pending_approval', 
     DUE_SOON = 'due_soon', 
     APPROVED = 'approved', 
+    REJECTED = 'rejected', 
 
 }
 
