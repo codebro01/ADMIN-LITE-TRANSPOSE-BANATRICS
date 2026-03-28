@@ -3,7 +3,7 @@ import { earningsTable, earningTableInsertType } from '@src/db/earnings';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { and, eq, sql, gte, sum,  count } from 'drizzle-orm';
 import { startOfMonth } from 'date-fns';
-import { campaignTable, driverTable } from '@src/db';
+import { campaignTable, driverTable, PaymentStatusType } from '@src/db';
 import { ApprovalStatusType } from '@src/earning/dto/create-earning.dto';
 import { UpdateApprovalStatusDto } from '@src/earning/dto/update-approved-status.dto';
 import { StatusType } from '@src/campaign/dto/publishCampaignDto';
@@ -17,6 +17,17 @@ export class EarningRepository {
 
 
 
+  async findEarningsByReference(reference: string, userId: string) {
+    const [earning] = await this.DbProvider.select()
+      .from(earningsTable)
+      .where(
+        and(
+          eq(earningsTable.reference, reference),
+          eq(earningsTable.userId, userId),
+        ),
+      );
+    return earning;
+  }
   async findEarningsByApproved(userId: string) {
     const earnings = await this.DbProvider.select()
       .from(earningsTable)
@@ -115,6 +126,25 @@ export class EarningRepository {
         and(
           eq(earningsTable.approved, ApprovalStatusType.UNAPPROVED),
           eq(earningsTable.userId, userId),
+        ),
+      );
+
+    return earnings;
+  }
+  async updateEarningPaymentStatus(
+    paymentStatus: PaymentStatusType,
+    reference: string, 
+    userId: string,
+    trx?: any,
+  ) {
+    const Trx = trx || this.DbProvider;
+
+    const earnings = await Trx.update(earningsTable)
+      .set({ paymentStatus })
+      .where(
+        and(
+          eq(earningsTable.userId, userId),
+          eq(earningsTable.reference, reference),
         ),
       );
 

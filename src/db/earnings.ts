@@ -10,14 +10,8 @@ import {
   text,
   timestamp,
 } from 'drizzle-orm/pg-core';
+import { PaymentStatusType } from './payments';
 
-export enum PaymentStatusType {
-  SUCCESS = 'success',
-  REVERSED = 'reversed',
-  FAILED = 'failed',
-  PENDING = 'pending',
-  CANCELLED = 'cancelled',
-}
 
 export const approvalStatusType = pgEnum('approval_status_type', [
   'REJECTED',

@@ -1,5 +1,5 @@
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
-import { bankDetailsInsertType, bankDetailsTable, driverTable } from '@src/db';
+import { bankDetailsInsertType, bankDetailsTable, driverTable, userTable } from '@src/db';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { eq } from 'drizzle-orm';
 
@@ -46,7 +46,8 @@ export class BankDetailsRepository {
     const [details] = await this.DbProvider.select()
       .from(bankDetailsTable)
       .where(eq(bankDetailsTable.userId, userId))
-      .leftJoin(driverTable, eq(driverTable.userId, bankDetailsTable.userId));
+      .leftJoin(driverTable, eq(driverTable.userId, bankDetailsTable.userId))
+      .leftJoin(userTable, eq(userTable.id, bankDetailsTable.userId))
 
       return details;
   }

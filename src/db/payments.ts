@@ -16,26 +16,36 @@ export enum PaymentStatusType {
   CANCELLED = 'cancelled',
 }
 
-export const paymentTable = pgTable('payments', {
-  id: uuid().defaultRandom().primaryKey().notNull(),
-  userId: uuid('userId')
-    .notNull()
-    .references(() => userTable.id, { onDelete: 'cascade' }),
-  invoiceId: text('invoice_id'),
-  reference: text('reference'),
-  dateInitiated: timestamp('date_initiated', {
-    withTimezone: true,
-  }).defaultNow(),
-  amount: doublePrecision('amount').notNull(),
-  paymentMethod: text('payment_method').notNull(),
-  paymentStatus: text('payment_status').$type<PaymentStatusType>().notNull(),
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
-}, (table) => ({
-  idx_payments_reference_userId: index('idx_payments_reference_userId').on(table.userId, table.reference), 
-  idx_payments_userId: index('idx_payments_userId').on(table.userId, table.userId), 
-  idx_payments_reference: index('idx_payments_reference').on(table.reference), 
-}));
+export const paymentTable = pgTable(
+  'payments',
+  {
+    id: uuid().defaultRandom().primaryKey().notNull(),
+    userId: uuid('userId')
+      .notNull()
+      .references(() => userTable.id, { onDelete: 'cascade' }),
+    invoiceId: text('invoice_id'),
+    reference: text('reference'),
+    dateInitiated: timestamp('date_initiated', {
+      withTimezone: true,
+    }).defaultNow(),
+    amount: doublePrecision('amount').notNull(),
+    paymentMethod: text('payment_method').notNull(),
+    paymentStatus: text('payment_status').$type<PaymentStatusType>().notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
+  },
+  (table) => ({
+    idx_payments_reference_userId: index('idx_payments_reference_userId').on(
+      table.userId,
+      table.reference,
+    ),
+    idx_payments_userId: index('idx_payments_userId').on(
+      table.userId,
+      table.userId,
+    ),
+    idx_payments_reference: index('idx_payments_reference').on(table.reference),
+  }),
+);
 
 export type paymentInsertType = typeof paymentTable.$inferInsert;
 export type paymentSelectType = typeof paymentTable.$inferSelect;

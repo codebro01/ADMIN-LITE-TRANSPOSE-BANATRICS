@@ -25,10 +25,15 @@ import { InitializePayoutDto } from '@src/payment/dto/initialize-payout.dto';
 import { BankDetailsRepository } from '@src/bank-details/repository/create-bank-details-repository';
 import { ApprovalStatusType } from '@src/earning/dto/create-earning.dto';
 import { WeeklyProofsRepository } from '@src/weekly-proofs/repository/weekly-proofs.repository';
-
+import { PaymentStatusType } from '@src/db';
+import { VariantType } from '@src/notification/dto/createNotificationDto';
+import { StatusType } from '@src/notification/dto/createNotificationDto';
+import { CategoryType } from '@src/notification/dto/createNotificationDto';
+import { EmailService } from '@src/email/email.service';
+import { EmailTemplateType } from '@src/email/types/types';
 @Injectable()
 export class PaymentService {
-  private readonly baseUrl: string = 'https://api.paystack.co';
+  private readonly baseUrl: string = 'https://api.flutterwave.com';
   private readonly secretKey: string;
   constructor(
     private configService: ConfigService,
@@ -40,10 +45,11 @@ export class PaymentService {
     private earningRepository: EarningRepository,
     private bankDetailsRepository: BankDetailsRepository,
     private weeklyProofsRepository: WeeklyProofsRepository,
+    private emailService: EmailService,
   ) {
-    const key = this.configService.get<string>('PAYSTACK_SECRET_KEY');
+    const key = this.configService.get<string>('FLUTTERWAVE_SECRET_KEY');
     if (!key) {
-      throw new BadRequestException('Please provide paystack secretKey');
+      throw new BadRequestException('Please provide flutterwave secret Key');
     }
     this.secretKey = key;
   }
@@ -84,17 +90,18 @@ export class PaymentService {
         'Property price or duration is missing from campaign',
       );
 
-    const { withdrawableAmount, missedWeeks } = this.calculateWithdrawableAmount(
-      campaign.duration,
-      campaign.earningPerDriver,
-      weeklyProofs.total,
-    );
+    const { withdrawableAmount, missedWeeks } =
+      this.calculateWithdrawableAmount(
+        campaign.duration,
+        campaign.earningPerDriver,
+        weeklyProofs.total,
+      );
 
-if (withdrawableAmount === 0) {
-  throw new BadRequestException(
-    `Driver missed ${missedWeeks} weeks and is not eligible for payout`,
-  );
-}
+    if (withdrawableAmount === 0) {
+      throw new BadRequestException(
+        `Driver missed ${missedWeeks} weeks and is not eligible for payout`,
+      );
+    }
     const totalPossibleWeeklyProofs = campaign.duration / 7;
 
     if (weeklyProofs.total > totalPossibleWeeklyProofs + 1)
@@ -136,13 +143,23 @@ if (withdrawableAmount === 0) {
 
     const response = await firstValueFrom(
       this.httpService.post(
-        `${this.baseUrl}/transfer`,
+        `${this.baseUrl}/v3/transfers`,
         {
-          source: 'balance',
-          recipient: driverBankInfo.bank_details.recipientCode,
+          account_bank: driverBankInfo.bank_details.bankCode,
+          account_number: driverBankInfo.bank_details.accountNumber,
+          currency: 'NGN',
+          beneficiary_name: driverBankInfo.bank_details.accountName,
+          debit_currency: 'NGN',
+          callback_url:
+            'https://bathrooms-unix-attendance-mills.trycloudflare.com/api/v1/payments/webhook',
+          narration: data.reason,
+          beneficiary: driverBankInfo.bank_details.recipientCode,
           amount: withdrawableAmount,
-          reason: data.reason,
           reference: generateSecureRef(),
+          meta: {
+            userId: driverBankInfo.drivers?.userId,
+            email: driverBankInfo.users?.email,
+          },
         },
         { headers: this.getHeaders() },
       ),
@@ -255,6 +272,137 @@ if (withdrawableAmount === 0) {
     }
     if (query.option === GraphQueryOption.YEARLY) {
       return await this.paymentRepository.netProfitYearly();
+    }
+  }
+
+  //! verify webhook signatures
+
+  verifyWebhookSignature(signature: string): boolean {
+    const secret = this.configService.get('FLUTTERWAVE_WEBHOOK_SECRET');
+    return signature === secret;
+  }
+
+  async postVerifyWebhookSignatures(event: any) {
+    try {
+      const { reference, amount } = event.data;
+      const { userId, email } = event.data.meta || {};
+      console.log('got in event', event);
+      // const recipient_code = event.data?.recipient?.recipient_code || null;
+      // const {account_number, account_name, bank_name, bank_code} = event.data.recipient.details
+      switch (event.data.status) {
+        case 'SUCCESSFUL': {
+          const earning = await this.earningRepository.findEarningsByReference(
+            reference,
+            userId,
+          );
+
+          if (!earning.reference)
+            throw new BadRequestException('Withdrawal request not found!');
+          if (earning && earning.paymentStatus === PaymentStatusType.SUCCESS) {
+            return 'already processed';
+          }
+
+          console.log('got in here');
+          await this.paymentRepository.executeInTransaction(async (trx) => {
+            if (
+              earning &&
+              earning.paymentStatus === PaymentStatusType.PENDING
+            ) {
+              await this.earningRepository.updateEarningPaymentStatus(
+                PaymentStatusType.SUCCESS,
+                reference,
+                userId,
+
+                trx,
+              );
+            }
+          });
+
+          await Promise.all([
+            this.notificationService.createNotification(
+              {
+                title: `Withdrawal Successful`,
+                message: `Your withdrawal of ${amount} is successful`,
+                variant: VariantType.SUCCESS,
+                category: CategoryType.PAYMENT,
+                priority: '',
+                status: StatusType.UNREAD,
+              },
+              userId,
+              'driver',
+            ),
+            this.emailService.queueTemplatedEmail(
+              EmailTemplateType.DRIVER_WITHDRAWAL,
+              email,
+              {
+                amount: amount,
+                status: PaymentStatusType.SUCCESS,
+              },
+            ),
+          ]);
+
+          break;
+        }
+        case 'FAILED': {
+          const earning = await this.earningRepository.findEarningsByReference(
+            reference,
+            userId,
+          );
+
+          if (!earning.reference)
+            throw new BadRequestException('Withdrawal request not found!');
+          if (earning && earning.paymentStatus === PaymentStatusType.SUCCESS) {
+            return 'already processed';
+          }
+
+          console.log('got in here');
+          await this.paymentRepository.executeInTransaction(async (trx) => {
+            if (
+              earning &&
+              earning.paymentStatus === PaymentStatusType.PENDING
+            ) {
+              await this.earningRepository.updateEarningPaymentStatus(
+                PaymentStatusType.FAILED,
+                reference,
+                userId,
+                trx,
+              );
+            }
+          });
+
+          await Promise.all([
+            this.notificationService.createNotification(
+              {
+                title: `Withdrawal Failed`,
+                message: `Your withdrawal of ${amount} failed`,
+                variant: VariantType.DANGER,
+                category: CategoryType.PAYMENT,
+                priority: '',
+                status: StatusType.UNREAD,
+              },
+              userId,
+              'driver',
+            ),
+            this.emailService.queueTemplatedEmail(
+              EmailTemplateType.DRIVER_WITHDRAWAL,
+              email,
+              {
+                amount: amount,
+                status: PaymentStatusType.FAILED,
+              },
+            ),
+          ]);
+
+          break;
+        }
+
+        default:
+      }
+
+      return { status: 'success' };
+    } catch (error) {
+      console.error('Webhook processing error:', error);
+      return { error: error.message };
     }
   }
 }

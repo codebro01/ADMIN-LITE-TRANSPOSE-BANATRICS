@@ -190,6 +190,13 @@
       "when": 1770429638780,
       "tag": "0026_overconfident_ghost_rider",
       "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1774710197146,
+      "tag": "0027_keen_wither",
+      "breakpoints": true
     }
   ]
 }

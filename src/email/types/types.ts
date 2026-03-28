@@ -1,3 +1,5 @@
+import { PaymentStatusType } from '@src/db';
+
 export interface EmailJobData {
   to: string | string[];
   subject: string;
@@ -13,6 +15,7 @@ export interface EmailJobData {
     filename: string;
     content: string | Buffer;
   }>;
+  
 }
 
 export enum EmailTemplateType {
@@ -23,6 +26,7 @@ export enum EmailTemplateType {
   PASSWORD_RESET = 'password-reset',
   EMAIL_VERIFICATION = 'email-verification',
   CAMPAIGN_INVOICE = 'campaign-invoice',
+  DRIVER_WITHDRAWAL = 'driver-withdrawal',
 }
 
 export interface EmailResponse {
@@ -73,10 +77,15 @@ export interface EmailVerificationTemplateData {
   verificationCode: string;
   name: string;
 }
+export interface driverWithdrawalData {
+  amount: string;
+  status: PaymentStatusType;
+}
 
 export type EmailTemplateData =
   | WelcomeTemplateData
   | CampaignCreatedTemplateData
   | CampaignApprovedTemplateData
   | PasswordResetTemplateData
-  | EmailVerificationTemplateData;
+  | EmailVerificationTemplateData
+  | driverWithdrawalData;

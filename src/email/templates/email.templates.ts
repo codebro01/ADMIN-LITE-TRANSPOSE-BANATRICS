@@ -1,3 +1,6 @@
+import { PaymentStatusType } from "@src/db";
+import { driverWithdrawalData } from "../types/types";
+
 export class EmailTemplate {
   getWelcomeTemplate(data: { name: string; email: string }): string {
     return `
@@ -233,6 +236,51 @@ ${data.resetCode}            </a>
           <div class="footer">
             <p>© ${new Date().getFullYear()} Banatrics. All rights reserved.</p>
             <p>This is an automated invoice notification.</p>
+          </div>
+        </div>
+      </body>
+    </html>
+  `;
+  }
+
+  getWithdrawalStatusTemplate(data: driverWithdrawalData): string {
+    const isSuccess = data.status === PaymentStatusType.SUCCESS;
+
+    return `
+    <!DOCTYPE html>
+    <html>
+      <body>
+        <div style="max-width: 600px; margin: 0 auto; padding: 20px; font-family: Arial, sans-serif;">
+          <div style="background: ${isSuccess ? '#4CAF50' : '#F44336'}; color: white; padding: 20px; text-align: center;">
+            <h1>${isSuccess ? 'Withdrawal Successful!' : 'Withdrawal Failed'}</h1>
+          </div>
+          <div style="padding: 20px; background: #f9f9f9;">
+            <h2>${isSuccess ? 'Your money is on the way!' : 'Something went wrong'}</h2>
+            <p>
+              ${
+                isSuccess
+                  ? `Your withdrawal of <strong>₦${data.amount}</strong> has been processed successfully. Kindly allow a few minutes for the funds to reflect in your bank account.`
+                  : `Your withdrawal of <strong>₦${data.amount}</strong> could not be completed. Your balance has been refunded. Please try again or contact support if the issue persists.`
+              }
+            </p>
+            <div style="background: white; border-radius: 8px; padding: 16px; margin: 20px 0; border: 1px solid #e0e0e0;">
+              <p style="margin: 0; color: #666;">Amount</p>
+              <p style="margin: 4px 0 0; font-size: 24px; font-weight: bold; color: ${isSuccess ? '#4CAF50' : '#F44336'};">₦${data.amount}</p>
+              <p style="margin: 8px 0 0; color: #666;">Status</p>
+              <p style="margin: 4px 0 0; font-weight: bold; color: ${isSuccess ? '#4CAF50' : '#F44336'};">
+                ${isSuccess ? '✅ Successful' : '❌ Failed'}
+              </p>
+            </div>
+            ${
+              !isSuccess
+                ? `<a href="mailto:support@yourapp.com" style="display: inline-block; padding: 12px 24px; background: #F44336; color: white; text-decoration: none; border-radius: 5px; margin: 10px 0;">
+                    Contact Support
+                  </a>`
+                : ''
+            }
+          </div>
+          <div style="padding: 20px; text-align: center; color: #999; font-size: 12px;">
+            <p>If you did not initiate this withdrawal, please contact support immediately.</p>
           </div>
         </div>
       </body>

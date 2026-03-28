@@ -11,9 +11,10 @@ import { NotificationModule } from '@src/notification/notification.module';
 import { EarningModule } from '@src/earning/earning.module';
 import { BankDetailsModule } from '@src/bank-details/bank-details.module';
 import { WeeklyProofsModule } from '@src/weekly-proofs/weekly-proofs.module';
+import { EmailModule } from '@src/email/email.module';
 
 @Module({
-  imports: [HttpModule, UserModule, CampaignModule, CatchErrorModule, NotificationModule, EarningModule, BankDetailsModule, WeeklyProofsModule],
+  imports: [HttpModule, UserModule, CampaignModule, CatchErrorModule, NotificationModule, EarningModule, BankDetailsModule, WeeklyProofsModule, EmailModule],
   controllers: [PaymentController],
   providers: [PaymentService, DbProvider, PaymentRepository],
 })

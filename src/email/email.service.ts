@@ -14,6 +14,7 @@ import {
   EmailVerificationTemplateData,
   EmailResponse,
   CampaignInvoiceTempleteData,
+  driverWithdrawalData,
 } from '@src/email/types/types';
 
 @Injectable()
@@ -129,6 +130,14 @@ export class EmailService {
             data as EmailVerificationTemplateData,
           ),
         };
+      case EmailTemplateType.DRIVER_WITHDRAWAL:
+        return {
+          to,
+          subject: 'Withdrawal Request Response',
+          html: this.emailTemplate.getWithdrawalStatusTemplate(
+            data as driverWithdrawalData,
+          ),
+        };
 
       default:
         throw new Error(`Unknown email template: ${template}`);
@@ -179,6 +188,7 @@ export class EmailService {
       [EmailTemplateType.WELCOME]: 3,
       [EmailTemplateType.CAMPAIGN_CREATED]: 3,
       [EmailTemplateType.CAMPAIGN_INVOICE]: 2,
+      [EmailTemplateType.DRIVER_WITHDRAWAL]: 1,
     };
     return priorities[template] || 5;
   }
