@@ -27,10 +27,16 @@ export class AuthService {
 
     const user = await this.authRepository.findUserByEmail(email);
 
+    console.log(user)
+
     if (!user)
       throw new UnauthorizedException(
         'Invalid credentials, Please check email and password',
       );
+
+      
+    if(!user?.role?.includes('admin')) throw new UnauthorizedException('Invalid Credentials')
+
 
     const passwordIsCorrect = await bcrypt.compare(password, user.password);
     if (!passwordIsCorrect)

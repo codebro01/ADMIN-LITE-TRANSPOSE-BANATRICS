@@ -51,7 +51,7 @@ export class PaymentController {
   @ApiOperation({
     summary: 'List all transactions from Paystack',
     description:
-      'This enpoint is used to approve or reject a driver withdrawal request',
+      'Retrieves all transactions from Paystack API. Returns a comprehensive list of all payment transactions across the platform',
   })
   async listTransactions() {
     const result = await this.paymentService.listAllTransactions();
@@ -66,7 +66,7 @@ export class PaymentController {
   @ApiOperation({
     summary: 'Approves or reject an approval',
     description:
-      'Retrieves all transactions from Paystack API. Returns a comprehensive list of all payment transactions across the platform.',
+      'This enpoint is used to approve or reject a driver withdrawal request',
   })
   async approveWithdrawal(
     @Body() body: InitializePayoutDto,
@@ -164,7 +164,6 @@ export class PaymentController {
     required: true,
     schema: { type: 'string' },
   })
-
   async handleWebhook(
     @Req() req: RawBodyRequest<Request>,
     @Res() res: Response,
@@ -174,8 +173,8 @@ export class PaymentController {
 
     if (!isValid) {
       return {
-        status: 'invalid signature'
-      }
+        status: 'invalid signature',
+      };
     }
 
     const event = req.body;
