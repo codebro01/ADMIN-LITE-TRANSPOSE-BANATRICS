@@ -117,7 +117,8 @@ export class PaymentService {
     const driverBankInfo =
       await this.bankDetailsRepository.findBankDetailsByUserId(userId);
 
-      if(!driverBankInfo) throw new NotFoundException('Could not get driver bank info')
+    if (!driverBankInfo)
+      throw new NotFoundException('Could not get driver bank info');
 
     if (!driverBankInfo.bank_details.recipientCode)
       throw new NotFoundException('Error loading driver account information.');
@@ -158,7 +159,7 @@ export class PaymentService {
           beneficiary_name: driverBankInfo.bank_details.accountName,
           debit_currency: 'NGN',
           callback_url:
-            'https://bathrooms-unix-attendance-mills.trycloudflare.com/api/v1/payments/webhook',
+            'https://admin-lite-transpose-banatrics.onrender.com/api/v1/payments/webhook',
           narration: data.reason,
           beneficiary: driverBankInfo.bank_details.recipientCode,
           amount: withdrawableAmount,
