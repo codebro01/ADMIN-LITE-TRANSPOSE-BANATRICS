@@ -60,6 +60,11 @@ export class PaymentService {
       'Content-Type': 'application/json',
     };
   }
+  private getTransferHeaders() {
+    return {
+      'x-proxy-secret': this.configService.get('PROXY_SECRET'),
+    };
+  }
 
   async initializePayout(
     data: InitializePayoutDto,
@@ -99,7 +104,7 @@ export class PaymentService {
 
     if (withdrawableAmount === 0) {
       throw new BadRequestException(
-        `Driver missed ${missedWeeks} weeks and is not eligible for payout`,
+        `Driver missed ${Math.round(missedWeeks)} weeks and is not eligible for payout`,
       );
     }
     const totalPossibleWeeklyProofs = campaign.duration / 7;
@@ -111,6 +116,8 @@ export class PaymentService {
 
     const driverBankInfo =
       await this.bankDetailsRepository.findBankDetailsByUserId(userId);
+
+      if(!driverBankInfo) throw new NotFoundException('Could not get driver bank info')
 
     if (!driverBankInfo.bank_details.recipientCode)
       throw new NotFoundException('Error loading driver account information.');
@@ -143,7 +150,7 @@ export class PaymentService {
 
     const response = await firstValueFrom(
       this.httpService.post(
-        `${this.baseUrl}/v3/transfers`,
+        `http://159.65.101.153:3001/transfer`,
         {
           account_bank: driverBankInfo.bank_details.bankCode,
           account_number: driverBankInfo.bank_details.accountNumber,
