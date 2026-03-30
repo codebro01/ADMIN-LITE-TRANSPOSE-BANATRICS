@@ -343,9 +343,16 @@ export class UserRepository {
     return user;
   }
 
-  async approveDriver(userId: string) {
+  async approveDriverKyc(userId: string) {
     await this.DbProvider.update(driverTable)
       .set({ approvedStatus: UserApprovalStatusType.APPROVED })
+      .where(eq(driverTable.userId, userId));
+
+    return true;
+  }
+  async rejectDriverKyc(userId: string) {
+    await this.DbProvider.update(driverTable)
+      .set({ approvedStatus: UserApprovalStatusType.REJECTED })
       .where(eq(driverTable.userId, userId));
 
     return true;

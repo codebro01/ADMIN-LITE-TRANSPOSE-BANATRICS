@@ -12,7 +12,8 @@ import { EmailModule } from '@src/email/email.module';
 import { PasswordResetModule } from '@src/password-reset/password-reset.module';
 import { EmailVerificationModule } from '@src/email-verification/email-verification.module';
 import { EarningModule } from '@src/earning/earning.module';
-
+import { NotificationModule } from '@src/notification/notification.module';
+import { OneSignalModule } from '@src/one-signal/one-signal.module';
 
 @Module({
   imports: [
@@ -27,6 +28,8 @@ import { EarningModule } from '@src/earning/earning.module';
     EmailModule, 
     PasswordResetModule, 
     EarningModule,
+    NotificationModule, 
+    OneSignalModule, 
   ],
   controllers: [UserController],
   providers: [UserService, UserRepository, JwtService, NeonProvider],

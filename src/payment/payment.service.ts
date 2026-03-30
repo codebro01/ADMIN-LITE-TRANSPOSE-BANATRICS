@@ -31,6 +31,7 @@ import { StatusType } from '@src/notification/dto/createNotificationDto';
 import { CategoryType } from '@src/notification/dto/createNotificationDto';
 import { EmailService } from '@src/email/email.service';
 import { EmailTemplateType } from '@src/email/types/types';
+import { OneSignalService } from '@src/one-signal/one-signal.service';
 @Injectable()
 export class PaymentService {
   private readonly baseUrl: string = 'https://api.flutterwave.com';
@@ -46,6 +47,7 @@ export class PaymentService {
     private bankDetailsRepository: BankDetailsRepository,
     private weeklyProofsRepository: WeeklyProofsRepository,
     private emailService: EmailService,
+    private oneSignalService: OneSignalService,
   ) {
     const key = this.configService.get<string>('FLUTTERWAVE_SECRET_KEY');
     if (!key) {
@@ -346,6 +348,11 @@ export class PaymentService {
                 amount: amount,
                 status: PaymentStatusType.SUCCESS,
               },
+            ),
+            this.oneSignalService.sendNotificationToUser(
+              userId,
+              'Withdrawal Successful',
+              `Your withdrawal of ${amount} is successful`,
             ),
           ]);
 

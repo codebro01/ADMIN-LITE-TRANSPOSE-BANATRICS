@@ -14,6 +14,7 @@ export enum UserApprovalStatusType {
   APPROVED = 'approved',
   SUSPENDED = 'suspended',
   PENDING = 'pending',
+  REJECTED='rejected'
 }
 
 export const userTable = pgTable(

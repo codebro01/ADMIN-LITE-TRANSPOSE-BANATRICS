@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { WeeklyProofsRepository } from '@src/weekly-proofs/repository/weekly-proofs.repository';
 import { weeklyProofInsertType } from '@src/db';
 import { QueryWeeklyProofDto } from '@src/weekly-proofs/dto/query-weekly-proofs.dto';
@@ -36,6 +36,13 @@ export class WeeklyProofsService {
       campaignId,
       userId,
     );
+
+    if(!weeklyProof || !weeklyProof.statusType) {
+      if(data.statusType === 'approved') throw new NotFoundException('Cannot approve weekly proof, please check inputed data')
+        if(data.statusType === 'rejected')  throw new NotFoundException(
+          'Cannot reject weekly proof, please check inputed data',
+        );
+    }
 
     if(weeklyProof.statusType === WeeklyProofStatus.APPROVED) await this.oneSignalService.sendNotificationToUser(
       userId,

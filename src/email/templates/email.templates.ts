@@ -1,5 +1,5 @@
-import { PaymentStatusType } from "@src/db";
-import { driverWithdrawalData } from "../types/types";
+import { PaymentStatusType, UserApprovalStatusType } from "@src/db";
+import { driverWithdrawalData, kycResponseData } from "../types/types";
 
 export class EmailTemplate {
   getWelcomeTemplate(data: { name: string; email: string }): string {
@@ -85,7 +85,7 @@ export class EmailTemplate {
             <div style="padding: 20px; background: #f9f9f9;">
               <h2>Great News!</h2>
               <p>Your campaign <strong>"${data.campaignName}"</strong> has been approved and is now live!</p>
-              <a href="https://yourapp.com/campaigns/${data.campaignId}" style="display: inline-block; padding: 12px 24px; background: #4CAF50; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0;">
+              <a href="https://banatrics.com/business/campaigns/${data.campaignId}" style="display: inline-block; padding: 12px 24px; background: #4CAF50; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0;">
                 View Campaign
               </a>
             </div>
@@ -273,7 +273,7 @@ ${data.resetCode}            </a>
             </div>
             ${
               !isSuccess
-                ? `<a href="mailto:support@yourapp.com" style="display: inline-block; padding: 12px 24px; background: #F44336; color: white; text-decoration: none; border-radius: 5px; margin: 10px 0;">
+                ? `<a href="mailto:support@banatrics.com" style="display: inline-block; padding: 12px 24px; background: #F44336; color: white; text-decoration: none; border-radius: 5px; margin: 10px 0;">
                     Contact Support
                   </a>`
                 : ''
@@ -286,5 +286,48 @@ ${data.resetCode}            </a>
       </body>
     </html>
   `;
+  }
+
+  getKycVerificationTemplate(data: kycResponseData): string {
+    const isApproved = data.status === UserApprovalStatusType.APPROVED;
+
+    return `
+  <!DOCTYPE html>
+  <html>
+    <body>
+      <div style="max-width: 600px; margin: 0 auto; padding: 20px; font-family: Arial, sans-serif;">
+        <div style="background: ${isApproved ? '#4CAF50' : '#FF9800'}; color: white; padding: 20px; text-align: center;">
+          <h1>${isApproved ? 'KYC Verification Approved! 🎉' : 'KYC Verification Pending'}</h1>
+        </div>
+        <div style="padding: 20px; background: #f9f9f9;">
+          <h2>${isApproved ? 'Congratulations! You are fully verified.' : 'Your documents are under review'}</h2>
+          <p>
+            ${
+              isApproved
+                ? `Great news! Your identity verification has been completed successfully. You now have full access to all platform features.`
+                : `We have received your KYC documents and they are currently being reviewed. This process can take up to 24–48 hours. You will be notified once a decision has been made.`
+            }
+          </p>
+          <div style="background: white; border-radius: 8px; padding: 16px; margin: 20px 0; border: 1px solid #e0e0e0;">
+            <p style="margin: 0; color: #666;">Verification Status</p>
+            <p style="margin: 4px 0 0; font-size: 20px; font-weight: bold; color: ${isApproved ? '#4CAF50' : '#FF9800'};">
+              ${isApproved ? 'Approved' : '⏳ Pending Review'}
+            </p>
+          </div>
+          ${
+            !isApproved
+              ? `<a href="mailto:support@banatrics.com" style="display: inline-block; padding: 12px 24px; background: #FF9800; color: white; text-decoration: none; border-radius: 5px; margin: 10px 0;">
+                  Contact Support
+                </a>`
+              : ''
+          }
+        </div>
+        <div style="padding: 20px; text-align: center; color: #999; font-size: 12px;">
+          <p>If you did not submit any verification documents, please contact support immediately.</p>
+        </div>
+      </div>
+    </body>
+  </html>
+`;
   }
 }

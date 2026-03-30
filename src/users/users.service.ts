@@ -9,7 +9,6 @@ import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { jwtConstants } from '@src/auth/jwtContants';
-
 import { UpdatePasswordDto } from '@src/users/dto/updatePasswordDto';
 import { UserRepository } from '@src/users/repository/user.repository';
 import { EmailService } from '@src/email/email.service';
@@ -17,8 +16,15 @@ import { PasswordResetRepository } from '@src/password-reset/repository/password
 import { EmailVerificationRepository } from '@src/email-verification/repository/email-verification.repository';
 import { userEnumType } from '@src/users/dto/query-user.dto';
 import { CreateAdminUserDto } from '@src/users/dto/create-admin-user.dto';
-import { adminInsertType } from '@src/db';
+import { adminInsertType, UserApprovalStatusType } from '@src/db';
 import { QueryUserDto } from '@src/users/dto/query-user.dto';
+import { NotificationService } from '@src/notification/notification.service';
+import { OneSignalService } from '@src/one-signal/one-signal.service';
+import { VariantType } from '@src/notification/dto/createNotificationDto';
+import { CategoryType } from '@src/notification/dto/createNotificationDto';
+import { StatusType } from '@src/notification/dto/createNotificationDto';
+import { EmailTemplateType } from '@src/email/types/types';
+
 @Injectable()
 export class UserService {
   constructor(
@@ -29,6 +35,8 @@ export class UserService {
     private jwtService: JwtService,
     private passwordResetRepository: PasswordResetRepository,
     private emailVerificationRepository: EmailVerificationRepository,
+    private notificationService: NotificationService,
+    private oneSignalService: OneSignalService,
   ) {
     this.DbProvider = DbProvider;
   }
@@ -102,7 +110,6 @@ export class UserService {
       secret: jwtConstants.accessTokenSecret,
       expiresIn: '1h',
     });
-  
 
     return { user: result.savedUser, accessToken };
   }
@@ -204,27 +211,90 @@ export class UserService {
     }
   }
 
-  async approveDriver(userId: string) {
-    return await this.userRepository.approveDriver(userId);
+  async approveDriverKyc(userId: string) {
+    const approveDriver = await this.userRepository.approveDriverKyc(userId);
+    const user = await this.userRepository.findUserById(userId);
+
+    await Promise.all([
+      this.notificationService.createNotification(
+        {
+          title: `KYC Verification`,
+          message: `Your KYC has been approved, you are now eligible to apply for campaigns`,
+          variant: VariantType.SUCCESS,
+          category: CategoryType.CAMPAIGN,
+          priority: '',
+          status: StatusType.UNREAD,
+        },
+        userId,
+        'driver',
+      ),
+      this.emailService.queueTemplatedEmail(
+        EmailTemplateType.KYC_APPLICATION,
+        user.email,
+        {
+          status: UserApprovalStatusType.APPROVED,
+        },
+      ),
+      this.oneSignalService.sendNotificationToUser(
+        userId,
+        'KYC Verification',
+        `Your KYC has been approved, you are now eligible to apply for campaigns`,
+      ),
+    ]);
+
+    return approveDriver;
+  }
+  async rejectDriverKyc(userId: string) {
+    const approveDriver = await this.userRepository.rejectDriverKyc(userId);
+    const user = await this.userRepository.findUserById(userId);
+
+    await Promise.all([
+      this.notificationService.createNotification(
+        {
+          title: `KYC Verification`,
+          message: `Your KYC has been rejected, Please make sure picture is clearer and submitted information is valid`,
+          variant: VariantType.DANGER,
+          category: CategoryType.CAMPAIGN,
+          priority: '',
+          status: StatusType.UNREAD,
+        },
+        userId,
+        'driver',
+      ),
+      this.emailService.queueTemplatedEmail(
+        EmailTemplateType.KYC_APPLICATION,
+        user.email,
+        {
+          status: UserApprovalStatusType.REJECTED,
+        },
+      ),
+      this.oneSignalService.sendNotificationToUser(
+        userId,
+        'KYC Verification',
+        `Your KYC has been rejected, Please make sure picture is clearer and submitted information is valid`,
+      ),
+    ]);
+
+    return approveDriver;
   }
 
   async activateUserByRoleType(
     userId: string,
     roleType: 'driver' | 'businessOwner',
   ) {
-     const user = await this.userRepository.findUserById(userId);
-     if (!user) throw new BadRequestException('Invalid user');
+    const user = await this.userRepository.findUserById(userId);
+    if (!user) throw new BadRequestException('Invalid user');
 
-     if (!user.role.includes(roleType)) {
-       throw new BadRequestException(`User is not a ${roleType}`);
-     }
+    if (!user.role.includes(roleType)) {
+      throw new BadRequestException(`User is not a ${roleType}`);
+    }
 
-     if (roleType === 'driver') {
-       return await this.userRepository.activateDriver(userId);
-     }
+    if (roleType === 'driver') {
+      return await this.userRepository.activateDriver(userId);
+    }
 
-     if (roleType === 'businessOwner') {
-       return await this.userRepository.activateBusinessOwner(userId);
-     }
+    if (roleType === 'businessOwner') {
+      return await this.userRepository.activateBusinessOwner(userId);
+    }
   }
 }

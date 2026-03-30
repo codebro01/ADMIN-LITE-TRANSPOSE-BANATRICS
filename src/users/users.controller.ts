@@ -176,8 +176,21 @@ export class UserController {
     description: 'This endpoint enables the approval of a driver kyc',
   })
   @HttpCode(HttpStatus.OK)
-  async approveDriver(@Param('driverId', ParseUUIDPipe) driverId: string) {
-    await this.userService.approveDriver(driverId);
-    return { success: true, message: 'Driver approved' };
+  async approveDriverKyc(@Param('driverId', ParseUUIDPipe) driverId: string) {
+    await this.userService.approveDriverKyc(driverId);
+    return { success: true, message: 'Driver kyc approved' };
+  }
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  @Post('driver/:driverId/reject')
+  @ApiCookieAuth('access_token')
+  @ApiOperation({
+    summary: 'Approved driver kyc',
+    description: 'This endpoint enables the approval of a driver kyc',
+  })
+  @HttpCode(HttpStatus.OK)
+  async rejectDriverKyc(@Param('driverId', ParseUUIDPipe) driverId: string) {
+    await this.userService.rejectDriverKyc(driverId);
+    return { success: true, message: 'Driver kyc rejected' };
   }
 }

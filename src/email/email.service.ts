@@ -15,6 +15,7 @@ import {
   EmailResponse,
   CampaignInvoiceTempleteData,
   driverWithdrawalData,
+  kycResponseData,
 } from '@src/email/types/types';
 
 @Injectable()
@@ -138,6 +139,14 @@ export class EmailService {
             data as driverWithdrawalData,
           ),
         };
+      case EmailTemplateType.KYC_APPLICATION:
+        return {
+          to,
+          subject: 'KYC Application',
+          html: this.emailTemplate.getKycVerificationTemplate(
+            data as kycResponseData,
+          ),
+        };
 
       default:
         throw new Error(`Unknown email template: ${template}`);
@@ -189,6 +198,7 @@ export class EmailService {
       [EmailTemplateType.CAMPAIGN_CREATED]: 3,
       [EmailTemplateType.CAMPAIGN_INVOICE]: 2,
       [EmailTemplateType.DRIVER_WITHDRAWAL]: 1,
+      [EmailTemplateType.KYC_APPLICATION]: 1,
     };
     return priorities[template] || 5;
   }
