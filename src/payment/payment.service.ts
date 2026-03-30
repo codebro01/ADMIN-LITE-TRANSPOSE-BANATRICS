@@ -168,7 +168,7 @@ export class PaymentService {
             email: driverBankInfo.users?.email,
           },
         },
-        { headers: this.getHeaders() },
+        { headers: this.getTransferHeaders() },
       ),
     );
 
