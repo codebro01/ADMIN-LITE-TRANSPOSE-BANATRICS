@@ -194,7 +194,7 @@ export class CampaignService {
           status: StatusType.UNREAD,
         },
         campaign.userId,
-        'driver',
+        'businessOwner',
       ),
       this.oneSignalService.sendNotificationToUser(
         campaign.userId,
@@ -231,7 +231,7 @@ export class CampaignService {
           status: StatusType.UNREAD,
         },
         campaign.userId,
-        'driver',
+        'businessOwner',
       ),
       this.oneSignalService.sendNotificationToUser(
         campaign.userId,

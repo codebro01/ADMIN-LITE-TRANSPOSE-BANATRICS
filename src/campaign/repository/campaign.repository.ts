@@ -431,7 +431,7 @@ export class CampaignRepository {
       phone: userTable.phone,
       appliedDate: driverCampaignTable.createdAt,
       status: driverCampaignTable.campaignStatus,
-      budget: campaignTable.price,
+      budget: campaignTable.earningPerDriver,
       location: campaignTable.state,
       duration: campaignTable.duration,
     })
