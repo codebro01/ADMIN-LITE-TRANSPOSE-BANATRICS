@@ -24,7 +24,8 @@ import {
 
 import { eq, or, count, and, sql, gte } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import { bankDetails } from 'drizzle/schema';
+
+
 
 @Injectable()
 export class UserRepository {
@@ -285,9 +286,9 @@ export class UserRepository {
       kycStatus: driverTable.approvedStatus,
       city: driverTable.state,
       registrationDate: userTable.createdAt,
-      bankName: bankDetails.bankCode,
-      accountNumber: bankDetails.accountNumber,
-      accountName: bankDetails.accountName,
+      bankName: bankDetailsTable.bankCode,
+      accountNumber: bankDetailsTable.accountNumber,
+      accountName: bankDetailsTable.accountName,
       // vehiclePhoto: vehicleDetailsTable.vehiclePhotos,
       sideView: driverTable.sideview,
       frontView: driverTable.frontview,
