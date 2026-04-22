@@ -3,7 +3,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UserModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
-import { SupabaseModule } from '@src/neon/neon.module';
+import { NeonModule } from '@src/neon/neon.module';
 import { NeonProvider } from '@src/neon/neon.provider';
 import { ConfigModule } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
@@ -34,7 +34,7 @@ import { ReportsModule } from './reports/reports.module';
 import { InstallmentProofsModule } from './installment-proofs/installment-proofs.module';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
-import {OneSignalModule} from "@src/one-signal/one-signal.module"
+import { OneSignalModule } from '@src/one-signal/one-signal.module';
 
 @Module({
   imports: [
@@ -88,7 +88,7 @@ import {OneSignalModule} from "@src/one-signal/one-signal.module"
     ScheduleModule.forRoot(),
     UserModule,
     AuthModule,
-    SupabaseModule,
+    NeonModule,
     JwtModule,
     CloudinaryModule,
     MulterModule,

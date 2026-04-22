@@ -47,7 +47,12 @@ export class HomeDashboardsRepository {
         total: count(),
       })
         .from(campaignTable)
-        .where(ne(campaignTable.statusType, 'draft')),
+        .where(
+          and(
+            ne(campaignTable.statusType, 'draft'),
+            ne(campaignTable.statusType, 'rejected'),
+          ),
+        ),
       this.DbProvider.select({
         total: sum(earningsTable.amount),
       })

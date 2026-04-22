@@ -23,13 +23,13 @@ export const paymentTable = pgTable(
     userId: uuid('userId')
       .notNull()
       .references(() => userTable.id, { onDelete: 'cascade' }),
-    invoiceId: text('invoice_id'),
-    reference: text('reference'),
+    invoiceId: text('invoice_id').notNull(),
+    reference: text('reference').unique(),
     dateInitiated: timestamp('date_initiated', {
       withTimezone: true,
     }).defaultNow(),
     amount: doublePrecision('amount').notNull(),
-    paymentMethod: text('payment_method').notNull(),
+    paymentMethod: text('payment_method'),
     paymentStatus: text('payment_status').$type<PaymentStatusType>().notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),

@@ -4,7 +4,7 @@ import { UserService } from './users.service';
 import { UserRepository } from '@src/users/repository/user.repository';
 import { DbModule } from '@src/db/db.module';
 import { JwtModule, JwtService } from '@nestjs/jwt';
-import { SupabaseModule } from '@src/neon/neon.module';
+import { NeonModule } from '@src/neon/neon.module';
 import { NeonProvider } from '@src/neon/neon.provider';
 import { AuthModule } from '@src/auth/auth.module';
 import { jwtConstants } from '@src/auth/jwtContants';
@@ -17,19 +17,19 @@ import { OneSignalModule } from '@src/one-signal/one-signal.module';
 
 @Module({
   imports: [
-    EmailVerificationModule, 
+    EmailVerificationModule,
     DbModule,
-    SupabaseModule,
+    NeonModule,
     AuthModule,
     JwtModule.register({
       global: true,
       secret: jwtConstants.accessTokenSecret,
     }),
-    EmailModule, 
-    PasswordResetModule, 
+    EmailModule,
+    PasswordResetModule,
     EarningModule,
-    NotificationModule, 
-    OneSignalModule, 
+    NotificationModule,
+    OneSignalModule,
   ],
   controllers: [UserController],
   providers: [UserService, UserRepository, JwtService, NeonProvider],
