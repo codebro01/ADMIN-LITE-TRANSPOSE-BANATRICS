@@ -1,7 +1,7 @@
 import { campaignTable } from '@src/db/campaigns';
 import { userTable } from '@src/db/users';
 import { index } from 'drizzle-orm/pg-core';
-import { pgTable, boolean, timestamp, pgEnum, uuid, varchar } from 'drizzle-orm/pg-core';
+import { pgTable, boolean, timestamp, pgEnum, uuid, text } from 'drizzle-orm/pg-core';
 
 export const driverCampaignStatusType = pgEnum('driver_campaign_status_type', [
   'completed',
@@ -25,7 +25,7 @@ export const driverCampaignTable = pgTable(
       driverCampaignStatusType('campaign_status').default('pending_approval'),
     paid: boolean('payment_status').default(false),
     active: boolean('active_status').default(false),
-    rejectionReason: varchar('rejection_reason'), 
+    rejectionReason: text('rejection_reason'), 
     startDate: timestamp('start_date', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),

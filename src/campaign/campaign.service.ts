@@ -75,14 +75,19 @@ export class CampaignService {
     const approvedDriverCampaign =
       await this.campaignRepository.getApprovedDriverCampaign(userId);
 
+
     if (approvedDriverCampaign)
       throw new ConflictException(
         'User already have an incomplete approved campaign',
       );
 
+
     if(data.status === DriverCampaignStatusType.APPROVED) {
+
+      if(data.rejectionReason) throw new BadRequestException('You cannot provide rejection reason if you want to approve the driver campaign!')
       const approvedCampaign =
       await this.campaignRepository.approveDriverCampaign(data, campaignId, userId);
+
 
     const campaign = await this.campaignRepository.findCampaignByCampaignId(
       approvedCampaign.campaignId,
