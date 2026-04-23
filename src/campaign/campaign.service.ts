@@ -85,8 +85,19 @@ export class CampaignService {
     if(data.status === DriverCampaignStatusType.APPROVED) {
 
       if(data.rejectionReason) throw new BadRequestException('You cannot provide rejection reason if you want to approve the driver campaign!')
-      const approvedCampaign =
-      await this.campaignRepository.approveDriverCampaign(data, campaignId, userId);
+
+        
+        
+        
+     const approvedCampaign =    await this.campaignRepository.executeInTransaction(async(trx) => {
+              const approvedCampaign =
+              await this.campaignRepository.approveDriverCampaign(data, campaignId, userId, trx)
+
+              await this.campaignRepository.deleteDriverCampaigns(userId)
+
+              return approvedCampaign
+
+            })
 
 
     const campaign = await this.campaignRepository.findCampaignByCampaignId(
@@ -322,11 +333,12 @@ export class CampaignService {
         if (!campaign.amount)
           throw new NotFoundException('Could not get price of the campaign');
 
-        await this.userRepository.updateBusinessOwnerPendingBalance(
+        await this.userRepository.updateBusinessOwnerPendingAndSpentBalance(
           campaign.amount,
           campaign.userId,
           trx,
         );
+  
 
         const invoice = await this.invoicesRepository.updateInvoiceStatus(
           InvoiceStatusType.SUCCESS,
@@ -373,7 +385,7 @@ export class CampaignService {
     ]);
     // console.log(Trx)
     return {
-      message: 'Campaign Rejected',
+      message: 'Campaign Approved',
     };
   }
   async listAllAvailableCampaigns(query: QueryCampaignDto) {

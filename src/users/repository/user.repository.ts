@@ -25,8 +25,6 @@ import {
 import { eq, or, count, and, sql, gte } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
-
-
 @Injectable()
 export class UserRepository {
   constructor(
@@ -124,7 +122,7 @@ export class UserRepository {
     return user;
   }
 
-  async updateBusinessOwnerPendingBalance(
+  async updateBusinessOwnerPendingAndSpentBalance(
     amount: number,
     userId: string,
     trx?: any,
@@ -133,6 +131,7 @@ export class UserRepository {
     const [update] = await Trx.update(businessOwnerTable)
       .set({
         pending: sql`${businessOwnerTable.pending} - ${amount}`,
+        totalSpent: sql`${businessOwnerTable.totalSpent} + ${amount}`,
       })
       .where(
         and(
@@ -144,11 +143,27 @@ export class UserRepository {
 
     return update;
   }
-  async updateBusinessOwnerBalance(
-    amount: number,
-    userId: string,
-    trx?: any,
-  ) {
+  // async updateBusinessOwnerSpentBalance(
+  //   amount: number,
+  //   userId: string,
+  //   trx?: any,
+  // ) {
+  //   const Trx = trx || this.DbProvider;
+  //   const [update] = await Trx.update(businessOwnerTable)
+  //     .set({
+  //       pending: sql`${businessOwnerTable.totalSpent} + ${amount}`,
+  //     })
+  //     .where(
+  //       and(
+  //         eq(businessOwnerTable.userId, userId),
+  //         gte(businessOwnerTable.pending, amount),
+  //       ),
+  //     )
+  //     .returning();
+
+  //   return update;
+  // }
+  async updateBusinessOwnerBalance(amount: number, userId: string, trx?: any) {
     const Trx = trx || this.DbProvider;
     const [update] = await Trx.update(businessOwnerTable)
       .set({
@@ -211,7 +226,7 @@ export class UserRepository {
       totalCampaigns: count(driverCampaignTable.id),
       totalEarnings: sql<number>`COALESCE(SUM(${earningsTable.amount}), 0)`, // Sum earnings, default to 0
       status: driverTable.approvedStatus,
-      activeStatus: driverTable.activeStatus
+      activeStatus: driverTable.activeStatus,
     })
       .from(driverTable)
       .leftJoin(userTable, eq(userTable.id, driverTable.userId))
@@ -247,7 +262,7 @@ export class UserRepository {
       email: userTable.email,
       totalBalance: businessOwnerTable.balance,
       status: businessOwnerTable.status,
-      totalSpent: sql<number>`COALESCE(SUM(CASE WHEN ${paymentTable.userId} IS NOT NULL THEN ${paymentTable.amount} ELSE 0 END), 0)`,
+      totalSpent: businessOwnerTable.totalSpent,
       campaigns: sql<number>`COUNT(DISTINCT CASE WHEN ${campaignTable.paymentStatus} = true THEN ${campaignTable.id} END)`,
     })
       .from(businessOwnerTable)
@@ -325,7 +340,7 @@ export class UserRepository {
       phone: userTable.phone,
       businessName: businessOwnerTable.businessName,
       balance: businessOwnerTable.balance,
-      totalSpent: sql<number>`COALESCE(SUM(DISTINCT ${paymentTable.amount}), 0)`,
+      totalSpent: businessOwnerTable.totalSpent,
       averagePerCampaign: sql<number>`COALESCE(AVG(DISTINCT ${paymentTable.amount}), 0)`,
     })
       .from(userTable)
@@ -376,11 +391,12 @@ export class UserRepository {
   async suspendDriver(userId: string) {
     const suspendDrivers = await this.DbProvider.update(driverTable)
       .set({ activeStatus: UserApprovalStatusType.SUSPENDED })
-      .where(eq(driverTable.userId, userId)).returning({
+      .where(eq(driverTable.userId, userId))
+      .returning({
         id: userTable.id,
-      lastname: driverTable.lastname,
-      firstname: driverTable.firstname,
-      activeStatus: driverTable.activeStatus,
+        lastname: driverTable.lastname,
+        firstname: driverTable.firstname,
+        activeStatus: driverTable.activeStatus,
       });
     return suspendDrivers;
   }

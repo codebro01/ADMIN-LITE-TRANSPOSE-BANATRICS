@@ -193,12 +193,17 @@ export class CampaignRepository {
     return campaign;
   }
 
-  async approveDriverCampaign(data: ApproveDriverApplicationDto,  campaignId: string, userId: string) {
-    ;
-    const [campaign] = await this.DbProvider.update(driverCampaignTable)
+  async approveDriverCampaign(
+    data: ApproveDriverApplicationDto,
+    campaignId: string,
+    userId: string,
+    trx?: any,
+  ) {
+    const Trx = trx || this.DbProvider;
+    const [campaign] = await Trx.update(driverCampaignTable)
       .set({
         campaignStatus: data.status,
-        rejectionReason: data.rejectionReason ? data.rejectionReason : null, 
+        rejectionReason: data.rejectionReason ? data.rejectionReason : null,
       })
       .where(
         and(
@@ -209,6 +214,19 @@ export class CampaignRepository {
       .returning();
 
     return campaign;
+  }
+
+  async deleteDriverCampaigns(userId: string, trx?: any) {
+    const Trx = trx || this.DbProvider;
+
+    await Trx.delete(driverCampaignTable).where(
+      and(
+        eq(driverCampaignTable.userId, userId),
+        eq(driverCampaignTable.campaignStatus, 'pending_approval'),
+      ),
+    );
+
+    return true;
   }
 
   async startDriverCampaign(campaignId: string, userId: string) {
@@ -344,12 +362,15 @@ export class CampaignRepository {
     data: UploadCampaignDesignDto,
     campaignId: string,
   ) {
-    const campaign = await this.DbProvider.update(campaignDesignsTable).set({
-      campaignId: campaignId,
-      designs: data.designs,
-      comment: data.comment,
-      approvalStatus: 'pending',
-    }).where(eq(campaignDesignsTable.campaignId, campaignId)).returning();
+    const campaign = await this.DbProvider.update(campaignDesignsTable)
+      .set({
+        campaignId: campaignId,
+        designs: data.designs,
+        comment: data.comment,
+        approvalStatus: 'pending',
+      })
+      .where(eq(campaignDesignsTable.campaignId, campaignId))
+      .returning();
 
     return campaign;
   }
@@ -371,7 +392,9 @@ export class CampaignRepository {
     const [campaign] = await Trx.update(campaignTable)
       .set({
         statusType: data.approveCampaignType,
-        printHousePhoneNo: data.printHousePhoneNo ? data.printHousePhoneNo : null,
+        printHousePhoneNo: data.printHousePhoneNo
+          ? data.printHousePhoneNo
+          : null,
       })
       .where(eq(campaignTable.id, campaignId))
       .returning();
@@ -379,7 +402,7 @@ export class CampaignRepository {
     return campaign;
   }
 
-  async listAllAvailableCampaigns(query: QueryCampaignDto) { 
+  async listAllAvailableCampaigns(query: QueryCampaignDto) {
     const conditions = [];
     if (query.active) conditions.push(eq(campaignTable.active, query.active));
     if (query.status)
@@ -494,6 +517,6 @@ export class CampaignRepository {
         ),
       );
 
-      return driverCampaign
+    return driverCampaign;
   }
 }
