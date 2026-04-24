@@ -71,91 +71,102 @@ export class CampaignService {
     return result;
   }
 
-  async approveOrRejectDriverCampaign(data:ApproveDriverApplicationDto , campaignId: string, userId: string) {
+  async approveOrRejectDriverCampaign(
+    data: ApproveDriverApplicationDto,
+    campaignId: string,
+    userId: string,
+  ) {
     const approvedDriverCampaign =
       await this.campaignRepository.getApprovedDriverCampaign(userId);
-
 
     if (approvedDriverCampaign)
       throw new ConflictException(
         'User already have an incomplete approved campaign',
       );
 
+    if (data.status === DriverCampaignStatusType.APPROVED) {
+      if (data.rejectionReason)
+        throw new BadRequestException(
+          'You cannot provide rejection reason if you want to approve the driver campaign!',
+        );
 
-    if(data.status === DriverCampaignStatusType.APPROVED) {
+      const approvedCampaign =
+        await this.campaignRepository.executeInTransaction(async (trx) => {
+          const approvedCampaign =
+            await this.campaignRepository.approveDriverCampaign(
+              data,
+              campaignId,
+              userId,
+              trx,
+            );
 
-      if(data.rejectionReason) throw new BadRequestException('You cannot provide rejection reason if you want to approve the driver campaign!')
+            // console.log('got before del')
+            
+            await this.campaignRepository.deleteDriverCampaigns(userId, trx);
+            // console.log('got past del')
 
-        
-        
-        
-     const approvedCampaign =    await this.campaignRepository.executeInTransaction(async(trx) => {
-              const approvedCampaign =
-              await this.campaignRepository.approveDriverCampaign(data, campaignId, userId, trx)
+          return approvedCampaign;
+        });
 
-              await this.campaignRepository.deleteDriverCampaigns(userId)
+        // console.log(approvedCampaign)
 
-              return approvedCampaign
+      const campaign = await this.campaignRepository.findCampaignByCampaignId(
+        approvedCampaign.campaignId,
+      );
 
-            })
+      await this.notificationService.createNotification(
+        {
+          title: 'Campaign Approved',
+          message: `Your campaign "${campaign.campaignTitle} has been approved, please provide an installation proof within 24 hours. Thank you.`,
+          category: CategoryType.CAMPAIGN,
+          variant: VariantType.INFO,
+          priority: 'important',
+          status: StatusType.UNREAD,
+        },
+        userId,
+        'driver',
+      );
 
-
-    const campaign = await this.campaignRepository.findCampaignByCampaignId(
-      approvedCampaign.campaignId,
-    );
-
-    await this.notificationService.createNotification(
-      {
-        title: 'Campaign Approved',
-        message: `Your campaign "${campaign.campaignTitle} has been approved, please provide an installation proof within 24 hours. Thank you.`,
-        category: CategoryType.CAMPAIGN,
-        variant: VariantType.INFO,
-        priority: 'important',
-        status: StatusType.UNREAD,
-      },
-      userId,
-      'driver',
-    );
-
-    await this.oneSignalService.sendNotificationToUser(
-      userId,
-      'Campaign Application Approval',
-      `Your campaign "${campaign.campaignTitle} has been approved, please provide an installation proof within 24 hours. Thank you.`,
-    );
-    return approvedCampaign;
+      await this.oneSignalService.sendNotificationToUser(
+        userId,
+        'Campaign Application Approval',
+        `Your campaign "${campaign.campaignTitle} has been approved, please provide an installation proof within 24 hours. Thank you.`,
+      );
+      return approvedCampaign;
     }
-    if(data.status === DriverCampaignStatusType.REJECTED) {
-
+    if (data.status === DriverCampaignStatusType.REJECTED) {
       const rejectedCampaign =
-      await this.campaignRepository.approveDriverCampaign(data, campaignId, userId);
+        await this.campaignRepository.approveDriverCampaign(
+          data,
+          campaignId,
+          userId,
+        );
 
-    const campaign = await this.campaignRepository.findCampaignByCampaignId(
-      rejectedCampaign.campaignId,
-    );
+      const campaign = await this.campaignRepository.findCampaignByCampaignId(
+        rejectedCampaign.campaignId,
+      );
 
-    await this.notificationService.createNotification(
-      {
-        title: 'Campaign application rejected',
-        message: `Your campaign application for the campaign titled "${campaign.campaignTitle} has been rejected. ${data.rejectionReason}`,
-        category: CategoryType.CAMPAIGN,
-        variant: VariantType.INFO,
-        priority: 'important',
-        status: StatusType.UNREAD,
-      },
-      userId,
-      'driver',
-    );
+      await this.notificationService.createNotification(
+        {
+          title: 'Campaign application rejected',
+          message: `Your campaign application for the campaign titled "${campaign.campaignTitle} has been rejected. ${data.rejectionReason}`,
+          category: CategoryType.CAMPAIGN,
+          variant: VariantType.INFO,
+          priority: 'important',
+          status: StatusType.UNREAD,
+        },
+        userId,
+        'driver',
+      );
 
-    await this.oneSignalService.sendNotificationToUser(
-      userId,
-      'Campaign Application rejected',
-      `Your campaign application for the campaign titled "${campaign.campaignTitle} has been rejected. ${data.rejectionReason}`,
-    );
-    return rejectedCampaign;
+      await this.oneSignalService.sendNotificationToUser(
+        userId,
+        'Campaign Application rejected',
+        `Your campaign application for the campaign titled "${campaign.campaignTitle} has been rejected. ${data.rejectionReason}`,
+      );
+      return rejectedCampaign;
     }
 
-
-    return [];
 
   }
 
@@ -199,7 +210,7 @@ export class CampaignService {
     const campaign =
       await this.campaignRepository.findCampaignByCampaignId(campaignId);
 
-   const noti =  await Promise.all([
+    const noti = await Promise.all([
       this.notificationService.createNotification(
         {
           title: 'Campaign Design Completed',
@@ -217,10 +228,9 @@ export class CampaignService {
         'Design Created',
         `Your design for the campaign with title ${campaign.campaignTitle} has been created`,
       ),
-      
     ]);
 
-    console.log(noti)
+    console.log(noti);
 
     return design;
   }
@@ -338,7 +348,6 @@ export class CampaignService {
           campaign.userId,
           trx,
         );
-  
 
         const invoice = await this.invoicesRepository.updateInvoiceStatus(
           InvoiceStatusType.SUCCESS,
