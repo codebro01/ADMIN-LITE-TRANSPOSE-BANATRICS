@@ -100,15 +100,15 @@ export class CampaignService {
               trx,
             );
 
-            // console.log('got before del')
-            
-            await this.campaignRepository.deleteDriverCampaigns(userId, trx);
-            // console.log('got past del')
+          // console.log('got before del')
+
+          await this.campaignRepository.deleteDriverCampaigns(userId, trx);
+          // console.log('got past del')
 
           return approvedCampaign;
         });
 
-        // console.log(approvedCampaign)
+      // console.log(approvedCampaign)
 
       const campaign = await this.campaignRepository.findCampaignByCampaignId(
         approvedCampaign.campaignId,
@@ -166,8 +166,6 @@ export class CampaignService {
       );
       return rejectedCampaign;
     }
-
-
   }
 
   async getFullCampaignInformation(campaignId: string) {
@@ -299,11 +297,36 @@ export class CampaignService {
         await this.campaignRepository.approveCampaign(data, campaignId, trx);
       });
 
-      await this.oneSignalService.sendNotificationToUser(
+    await Promise.all([
+      this.oneSignalService.sendNotificationToUser(
         campaign.userId,
         'Campaign Rejected',
         `Your campaign with the title ${campaign.campaignTitle} has been rejected and the campaign Price ${campaign.price} has been refunded to your balance`,
-      );
+      ),
+
+      this.emailService.queueTemplatedEmail(
+        EmailTemplateType.REJECT_CAMPAIGN,
+        campaign.userId,
+        {
+          campaignName: campaign.campaignTitle,
+          packageType: campaign.packageType,
+          createdAt: campaign.createdAt,
+        },
+      ),
+
+      this.notificationService.createNotification(
+        {
+          title: 'Campaign Rejected',
+          message: `Your campaign has been rejected`,
+          category: CategoryType.CAMPAIGN,
+          variant: VariantType.INFO,
+          priority: 'important',
+          status: StatusType.UNREAD,
+        },
+        campaign.userId,
+        'businessOwner',
+      ),
+    ]);
 
       return {
         message: 'Campaign Rejected',

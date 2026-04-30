@@ -68,6 +68,8 @@ export class CampaignRepository {
       campaignTitle: campaignTable.campaignName,
       earningPerDriver: campaignTable.earningPerDriver,
       statusType: campaignTable.statusType,
+      packageType: campaignTable.packageType, 
+      createdAt: campaignTable.createdAt
     })
       .from(campaignTable)
       .where(and(eq(campaignTable.id, campaignId)));

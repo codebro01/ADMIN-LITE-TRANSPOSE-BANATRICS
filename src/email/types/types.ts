@@ -28,6 +28,7 @@ export enum EmailTemplateType {
   CAMPAIGN_INVOICE = 'campaign-invoice',
   DRIVER_WITHDRAWAL = 'driver-withdrawal',
   KYC_APPLICATION = 'kyc-application',
+  REJECT_CAMPAIGN = 'reject-campaign'
 }
 
 export interface EmailResponse {
@@ -86,6 +87,13 @@ export interface kycResponseData {
   status: UserApprovalStatusType;
 }
 
+export interface rejectCampaignData {
+  campaignName: string;
+  packageType: string;
+  rejectionReason?: string;
+  createdAt: string;
+}
+
 export type EmailTemplateData =
   | WelcomeTemplateData
   | CampaignCreatedTemplateData
@@ -93,4 +101,5 @@ export type EmailTemplateData =
   | PasswordResetTemplateData
   | EmailVerificationTemplateData
   | driverWithdrawalData
-  | kycResponseData;
+  | kycResponseData
+  | rejectCampaignData;

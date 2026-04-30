@@ -243,6 +243,93 @@ ${data.resetCode}            </a>
   `;
   }
 
+  getRejectedCampaignTemplate(data: {
+    campaignName: string;
+    packageType: string;
+    createdAt: string;
+    rejectionReason?: string;
+  }): string {
+    return `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+          .container { max-width: 650px; margin: 0 auto; padding: 20px; background: #ffffff; }
+          .header { background: #c0392b; color: white; padding: 30px 20px; text-align: center; }
+          .header h1 { margin: 0; font-size: 28px; }
+          .header p { color: #f5b7b1; font-size: 14px; margin-top: 10px; }
+          .content { padding: 30px 20px; }
+          .alert-section { background: #fdecea; border-left: 4px solid #f44336; padding: 20px; border-radius: 8px; margin: 20px 0; }
+          .alert-section p { margin: 0; color: #c0392b; font-weight: 600; }
+          .campaign-details { background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; }
+          .detail-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #e0e0e0; }
+          .detail-row:last-child { border-bottom: none; }
+          .detail-label { font-weight: 600; color: #555; }
+          .detail-value { color: #333; text-align: right; }
+          .reason-section { background: #fff3e0; padding: 20px; border-radius: 8px; margin: 20px 0; }
+          .reason-label { font-size: 14px; font-weight: 600; color: #e65100; margin-bottom: 8px; }
+          .reason-text { color: #555; font-size: 14px; }
+          .footer { text-align: center; padding: 20px; color: #777; font-size: 13px; border-top: 1px solid #e0e0e0; margin-top: 30px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>Campaign Rejected</h1>
+            <p>Notification from Banatrics</p>
+          </div>
+
+          <div class="content">
+            <h2>Your Campaign Was Not Approved</h2>
+            <p>We're sorry to inform you that your campaign did not meet our requirements at this time.</p>
+
+            <div class="alert-section">
+              <p>⚠ This campaign has been rejected and will not go live.</p>
+            </div>
+
+            <div class="campaign-details">
+              <div class="detail-row">
+                <span class="detail-label">Campaign Name</span>
+                <span class="detail-value">: ${data.campaignName}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Package Type</span>
+                <span class="detail-value">: ${data.packageType}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Submitted On</span>
+                <span class="detail-value">: ${new Date(data.createdAt).toLocaleDateString('en-NG', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+              </div>
+            </div>
+
+            ${
+              data.rejectionReason
+                ? `
+            <div class="reason-section">
+              <div class="reason-label">Reason for Rejection</div>
+              <div class="reason-text">${data.rejectionReason}</div>
+            </div>
+            `
+                : ''
+            }
+
+            <p style="margin-top: 30px; font-size: 14px; color: #666;">
+              You can review the feedback above, make the necessary changes, and resubmit your campaign. 
+              If you believe this is an error or need further clarification, please contact our support team.
+            </p>
+          </div>
+
+          <div class="footer">
+            <p>© ${new Date().getFullYear()} Banatrics. All rights reserved.</p>
+            <p>This is an automated campaign notification.</p>
+          </div>
+        </div>
+      </body>
+    </html>
+  `;
+  }
+
   getWithdrawalStatusTemplate(data: driverWithdrawalData): string {
     const isSuccess = data.status === PaymentStatusType.SUCCESS;
 

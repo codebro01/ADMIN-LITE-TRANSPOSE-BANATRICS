@@ -16,6 +16,7 @@ import {
   CampaignInvoiceTempleteData,
   driverWithdrawalData,
   kycResponseData,
+  rejectCampaignData,
 } from '@src/email/types/types';
 
 @Injectable()
@@ -147,6 +148,14 @@ export class EmailService {
             data as kycResponseData,
           ),
         };
+      case EmailTemplateType.REJECT_CAMPAIGN:
+        return {
+          to,
+          subject: 'Campaign Rejected',
+          html: this.emailTemplate.getRejectedCampaignTemplate(
+            data as rejectCampaignData,
+          ),
+        };
 
       default:
         throw new Error(`Unknown email template: ${template}`);
@@ -179,7 +188,7 @@ export class EmailService {
         success: true,
         messageId: response.data?.id,
       };
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to send email:', error);
       return {
         success: false,
@@ -199,6 +208,7 @@ export class EmailService {
       [EmailTemplateType.CAMPAIGN_INVOICE]: 2,
       [EmailTemplateType.DRIVER_WITHDRAWAL]: 1,
       [EmailTemplateType.KYC_APPLICATION]: 1,
+      [EmailTemplateType.REJECT_CAMPAIGN]: 2,
     };
     return priorities[template] || 5;
   }
