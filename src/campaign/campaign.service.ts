@@ -114,14 +114,12 @@ export class CampaignService {
         approvedCampaign.campaignId,
       );
 
-      if(!campaign) throw new NotFoundException('Could not find campaign!!!');
-      
+      if (!campaign) throw new NotFoundException('Could not find campaign!!!');
+
       const user = await this.userRepository.findUserById(userId);
-      if(!user) throw new NotFoundException('Could not find user!!!');
+      if (!user) throw new NotFoundException('Could not find user!!!');
 
-      const userDriver = await this.userRepository.findDriverByUserId(userId)
-
-      
+      const userDriver = await this.userRepository.findDriverByUserId(userId);
 
       await Promise.all([
         this.notificationService.createNotification(
@@ -147,10 +145,10 @@ export class CampaignService {
           EmailTemplateType.DRIVER_CAMPAIGN_APPLICATION,
           user.email,
           {
-            driverName: userDriver.firstname, 
+            driverName: userDriver.firstname,
             campaignName: campaign.campaignTitle,
             status: DriverCampaignStatusType.APPROVED,
-            startDate: campaign.startDate, 
+            startDate: campaign.startDate,
           },
         ),
       ]);
@@ -169,12 +167,12 @@ export class CampaignService {
         rejectedCampaign.campaignId,
       );
 
-       if (!campaign) throw new NotFoundException('Could not find campaign!!!');
+      if (!campaign) throw new NotFoundException('Could not find campaign!!!');
 
-       const user = await this.userRepository.findUserById(userId);
-       if (!user) throw new NotFoundException('Could not find user!!!');
+      const user = await this.userRepository.findUserById(userId);
+      if (!user) throw new NotFoundException('Could not find user!!!');
 
-       const userDriver = await this.userRepository.findDriverByUserId(userId);
+      const userDriver = await this.userRepository.findDriverByUserId(userId);
 
       await Promise.all([
         this.notificationService.createNotification(
@@ -276,12 +274,10 @@ export class CampaignService {
       ),
 
       this.emailService.queueTemplatedEmail(
-        EmailTemplateType.REJECT_CAMPAIGN,
+        EmailTemplateType.CREATE_CAMPAIGN_DESIGN,
         user.email,
         {
           campaignName: campaign.campaignTitle,
-          packageType: campaign.packageType,
-          createdAt: campaign.createdAt,
         },
       ),
     ]);
@@ -302,6 +298,10 @@ export class CampaignService {
     const campaign =
       await this.campaignRepository.findCampaignByCampaignId(campaignId);
 
+    if (!campaign) throw new NotFoundException('Could not find user');
+    const user = await this.userRepository.findUserById(campaign.userId);
+    if (!user) throw new NotFoundException('Could not find user');
+
     await Promise.all([
       this.notificationService.createNotification(
         {
@@ -319,6 +319,14 @@ export class CampaignService {
         campaign.userId,
         'Campaign Approved',
         `Your design for the campaign with title ${campaign.campaignTitle} has been updated`,
+      ),
+
+      this.emailService.queueTemplatedEmail(
+        EmailTemplateType.CREATE_CAMPAIGN_DESIGN,
+        user.email,
+        {
+          campaignName: campaign.campaignTitle,
+        },
       ),
     ]);
 

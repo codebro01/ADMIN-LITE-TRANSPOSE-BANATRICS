@@ -103,7 +103,7 @@ export class InstallmentProofsService {
     } else {
       if (!data.rejectionReason)
         throw new BadRequestException(
-          'You must provide rejection reason when using the rejecting an installment proof',
+          'You must provide rejection reason when rejecting an installment proof',
         );
       const installmentProof =
         await this.installmentProofRepository.updateCampaignInstallmentProof(
