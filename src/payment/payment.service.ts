@@ -5,6 +5,7 @@ import {
   HttpStatus,
   HttpException,
   NotFoundException,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { firstValueFrom } from 'rxjs';
@@ -75,9 +76,11 @@ export class PaymentService {
     userId: string,
   ) {
     // ! count number of approved weekly proofs
-
     const campaign =
       await this.campaignRepository.findCampaignByCampaignId(campaignId);
+    if (!campaign) throw new NotFoundException('Could not find campaign');
+    const user = await this.userRepository.findUserById(userId);
+    if (!user) throw new NotFoundException('Could not find user');
 
     if (!campaign)
       throw new NotFoundException('Error loading campaign information');
@@ -108,6 +111,47 @@ export class PaymentService {
       throw new BadRequestException(
         `Driver missed ${Math.round(missedWeeks)} weeks and is not eligible for payout`,
       );
+    }
+
+    if (data.approve === false) {
+      const earnings = await this.earningRepository.updateEarningApprovedStatus(
+        ApprovalStatusType.REJECTED,
+        earningId,
+        campaignId,
+        userId,
+      );
+ await Promise.all([
+   this.notificationService.createNotification(
+     {
+       title: 'Widthdrawal Rejected',
+       message: `Your withdrawal of ${withdrawableAmount} for the campaign titled "${campaign.campaignTitle} has been rejected, please contact admin`,
+       category: CategoryType.PAYMENT,
+       variant: VariantType.SUCCESS,
+       priority: 'important',
+       status: StatusType.UNREAD,
+     },
+     userId,
+     'driver',
+   ),
+   this.oneSignalService.sendNotificationToUser(
+     campaign.userId,
+     'Withdrawal Rejected',
+     `Your withdrawal of ${withdrawableAmount} for the campaign titled "${campaign.campaignTitle} has been rejected, please, contact admin`,
+   ),
+
+   this.emailService.queueTemplatedEmail(
+     EmailTemplateType.APPROVE_REJECT_WITHDRAWAL,
+     user.email,
+     {
+       campaignName: campaign.campaignTitle,
+       amount: withdrawableAmount,
+       reason: data.reason,
+       status: ApprovalStatusType.REJECTED,
+     },
+   ),
+ ]);
+
+      return earnings;
     }
     const totalPossibleWeeklyProofs = campaign.duration / 7;
 
@@ -148,6 +192,8 @@ export class PaymentService {
 
     await this.earningRepository.updateEarningApprovedStatus(
       ApprovalStatusType.APPROVED,
+      earningId,
+      campaignId,
       userId,
     );
 
@@ -174,6 +220,48 @@ export class PaymentService {
         { headers: this.getTransferHeaders() },
       ),
     );
+
+    if (!response)
+      throw new InternalServerErrorException(
+        'Could not process withdrawal, please try again',
+      );
+    await this.earningRepository.updateEarningApprovedStatus(
+      ApprovalStatusType.APPROVED,
+      earningId,
+      campaignId,
+      userId,
+    );
+
+    await Promise.all([
+      this.notificationService.createNotification(
+        {
+          title: 'Widthdrawal Approved',
+          message: `Your withdrawal of ${withdrawableAmount} for the campaign titled "${campaign.campaignTitle} has been approved, please kindly wait for some minutes while we proccess your payment`,
+          category: CategoryType.PAYMENT,
+          variant: VariantType.SUCCESS,
+          priority: 'important',
+          status: StatusType.UNREAD,
+        },
+        userId,
+        'driver',
+      ),
+      this.oneSignalService.sendNotificationToUser(
+        campaign.userId,
+        'Withdrawal Approved',
+        `Your withdrawal of ${withdrawableAmount} for the campaign titled "${campaign.campaignTitle} has been approved, please kindly wait for some minutes while we proccess your payment`,
+      ),
+
+      this.emailService.queueTemplatedEmail(
+        EmailTemplateType.APPROVE_REJECT_WITHDRAWAL,
+        user.email,
+        {
+          campaignName: campaign.campaignTitle,
+          amount: withdrawableAmount,
+          reason: data.reason,
+          status: ApprovalStatusType.REJECTED,
+        },
+      ),
+    ]);
 
     return response.data;
   }
@@ -210,7 +298,7 @@ export class PaymentService {
       );
 
       return response.data;
-    } catch (error) {
+    } catch (error: any) {
       throw new HttpException(
         error.response?.data?.message || 'Failed to get transaction',
         error.response?.status || HttpStatus.INTERNAL_SERVER_ERROR,
@@ -231,7 +319,7 @@ export class PaymentService {
       );
 
       return response.data;
-    } catch (error) {
+    } catch (error: any) {
       throw new HttpException(
         error.response?.data?.message || 'Failed to list transactions',
         error.response?.status || HttpStatus.INTERNAL_SERVER_ERROR,
@@ -312,6 +400,10 @@ export class PaymentService {
             return 'already processed';
           }
 
+          if(!earning.campaignId) throw new NotFoundException('Campaign Id is not defined!')
+
+          const campaign = await this.campaignRepository.findCampaignByCampaignId(earning.campaignId)
+
           console.log('got in here');
           await this.paymentRepository.executeInTransaction(async (trx) => {
             if (
@@ -342,11 +434,12 @@ export class PaymentService {
               'driver',
             ),
             this.emailService.queueTemplatedEmail(
-              EmailTemplateType.DRIVER_WITHDRAWAL,
+              EmailTemplateType.APPROVE_REJECT_WITHDRAWAL,
               email,
               {
+                campaignName: campaign.campaignTitle, 
                 amount: amount,
-                status: PaymentStatusType.SUCCESS,
+                status: ApprovalStatusType.APPROVED,
               },
             ),
             this.oneSignalService.sendNotificationToUser(
@@ -369,6 +462,15 @@ export class PaymentService {
           if (earning && earning.paymentStatus === PaymentStatusType.SUCCESS) {
             return 'already processed';
           }
+
+          
+          if (!earning.campaignId)
+            throw new NotFoundException('Campaign Id is not defined!');
+
+          const campaign =
+            await this.campaignRepository.findCampaignByCampaignId(
+              earning.campaignId,
+            );
 
           console.log('got in here');
           await this.paymentRepository.executeInTransaction(async (trx) => {
@@ -399,11 +501,12 @@ export class PaymentService {
               'driver',
             ),
             this.emailService.queueTemplatedEmail(
-              EmailTemplateType.DRIVER_WITHDRAWAL,
+              EmailTemplateType.APPROVE_REJECT_WITHDRAWAL,
               email,
               {
+                campaignName: campaign.campaignTitle,
                 amount: amount,
-                status: PaymentStatusType.FAILED,
+                status: ApprovalStatusType.REJECTED,
               },
             ),
           ]);
@@ -415,7 +518,7 @@ export class PaymentService {
       }
 
       return { status: 'success' };
-    } catch (error) {
+    } catch (error: any) {
       console.error('Webhook processing error:', error);
       return { error: error.message };
     }

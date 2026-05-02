@@ -32,7 +32,7 @@ export class NotificationController {
   constructor(private notificationService: NotificationService) {}
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('businessOwner', 'driver')
+  @Roles('businessOwner', 'driver', 'admin')
   @Get('all')
   @ApiOperation({
     summary: 'Get all notifications',
@@ -78,7 +78,7 @@ export class NotificationController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('businessOwner', 'driver')
+  @Roles('businessOwner', 'driver', 'admin')
   @Sse('stream')
   @ApiOperation({
     summary: 'Stream notifications in real-time',
@@ -204,7 +204,7 @@ export class NotificationController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('businessOwner', 'driver')
+  @Roles('businessOwner', 'driver', 'admin')
   @Patch('update-notification/:id')
   @ApiOperation({
     summary: 'Update a specific notification',

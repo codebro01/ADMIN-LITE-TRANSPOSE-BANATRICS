@@ -64,7 +64,7 @@ export class PaymentController {
   @ApiCookieAuth('access_token')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
-    summary: 'Approves or reject an approval',
+    summary: 'Approves or reject driver withdrawal',
     description:
       'This enpoint is used to approve or reject a driver withdrawal request',
   })

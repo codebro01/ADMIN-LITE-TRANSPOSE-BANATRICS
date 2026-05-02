@@ -1,5 +1,9 @@
-import { PaymentStatusType, UserApprovalStatusType } from "@src/db";
-import { driverWithdrawalData, kycResponseData } from "../types/types";
+import {  UserApprovalStatusType } from "@src/db";
+import { driverCampaignApplicationData, driverWithdrawalData, installmentProofStatusData, kycResponseData, weeklyProofStatusData } from "../types/types";
+import { ApprovalStatusType } from "@src/earning/dto/create-earning.dto";
+import { DriverCampaignStatusType } from "@src/campaign/dto/create-driver-campaign.dto";
+import { WeeklyProofStatus } from "@src/weekly-proofs/dto/create-weekly-proof.dto";
+import { InstallmentProofStatusType } from "@src/installment-proofs/dto/update-installment-proof.dto";
 
 export class EmailTemplate {
   getWelcomeTemplate(data: { name: string; email: string }): string {
@@ -330,50 +334,50 @@ ${data.resetCode}            </a>
   `;
   }
 
-  getWithdrawalStatusTemplate(data: driverWithdrawalData): string {
-    const isSuccess = data.status === PaymentStatusType.SUCCESS;
+  // getWithdrawalStatusTemplate(data: driverWithdrawalData): string {
+  //   const isSuccess = data.status === ApprovalStatusType.APPROVED;
 
-    return `
-    <!DOCTYPE html>
-    <html>
-      <body>
-        <div style="max-width: 600px; margin: 0 auto; padding: 20px; font-family: Arial, sans-serif;">
-          <div style="background: ${isSuccess ? '#4CAF50' : '#F44336'}; color: white; padding: 20px; text-align: center;">
-            <h1>${isSuccess ? 'Withdrawal Successful!' : 'Withdrawal Failed'}</h1>
-          </div>
-          <div style="padding: 20px; background: #f9f9f9;">
-            <h2>${isSuccess ? 'Your money is on the way!' : 'Something went wrong'}</h2>
-            <p>
-              ${
-                isSuccess
-                  ? `Your withdrawal of <strong>₦${data.amount}</strong> has been processed successfully. Kindly allow a few minutes for the funds to reflect in your bank account.`
-                  : `Your withdrawal of <strong>₦${data.amount}</strong> could not be completed. Your balance has been refunded. Please try again or contact support if the issue persists.`
-              }
-            </p>
-            <div style="background: white; border-radius: 8px; padding: 16px; margin: 20px 0; border: 1px solid #e0e0e0;">
-              <p style="margin: 0; color: #666;">Amount</p>
-              <p style="margin: 4px 0 0; font-size: 24px; font-weight: bold; color: ${isSuccess ? '#4CAF50' : '#F44336'};">₦${data.amount}</p>
-              <p style="margin: 8px 0 0; color: #666;">Status</p>
-              <p style="margin: 4px 0 0; font-weight: bold; color: ${isSuccess ? '#4CAF50' : '#F44336'};">
-                ${isSuccess ? '✅ Successful' : '❌ Failed'}
-              </p>
-            </div>
-            ${
-              !isSuccess
-                ? `<a href="mailto:support@banatrics.com" style="display: inline-block; padding: 12px 24px; background: #F44336; color: white; text-decoration: none; border-radius: 5px; margin: 10px 0;">
-                    Contact Support
-                  </a>`
-                : ''
-            }
-          </div>
-          <div style="padding: 20px; text-align: center; color: #999; font-size: 12px;">
-            <p>If you did not initiate this withdrawal, please contact support immediately.</p>
-          </div>
-        </div>
-      </body>
-    </html>
-  `;
-  }
+  //   return `
+  //   <!DOCTYPE html>
+  //   <html>
+  //     <body>
+  //       <div style="max-width: 600px; margin: 0 auto; padding: 20px; font-family: Arial, sans-serif;">
+  //         <div style="background: ${isSuccess ? '#4CAF50' : '#F44336'}; color: white; padding: 20px; text-align: center;">
+  //           <h1>${isSuccess ? 'Withdrawal Successful!' : 'Withdrawal Failed'}</h1>
+  //         </div>
+  //         <div style="padding: 20px; background: #f9f9f9;">
+  //           <h2>${isSuccess ? 'Your money is on the way!' : 'Something went wrong'}</h2>
+  //           <p>
+  //             ${
+  //               isSuccess
+  //                 ? `Your withdrawal of <strong>₦${data.amount}</strong> has been processed successfully. Kindly allow a few minutes for the funds to reflect in your bank account.`
+  //                 : `Your withdrawal of <strong>₦${data.amount}</strong> could not be completed. Your balance has been refunded. Please try again or contact support if the issue persists.`
+  //             }
+  //           </p>
+  //           <div style="background: white; border-radius: 8px; padding: 16px; margin: 20px 0; border: 1px solid #e0e0e0;">
+  //             <p style="margin: 0; color: #666;">Amount</p>
+  //             <p style="margin: 4px 0 0; font-size: 24px; font-weight: bold; color: ${isSuccess ? '#4CAF50' : '#F44336'};">₦${data.amount}</p>
+  //             <p style="margin: 8px 0 0; color: #666;">Status</p>
+  //             <p style="margin: 4px 0 0; font-weight: bold; color: ${isSuccess ? '#4CAF50' : '#F44336'};">
+  //               ${isSuccess ? 'Successful' : 'Failed'}
+  //             </p>
+  //           </div>
+  //           ${
+  //             !isSuccess
+  //               ? `<a href="mailto:support@banatrics.com" style="display: inline-block; padding: 12px 24px; background: #F44336; color: white; text-decoration: none; border-radius: 5px; margin: 10px 0;">
+  //                   Contact Support
+  //                 </a>`
+  //               : ''
+  //           }
+  //         </div>
+  //         <div style="padding: 20px; text-align: center; color: #999; font-size: 12px;">
+  //           <p>If you did not initiate this withdrawal, please contact support immediately.</p>
+  //         </div>
+  //       </div>
+  //     </body>
+  //   </html>
+  // `;
+  // }
 
   getKycVerificationTemplate(data: kycResponseData): string {
     const isApproved = data.status === UserApprovalStatusType.APPROVED;
@@ -416,5 +420,533 @@ ${data.resetCode}            </a>
     </body>
   </html>
 `;
+  }
+
+  getCampaignDesignReadyTemplate(data: { campaignName: string }): string {
+    return `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+          .container { max-width: 650px; margin: 0 auto; padding: 20px; background: #ffffff; }
+          .header { background: #2c3e50; color: white; padding: 30px 20px; text-align: center; }
+          .header h1 { margin: 0; font-size: 28px; }
+          .content { padding: 30px 20px; text-align: center; }
+          .success-icon { font-size: 60px; margin-bottom: 20px; }
+          .message { font-size: 16px; color: #555; margin: 20px 0; }
+          .campaign-name { font-weight: bold; color: #2c3e50; }
+          .button { display: inline-block; padding: 14px 35px; background: #2c3e50; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; font-size: 16px; }
+          .footer { text-align: center; padding: 20px; color: #777; font-size: 13px; border-top: 1px solid #e0e0e0; margin-top: 30px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>Campaign Design Ready</h1>
+          </div>
+
+          <div class="content">
+            <div class="success-icon">🎨</div>
+            <h2>Congratulations!</h2>
+            <p class="message">
+              Your campaign design for <span class="campaign-name">"${data.campaignName}"</span> 
+              has been completed. Please review it and take action.
+            </p>
+            <a href="#" class="button">Review Design</a>
+            <p style="font-size: 13px; color: #999;">
+              You can approve or disapprove the design from your dashboard.
+            </p>
+          </div>
+
+          <div class="footer">
+            <p>© ${new Date().getFullYear()} Banatrics. All rights reserved.</p>
+            <p>This is an automated notification.</p>
+          </div>
+        </div>
+      </body>
+    </html>
+  `;
+  }
+
+  getWithdrawalStatusTemplate(data: driverWithdrawalData): string {
+    const isApproved = data.status === ApprovalStatusType.APPROVED;
+
+    return `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+          .container { max-width: 650px; margin: 0 auto; padding: 20px; background: #ffffff; }
+          .header { background: ${isApproved ? '#2e7d32' : '#c0392b'}; color: white; padding: 30px 20px; text-align: center; }
+          .header h1 { margin: 0; font-size: 28px; }
+          .content { padding: 30px 20px; text-align: center; }
+          .icon { font-size: 60px; margin-bottom: 20px; }
+          .message { font-size: 16px; color: #555; margin: 20px 0; }
+          .amount { font-size: 32px; font-weight: bold; color: ${isApproved ? '#2e7d32' : '#c0392b'}; margin: 10px 0; }
+          .detail-box { background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: left; }
+          .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e0e0e0; }
+          .detail-row:last-child { border-bottom: none; }
+          .detail-label { font-weight: 600; color: #555; }
+          .detail-value { color: #333; }
+          .reason-box { background: #fff3e0; border-left: 4px solid #FF9800; padding: 15px 20px; border-radius: 8px; margin: 20px 0; text-align: left; }
+          .reason-label { font-weight: 600; color: #e65100; margin-bottom: 5px; }
+          .reason-text { color: #555; font-size: 14px; }
+          .footer { text-align: center; padding: 20px; color: #777; font-size: 13px; border-top: 1px solid #e0e0e0; margin-top: 30px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>Withdrawal ${isApproved ? 'Approved' : 'Rejected'}</h1>
+          </div>
+
+          <div class="content">
+            <h2>${isApproved ? 'Great News!' : 'Withdrawal Not Approved'}</h2>
+
+            <p class="message">
+              Your withdrawal request for the campaign 
+              <strong>"${data.campaignName}"</strong> has been 
+              <strong>${isApproved ? 'approved' : 'rejected'}</strong>.
+            </p>
+
+            <div class="amount">
+              ₦${data.amount.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </div>
+
+            <div class="detail-box">
+              <div class="detail-row">
+                <span class="detail-label">Campaign</span>
+                <span class="detail-value">${data.campaignName}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Amount</span>
+                <span class="detail-value">₦${data.amount.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Status</span>
+                <span class="detail-value">${isApproved ? '✅ Approved' : '❌ Rejected'}</span>
+              </div>
+            </div>
+
+            ${
+              data.reason
+                ? `
+            <div class="reason-box">
+              <div class="reason-label">Reason</div>
+              <div class="reason-text">${data.reason}</div>
+            </div>
+            `
+                : ''
+            }
+
+            <p style="font-size: 13px; color: #999; margin-top: 20px;">
+              ${
+                isApproved
+                  ? 'Your funds will be transferred to your account shortly.'
+                  : 'If you have any questions, please contact our support team.'
+              }
+            </p>
+          </div>
+
+          <div class="footer">
+            <p>© ${new Date().getFullYear()} Banatrics. All rights reserved.</p>
+            <p>This is an automated notification.</p>
+          </div>
+        </div>
+      </body>
+    </html>
+  `;
+  }
+
+  getCampaignApplicationStatusTemplate(
+    data: driverCampaignApplicationData,
+  ): string {
+    const isApproved = data.status === DriverCampaignStatusType.APPROVED;
+
+    return `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+          .container { max-width: 650px; margin: 0 auto; padding: 20px; background: #ffffff; }
+          .header { background: ${isApproved ? '#2e7d32' : '#c0392b'}; color: white; padding: 30px 20px; text-align: center; }
+          .header h1 { margin: 0; font-size: 28px; }
+          .content { padding: 30px 20px; text-align: center; }
+          .icon { font-size: 60px; margin-bottom: 20px; }
+          .message { font-size: 16px; color: #555; margin: 20px 0; }
+          .campaign-title { font-size: 22px; font-weight: bold; color: ${isApproved ? '#2e7d32' : '#c0392b'}; margin: 10px 0; }
+          .detail-box { background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: left; }
+          .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e0e0e0; }
+          .detail-row:last-child { border-bottom: none; }
+          .detail-label { font-weight: 600; color: #555; }
+          .detail-value { color: #333; }
+          .reason-box { background: #fff3e0; border-left: 4px solid #FF9800; padding: 15px 20px; border-radius: 8px; margin: 20px 0; text-align: left; }
+          .reason-label { font-weight: 600; color: #e65100; margin-bottom: 5px; }
+          .reason-text { color: #555; font-size: 14px; }
+          .footer { text-align: center; padding: 20px; color: #777; font-size: 13px; border-top: 1px solid #e0e0e0; margin-top: 30px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>Campaign Application ${isApproved ? 'Approved' : 'Rejected'}</h1>
+          </div>
+
+          <div class="content">
+            <div class="icon">${isApproved ? '🎉' : '😔'}</div>
+
+            <h2>${isApproved ? "Congratulations, You're In!" : 'Application Not Approved'}</h2>
+
+            <p class="message">
+              ${
+                isApproved
+                  ? `You have been approved to partake in the campaign`
+                  : `Your application for the campaign`
+              }
+              <br />
+              <span class="campaign-title">"${data.campaignName}"</span>
+              <br />
+              ${isApproved ? 'Get ready to hit the road!' : 'has been rejected.'}
+            </p>
+
+            <div class="detail-box">
+              <div class="detail-row">
+                <span class="detail-label">Campaign</span>
+                <span class="detail-value">${data.campaignName}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Applicant</span>
+                <span class="detail-value">${data.driverName}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Status</span>
+                <span class="detail-value">${isApproved ? '✅ Approved' : '❌ Rejected'}</span>
+              </div>
+              ${
+                data.startDate
+                  ? `
+              <div class="detail-row">
+                <span class="detail-label">Campaign Start Date</span>
+                <span class="detail-value">${data.startDate}</span>
+              </div>
+              `
+                  : ''
+              }
+            </div>
+
+            ${
+              !isApproved && data.reason
+                ? `
+            <div class="reason-box">
+              <div class="reason-label">Reason for Rejection</div>
+              <div class="reason-text">${data.reason}</div>
+            </div>
+            `
+                : ''
+            }
+
+            <p style="font-size: 13px; color: #999; margin-top: 20px;">
+              ${
+                isApproved
+                  ? 'Further details about the campaign will be communicated to you. Welcome aboard!'
+                  : 'If you believe this is a mistake or need further clarification, please contact our support team.'
+              }
+            </p>
+          </div>
+
+          <div class="footer">
+            <p>© ${new Date().getFullYear()} Banatrics. All rights reserved.</p>
+            <p>This is an automated notification.</p>
+          </div>
+        </div>
+      </body>
+    </html>
+  `;
+  }
+
+  getWeeklyProofStatusTemplate(data: weeklyProofStatusData): string {
+    const isApproved = data.status === WeeklyProofStatus.APPROVED;
+    const isRejected =data.status === WeeklyProofStatus.REJECTED;
+
+    const headerColor = isApproved
+      ? '#2e7d32'
+      : isRejected
+        ? '#e65100'
+        : '#c0392b';
+    const accentColor = isApproved
+      ? '#2e7d32'
+      : isRejected
+        ? '#e65100'
+        : '#c0392b';
+
+    return `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+          .container { max-width: 650px; margin: 0 auto; padding: 20px; background: #ffffff; }
+          .header { background: ${headerColor}; color: white; padding: 30px 20px; text-align: center; }
+          .header h1 { margin: 0; font-size: 28px; }
+          .header p { margin: 8px 0 0; font-size: 14px; opacity: 0.85; }
+          .content { padding: 30px 20px; text-align: center; }
+          .icon { font-size: 60px; margin-bottom: 20px; }
+          .message { font-size: 16px; color: #555; margin: 20px 0; }
+          .week-badge {
+            display: inline-block;
+            background: ${accentColor}18;
+            color: ${accentColor};
+            border: 1.5px solid ${accentColor}44;
+            padding: 6px 18px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 20px;
+          }
+          .detail-box { background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: left; }
+          .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e0e0e0; }
+          .detail-row:last-child { border-bottom: none; }
+          .detail-label { font-weight: 600; color: #555; }
+          .detail-value { color: #333; }
+          .reason-box { background: #fff3e0; border-left: 4px solid #FF9800; padding: 15px 20px; border-radius: 8px; margin: 20px 0; text-align: left; }
+          .reason-label { font-weight: 600; color: #e65100; margin-bottom: 5px; }
+          .reason-text { color: #555; font-size: 14px; }
+          .flagged-box { background: #fbe9e7; border-left: 4px solid #e65100; padding: 15px 20px; border-radius: 8px; margin: 20px 0; text-align: left; }
+          .flagged-label { font-weight: 600; color: #bf360c; margin-bottom: 5px; }
+          .flagged-text { color: #555; font-size: 14px; }
+          .footer { text-align: center; padding: 20px; color: #777; font-size: 13px; border-top: 1px solid #e0e0e0; margin-top: 30px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+
+          <div class="header">
+            <h1>Weekly Proof ${isApproved ? 'Approved' : isRejected ? 'Flagged for Review' : 'Rejected'}</h1>
+          </div>
+
+          <div class="content">
+
+            <div class="icon">${isApproved ? '✅' : isRejected ? '🚩' : '❌'}</div>
+
+
+            <h2>
+              ${
+                isApproved
+                  ? 'Proof Verified!'
+                  : isRejected
+                    ? 'Your Submission Has Been Flagged'
+                    : 'Proof Not Accepted'
+              }
+            </h2>
+
+            <p class="message">
+              ${
+                isApproved
+                  ? `Your weekly proof submission for <strong>"${data.campaignName}"</strong> has been reviewed and <strong>approved</strong>. Keep up the great work!`
+                  : isRejected
+                    ? `Your weekly proof submission for <strong>"${data.campaignName}"</strong> has been flagged and is currently under further review. You will be notified once a final decision is made.`
+                    : `Your weekly proof submission for <strong>"${data.campaignName}"</strong> has been reviewed and was <strong>not accepted</strong> for this week.`
+              }
+            </p>
+
+            <div class="detail-box">
+              <div class="detail-row">
+                <span class="detail-label">Campaign</span>
+                <span class="detail-value">${data.campaignName}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Driver</span>
+                <span class="detail-value">${data.driverName}</span>
+              </div>
+            
+              <div class="detail-row">
+                <span class="detail-label">Status</span>
+                <span class="detail-value">
+                  ${isApproved ? '✅ Approved' : isRejected ? '🚩 Flagged' : '❌ Rejected'}
+                </span>
+              </div>
+            </div>
+
+            ${
+              isRejected && data.rejectionReason
+                ? `
+            <div class="flagged-box">
+              <div class="flagged-label">🚩 Flag Reason</div>
+              <div class="flagged-text">${data.rejectionReason}</div>
+            </div>
+            `
+                : ''
+            }
+
+            ${
+              !isApproved && !isRejected && data.rejectionReason
+                ? `
+            <div class="reason-box">
+              <div class="reason-label">Reason for Rejection</div>
+              <div class="reason-text">${data.rejectionReason}</div>
+            </div>
+            `
+                : ''
+            }
+
+            <p style="font-size: 13px; color: #999; margin-top: 20px;">
+              ${
+                isApproved
+                  ? 'Your submission has been logged. Keep the sticker visible and in good condition for upcoming weekly submissions.'
+                  : isRejected
+                    ? 'Our team is taking a closer look at your submission. No action is needed from you at this time.'
+                    : 'Please ensure your proof photo is clear, well-lit, and shows the sticker fully visible on your vehicle before resubmitting.'
+              }
+            </p>
+
+          </div>
+
+          <div class="footer">
+            <p>© ${new Date().getFullYear()} Banatrics. All rights reserved.</p>
+            <p>This is an automated notification.</p>
+          </div>
+
+        </div>
+      </body>
+    </html>
+  `;
+  }
+
+  getInstallmentProofStatusTemplate(data: installmentProofStatusData): string {
+    const isApproved = data.status === InstallmentProofStatusType.APPROVED;
+    const isRejected = data.status === InstallmentProofStatusType.REJECTED;
+
+    const headerColor = isApproved
+      ? '#2e7d32'
+        : '#c0392b';
+    const accentColor = isApproved
+      ? '#2e7d32'
+        : '#c0392b';
+
+    return `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+          .container { max-width: 650px; margin: 0 auto; padding: 20px; background: #ffffff; }
+          .header { background: ${headerColor}; color: white; padding: 30px 20px; text-align: center; }
+          .header h1 { margin: 0; font-size: 28px; }
+          .header p { margin: 8px 0 0; font-size: 14px; opacity: 0.85; }
+          .content { padding: 30px 20px; text-align: center; }
+          .icon { font-size: 60px; margin-bottom: 20px; }
+          .message { font-size: 16px; color: #555; margin: 20px 0; }
+          .status-badge {
+            display: inline-block;
+            background: ${accentColor}18;
+            color: ${accentColor};
+            border: 1.5px solid ${accentColor}44;
+            padding: 6px 18px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 20px;
+          }
+          .detail-box { background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: left; }
+          .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e0e0e0; }
+          .detail-row:last-child { border-bottom: none; }
+          .detail-label { font-weight: 600; color: #555; }
+          .detail-value { color: #333; }
+          .reason-box { background: #fff3e0; border-left: 4px solid #FF9800; padding: 15px 20px; border-radius: 8px; margin: 20px 0; text-align: left; }
+          .reason-label { font-weight: 600; color: #e65100; margin-bottom: 5px; }
+          .reason-text { color: #555; font-size: 14px; }
+          .pending-box { background: #e3f2fd; border-left: 4px solid #1565c0; padding: 15px 20px; border-radius: 8px; margin: 20px 0; text-align: left; }
+          .pending-label { font-weight: 600; color: #0d47a1; margin-bottom: 5px; }
+          .pending-text { color: #555; font-size: 14px; }
+          .footer { text-align: center; padding: 20px; color: #777; font-size: 13px; border-top: 1px solid #e0e0e0; margin-top: 30px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+
+          <div class="header">
+            <h1>Installation Proof ${isApproved ? 'Approved' : 'Rejected'}</h1>
+            <p>Campaign: ${data.campaignName}</p>
+          </div>
+
+          <div class="content">
+
+            <div class="icon">${isApproved ? '✅'  : '❌'}</div>
+
+            <div class="status-badge">
+              ${isApproved ? '✅ Approved' : '❌ Rejected'}
+            </div>
+
+            <h2>
+              ${
+                isApproved
+                  ? 'Sticker Installation Verified!'
+                    : 'Installation Proof Not Accepted'
+              }
+            </h2>
+
+            <p class="message">
+              ${
+                isApproved
+                  ? `Your sticker installation proof for <strong>"${data.campaignName}"</strong> has been reviewed and <strong>approved</strong>. You're officially on the road for this campaign!`
+                    : `Your sticker installation proof for <strong>"${data.campaignName}"</strong> has been reviewed and was <strong>not accepted</strong>.`
+              }
+            </p>
+
+            <div class="detail-box">
+              <div class="detail-row">
+                <span class="detail-label">Campaign</span>
+                <span class="detail-value">${data.campaignName}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Driver</span>
+                <span class="detail-value">${data.driverName}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Submitted On</span>
+                <span class="detail-value">${new Date(data.submittedAt).toLocaleDateString('en-NG', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Status</span>
+                <span class="detail-value">
+                  ${isApproved ? '✅ Approved' : '❌ Rejected'}
+                </span>
+              </div>
+            </div>
+
+
+            ${
+              isRejected && data.rejectionReason
+                ? `
+            <div class="reason-box">
+              <div class="reason-label">Reason for Rejection</div>
+              <div class="reason-text">${data.rejectionReason}</div>
+            </div>
+            `
+                : ''
+            }
+
+            <p style="font-size: 13px; color: #999; margin-top: 20px;">
+              ${
+                isApproved
+                  ? 'Remember to submit your weekly proof every week to keep your earnings active. Good luck out there!'
+                    : 'Please ensure the sticker is properly placed on your vehicle and the photo is clear and well-lit before resubmitting.'
+              }
+            </p>
+
+          </div>
+
+          <div class="footer">
+            <p>© ${new Date().getFullYear()} Banatrics. All rights reserved.</p>
+            <p>This is an automated notification.</p>
+          </div>
+
+        </div>
+      </body>
+    </html>
+  `;
   }
 }

@@ -50,14 +50,16 @@ export class InstallmentProofRepository {
     campaignId: string,
     userId: string,
   ) {
-    const installmentProof = await this.DbProvider.update(installmentProofTable)
+    const [installmentProof] = await this.DbProvider.update(installmentProofTable)
       .set(data)
       .where(
         and(
           eq(installmentProofTable.campaignId, campaignId),
           eq(installmentProofTable.userId, userId),
         ),
-      ).returning();
+      ).returning({
+        submittedAt: installmentProofTable.createdAt
+      });
 
     return installmentProof;
   }

@@ -107,7 +107,7 @@ export class UserRepository {
   }
 
   async findDriverByUserId(userId: string) {
-    const user = await this.DbProvider.select()
+    const [user] = await this.DbProvider.select()
       .from(driverTable)
       .where(eq(driverTable.userId, userId));
     return user;

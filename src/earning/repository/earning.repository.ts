@@ -115,19 +115,25 @@ export class EarningRepository {
   }
   async updateEarningApprovedStatus(
     approved: ApprovalStatusType,
+    earningId: string, 
+    campaignId: string, 
     userId: string,
     trx?: any,
   ) {
     const Trx = trx || this.DbProvider;
 
-    const earnings = await Trx.update(earningsTable)
+    const [earnings] = await Trx.update(earningsTable)
       .set({ approved })
       .where(
         and(
           eq(earningsTable.approved, ApprovalStatusType.UNAPPROVED),
           eq(earningsTable.userId, userId),
+          eq(earningsTable.campaignId, campaignId),
+          eq(earningsTable.id, userId),
         ),
-      );
+      ).returning({
+        status: earningsTable.approved
+      });
 
     return earnings;
   }

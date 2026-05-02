@@ -1,4 +1,8 @@
-import { PaymentStatusType, UserApprovalStatusType } from '@src/db';
+import { DriverCampaignStatusType } from '@src/campaign/dto/create-driver-campaign.dto';
+import { UserApprovalStatusType } from '@src/db';
+import { ApprovalStatusType } from '@src/earning/dto/create-earning.dto';
+import { InstallmentProofStatusType } from '@src/installment-proofs/dto/update-installment-proof.dto';
+import { WeeklyProofStatus } from '@src/weekly-proofs/dto/create-weekly-proof.dto';
 
 export interface EmailJobData {
   to: string | string[];
@@ -15,7 +19,6 @@ export interface EmailJobData {
     filename: string;
     content: string | Buffer;
   }>;
-
 }
 
 export enum EmailTemplateType {
@@ -26,9 +29,14 @@ export enum EmailTemplateType {
   PASSWORD_RESET = 'password-reset',
   EMAIL_VERIFICATION = 'email-verification',
   CAMPAIGN_INVOICE = 'campaign-invoice',
-  DRIVER_WITHDRAWAL = 'driver-withdrawal',
+  // DRIVER_WITHDRAWAL = 'driver-withdrawal',
   KYC_APPLICATION = 'kyc-application',
-  REJECT_CAMPAIGN = 'reject-campaign'
+  CREATE_CAMPAIGN_DESIGN = 'create-campaign-design',
+  REJECT_CAMPAIGN = 'reject-campaign',
+  APPROVE_REJECT_WITHDRAWAL = 'approve-reject-withdrawal', 
+  DRIVER_CAMPAIGN_APPLICATION = 'driver-campaign-application',
+  WEEKLY_PROOF_SUBMISSION = 'weekly-proof-submission', 
+  INSTALLMENT_PROOF_SUBMISSION = 'installment-proof-submission'
 }
 
 export interface EmailResponse {
@@ -80,8 +88,10 @@ export interface EmailVerificationTemplateData {
   name: string;
 }
 export interface driverWithdrawalData {
-  amount: string;
-  status: PaymentStatusType;
+  campaignName: string;
+  amount: number;
+  reason?: string;
+  status: ApprovalStatusType;
 }
 export interface kycResponseData {
   status: UserApprovalStatusType;
@@ -94,6 +104,33 @@ export interface rejectCampaignData {
   createdAt: string;
 }
 
+export interface createCampaignDesignData {
+  campaignName: string;
+}
+
+export interface driverCampaignApplicationData {
+  status: DriverCampaignStatusType;
+  campaignName: string;
+  driverName: string;
+  startDate?: string; // optional — show it if you have it
+  reason?: string; // optional — only relevant for rejections
+}
+
+export interface weeklyProofStatusData {
+  status: WeeklyProofStatus;
+  campaignName: string;
+  driverName: string;
+  rejectionReason?: string; // optional for both rejected and flagged
+}
+
+export interface installmentProofStatusData {
+  status:InstallmentProofStatusType;
+  campaignName: string;
+  driverName: string;
+  submittedAt: string | Date;
+  rejectionReason?: string;
+}
+
 export type EmailTemplateData =
   | WelcomeTemplateData
   | CampaignCreatedTemplateData
@@ -102,4 +139,8 @@ export type EmailTemplateData =
   | EmailVerificationTemplateData
   | driverWithdrawalData
   | kycResponseData
-  | rejectCampaignData;
+  | rejectCampaignData
+  | driverCampaignApplicationData
+  | weeklyProofStatusData
+  | installmentProofStatusData
+  | createCampaignDesignData;

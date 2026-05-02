@@ -17,6 +17,10 @@ import {
   driverWithdrawalData,
   kycResponseData,
   rejectCampaignData,
+  createCampaignDesignData,
+  driverCampaignApplicationData,
+  weeklyProofStatusData,
+  installmentProofStatusData,
 } from '@src/email/types/types';
 
 @Injectable()
@@ -132,7 +136,7 @@ export class EmailService {
             data as EmailVerificationTemplateData,
           ),
         };
-      case EmailTemplateType.DRIVER_WITHDRAWAL:
+      case EmailTemplateType.APPROVE_REJECT_WITHDRAWAL:
         return {
           to,
           subject: 'Withdrawal Request Response',
@@ -154,6 +158,39 @@ export class EmailService {
           subject: 'Campaign Rejected',
           html: this.emailTemplate.getRejectedCampaignTemplate(
             data as rejectCampaignData,
+          ),
+        };
+      case EmailTemplateType.CREATE_CAMPAIGN_DESIGN:
+        return {
+          to,
+          subject: 'Campaign Design Created',
+          html: this.emailTemplate.getCampaignDesignReadyTemplate(
+            data as createCampaignDesignData,
+          ),
+        };
+
+      case EmailTemplateType.DRIVER_CAMPAIGN_APPLICATION:
+        return {
+          to,
+          subject: 'Driver Campaign Application',
+          html: this.emailTemplate.getCampaignApplicationStatusTemplate(
+            data as driverCampaignApplicationData,
+          ),
+        };
+      case EmailTemplateType.WEEKLY_PROOF_SUBMISSION:
+        return {
+          to,
+          subject: 'Weekly Proof Submission',
+          html: this.emailTemplate.getWeeklyProofStatusTemplate(
+            data as weeklyProofStatusData,
+          ),
+        };
+      case EmailTemplateType.INSTALLMENT_PROOF_SUBMISSION:
+        return {
+          to,
+          subject: 'Weekly Proof Submission',
+          html: this.emailTemplate.getInstallmentProofStatusTemplate(
+            data as installmentProofStatusData,
           ),
         };
 
@@ -206,9 +243,13 @@ export class EmailService {
       [EmailTemplateType.WELCOME]: 3,
       [EmailTemplateType.CAMPAIGN_CREATED]: 3,
       [EmailTemplateType.CAMPAIGN_INVOICE]: 2,
-      [EmailTemplateType.DRIVER_WITHDRAWAL]: 1,
       [EmailTemplateType.KYC_APPLICATION]: 1,
       [EmailTemplateType.REJECT_CAMPAIGN]: 2,
+      [EmailTemplateType.CREATE_CAMPAIGN_DESIGN]: 2,
+      [EmailTemplateType.APPROVE_REJECT_WITHDRAWAL]: 1,
+      [EmailTemplateType.DRIVER_CAMPAIGN_APPLICATION]: 1,
+      [EmailTemplateType.WEEKLY_PROOF_SUBMISSION]: 2,
+      [EmailTemplateType.INSTALLMENT_PROOF_SUBMISSION]: 2,
     };
     return priorities[template] || 5;
   }

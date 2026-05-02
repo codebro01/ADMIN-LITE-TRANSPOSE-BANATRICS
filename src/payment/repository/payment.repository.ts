@@ -13,6 +13,7 @@ import { CatchErrorService } from '@src/catch-error/catch-error.service';
 import { NotificationRepository } from '@src/notification/repository/notification.repository';
 import { PaymentStatusType } from '@src/payment/dto/paystackMetadataDto';
 import { earningsTable } from '@src/db/earnings';
+// import { ApprovalStatusType } from '@src/earning/dto/create-earning.dto';
 
 export const generateSecureInvoiceId = () => {
   const randomHex = crypto.randomUUID().substring(0, 8);
@@ -321,4 +322,14 @@ export class PaymentRepository {
 
     return netProfit.rows;
   }
+
+  // async approveOrRejectWithdrawal(status: ApprovalStatusType, earningId: string,  campaignId: string,   userId: string){
+  //   const earning = await this.DbProvider.update(earningsTable).set({
+  //     approved: status
+  //   }).where(and(eq(earningsTable.campaignId, campaignId), eq(earningsTable.id, earningId), eq(earningsTable.userId, userId))).returning({
+  //     status: earningsTable.approved
+  //   })
+
+  //   return earning;
+  // }
 }
