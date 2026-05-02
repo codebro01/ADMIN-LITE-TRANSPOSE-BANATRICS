@@ -1,9 +1,15 @@
-import {  UserApprovalStatusType } from "@src/db";
-import { driverCampaignApplicationData, driverWithdrawalData, installmentProofStatusData, kycResponseData, weeklyProofStatusData } from "../types/types";
-import { ApprovalStatusType } from "@src/earning/dto/create-earning.dto";
-import { DriverCampaignStatusType } from "@src/campaign/dto/create-driver-campaign.dto";
-import { WeeklyProofStatus } from "@src/weekly-proofs/dto/create-weekly-proof.dto";
-import { InstallmentProofStatusType } from "@src/installment-proofs/dto/update-installment-proof.dto";
+import { UserApprovalStatusType } from '@src/db';
+import {
+  driverCampaignApplicationData,
+  driverWithdrawalData,
+  installmentProofStatusData,
+  kycResponseData,
+  weeklyProofStatusData,
+} from '../types/types';
+import { ApprovalStatusType } from '@src/earning/dto/create-earning.dto';
+import { DriverCampaignStatusType } from '@src/campaign/dto/create-driver-campaign.dto';
+import { WeeklyProofStatus } from '@src/weekly-proofs/dto/create-weekly-proof.dto';
+import { InstallmentProofStatusType } from '@src/installment-proofs/dto/update-installment-proof.dto';
 
 export class EmailTemplate {
   getWelcomeTemplate(data: { name: string; email: string }): string {
@@ -669,7 +675,7 @@ ${data.resetCode}            </a>
 
   getWeeklyProofStatusTemplate(data: weeklyProofStatusData): string {
     const isApproved = data.status === WeeklyProofStatus.APPROVED;
-    const isRejected =data.status === WeeklyProofStatus.REJECTED;
+    const isRejected = data.status === WeeklyProofStatus.REJECTED;
 
     const headerColor = isApproved
       ? '#2e7d32'
@@ -724,31 +730,23 @@ ${data.resetCode}            </a>
         <div class="container">
 
           <div class="header">
-            <h1>Weekly Proof ${isApproved ? 'Approved' : isRejected ? 'Flagged for Review' : 'Rejected'}</h1>
+            <h1>Weekly Proof ${isApproved ? 'Approved' : 'Rejected'}</h1>
           </div>
 
           <div class="content">
 
-            <div class="icon">${isApproved ? '✅' : isRejected ? '🚩' : '❌'}</div>
+            <div class="icon">${isApproved ? '✅' : '❌'}</div>
 
 
             <h2>
-              ${
-                isApproved
-                  ? 'Proof Verified!'
-                  : isRejected
-                    ? 'Your Submission Has Been Flagged'
-                    : 'Proof Not Accepted'
-              }
+              ${isApproved ? 'Proof Verified!' : 'Proof Not Accepted'}
             </h2>
 
             <p class="message">
               ${
                 isApproved
                   ? `Your weekly proof submission for <strong>"${data.campaignName}"</strong> has been reviewed and <strong>approved</strong>. Keep up the great work!`
-                  : isRejected
-                    ? `Your weekly proof submission for <strong>"${data.campaignName}"</strong> has been flagged and is currently under further review. You will be notified once a final decision is made.`
-                    : `Your weekly proof submission for <strong>"${data.campaignName}"</strong> has been reviewed and was <strong>not accepted</strong> for this week.`
+                  : `Your weekly proof submission for <strong>"${data.campaignName}"</strong> has been reviewed and was <strong>not accepted</strong> for this week.`
               }
             </p>
 
@@ -765,7 +763,7 @@ ${data.resetCode}            </a>
               <div class="detail-row">
                 <span class="detail-label">Status</span>
                 <span class="detail-value">
-                  ${isApproved ? '✅ Approved' : isRejected ? '🚩 Flagged' : '❌ Rejected'}
+                  ${isApproved ? '✅ Approved' : '❌ Rejected'}
                 </span>
               </div>
             </div>
@@ -796,9 +794,7 @@ ${data.resetCode}            </a>
               ${
                 isApproved
                   ? 'Your submission has been logged. Keep the sticker visible and in good condition for upcoming weekly submissions.'
-                  : isRejected
-                    ? 'Our team is taking a closer look at your submission. No action is needed from you at this time.'
-                    : 'Please ensure your proof photo is clear, well-lit, and shows the sticker fully visible on your vehicle before resubmitting.'
+                  : 'Please ensure your proof photo is clear, well-lit, and shows the sticker fully visible on your vehicle before resubmitting.'
               }
             </p>
 
@@ -819,12 +815,8 @@ ${data.resetCode}            </a>
     const isApproved = data.status === InstallmentProofStatusType.APPROVED;
     const isRejected = data.status === InstallmentProofStatusType.REJECTED;
 
-    const headerColor = isApproved
-      ? '#2e7d32'
-        : '#c0392b';
-    const accentColor = isApproved
-      ? '#2e7d32'
-        : '#c0392b';
+    const headerColor = isApproved ? '#2e7d32' : '#c0392b';
+    const accentColor = isApproved ? '#2e7d32' : '#c0392b';
 
     return `
     <!DOCTYPE html>
@@ -874,7 +866,7 @@ ${data.resetCode}            </a>
 
           <div class="content">
 
-            <div class="icon">${isApproved ? '✅'  : '❌'}</div>
+            <div class="icon">${isApproved ? '✅' : '❌'}</div>
 
             <div class="status-badge">
               ${isApproved ? '✅ Approved' : '❌ Rejected'}
@@ -884,7 +876,7 @@ ${data.resetCode}            </a>
               ${
                 isApproved
                   ? 'Sticker Installation Verified!'
-                    : 'Installation Proof Not Accepted'
+                  : 'Installation Proof Not Accepted'
               }
             </h2>
 
@@ -892,7 +884,7 @@ ${data.resetCode}            </a>
               ${
                 isApproved
                   ? `Your sticker installation proof for <strong>"${data.campaignName}"</strong> has been reviewed and <strong>approved</strong>. You're officially on the road for this campaign!`
-                    : `Your sticker installation proof for <strong>"${data.campaignName}"</strong> has been reviewed and was <strong>not accepted</strong>.`
+                  : `Your sticker installation proof for <strong>"${data.campaignName}"</strong> has been reviewed and was <strong>not accepted</strong>.`
               }
             </p>
 
@@ -933,7 +925,7 @@ ${data.resetCode}            </a>
               ${
                 isApproved
                   ? 'Remember to submit your weekly proof every week to keep your earnings active. Good luck out there!'
-                    : 'Please ensure the sticker is properly placed on your vehicle and the photo is clear and well-lit before resubmitting.'
+                  : 'Please ensure the sticker is properly placed on your vehicle and the photo is clear and well-lit before resubmitting.'
               }
             </p>
 
