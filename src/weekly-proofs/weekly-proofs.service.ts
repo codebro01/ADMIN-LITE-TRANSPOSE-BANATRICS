@@ -95,6 +95,19 @@ export class WeeklyProofsService {
           'driver',
         ),
 
+        this.notificationService.createNotification(
+          {
+            title: `${userDriver.firstname} weekly proof is not approved for the campaign titled ${campaign.campaignTitle}`,
+            message: `Weekly proof has been approved for the campaign ${campaign.campaignTitle}`,
+            category: CategoryType.CAMPAIGN,
+            variant: VariantType.INFO,
+            priority: 'important',
+            status: StatusType.UNREAD,
+          },
+          campaign.userId,
+          'businessOwner',
+        ),
+
         this.emailService.queueTemplatedEmail(
           EmailTemplateType.WEEKLY_PROOF_SUBMISSION,
           user.email,
@@ -108,14 +121,14 @@ export class WeeklyProofsService {
     }
 
     if (weeklyProof.statusType === WeeklyProofStatus.REJECTED) {
-        const campaign =
-          await this.campaignRepository.findCampaignByCampaignId(campaignId);
-        if (!campaign) throw new NotFoundException('Could not find campaign');
+      const campaign =
+        await this.campaignRepository.findCampaignByCampaignId(campaignId);
+      if (!campaign) throw new NotFoundException('Could not find campaign');
 
-        const user = await this.userRepository.findUserById(userId);
-        if (!user) throw new NotFoundException('Could not find user!!!');
+      const user = await this.userRepository.findUserById(userId);
+      if (!user) throw new NotFoundException('Could not find user!!!');
 
-        const userDriver = await this.userRepository.findDriverByUserId(userId);
+      const userDriver = await this.userRepository.findDriverByUserId(userId);
 
       await Promise.all([
         this.oneSignalService.sendNotificationToUser(
@@ -144,7 +157,6 @@ export class WeeklyProofsService {
             driverName: userDriver.firstname,
             campaignName: campaign.campaignTitle,
             status: WeeklyProofStatus.REJECTED,
-
           },
         ),
       ]);
