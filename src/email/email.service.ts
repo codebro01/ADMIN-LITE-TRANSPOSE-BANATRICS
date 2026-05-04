@@ -21,6 +21,7 @@ import {
   driverCampaignApplicationData,
   weeklyProofStatusData,
   installmentProofStatusData,
+  NewCampaignAvailableData,
 } from '@src/email/types/types';
 
 @Injectable()
@@ -193,6 +194,14 @@ export class EmailService {
             data as installmentProofStatusData,
           ),
         };
+      case EmailTemplateType.NEW_CAMPAIGN_AVAILABLE:
+        return {
+          to,
+          subject: 'New Campaign Available',
+          html: this.emailTemplate.getNewCampaignAvailableTemplate(
+            data as NewCampaignAvailableData,
+          ),
+        };
 
       default:
         throw new Error(`Unknown email template: ${template}`);
@@ -250,6 +259,7 @@ export class EmailService {
       [EmailTemplateType.DRIVER_CAMPAIGN_APPLICATION]: 1,
       [EmailTemplateType.WEEKLY_PROOF_SUBMISSION]: 2,
       [EmailTemplateType.INSTALLMENT_PROOF_SUBMISSION]: 2,
+      [EmailTemplateType.NEW_CAMPAIGN_AVAILABLE]: 2,
     };
     return priorities[template] || 5;
   }

@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import { and, eq, ne, lt, count, lte, gt, or, desc } from 'drizzle-orm';
+import { and, eq, ne, lt, count, lte, gt, or, desc, notInArray, arrayContains } from 'drizzle-orm';
 import { campaignTable } from '@src/db/campaigns';
 import {
   businessOwnerTable,
@@ -68,9 +68,9 @@ export class CampaignRepository {
       campaignTitle: campaignTable.campaignName,
       earningPerDriver: campaignTable.earningPerDriver,
       statusType: campaignTable.statusType,
-      packageType: campaignTable.packageType, 
-      createdAt: campaignTable.createdAt, 
-      startDate: campaignTable.startDate, 
+      packageType: campaignTable.packageType,
+      createdAt: campaignTable.createdAt,
+      startDate: campaignTable.startDate,
     })
       .from(campaignTable)
       .where(and(eq(campaignTable.id, campaignId)));
@@ -230,6 +230,30 @@ export class CampaignRepository {
     );
 
     return true;
+  }
+
+  async getAllNonActiveDrivers() {
+    const activeCampaignDriverIds = this.DbProvider.select({
+      userId: driverCampaignTable.userId,
+    })
+      .from(driverCampaignTable)
+      .where(
+        and(
+          eq(driverCampaignTable.active, true),
+          eq(driverCampaignTable.campaignStatus, 'approved'),
+        ),
+      );
+
+    const drivers = await this.DbProvider.select()
+      .from(userTable)
+      .where(
+        and(
+          notInArray(userTable.id, activeCampaignDriverIds),
+          arrayContains(userTable.role, ['driver']), // scope to drivers only
+        ),
+      );
+
+    return drivers;
   }
 
   async startDriverCampaign(campaignId: string, userId: string) {

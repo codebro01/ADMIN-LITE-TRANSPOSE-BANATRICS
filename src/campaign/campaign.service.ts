@@ -335,6 +335,26 @@ export class CampaignService {
   async getDesignsForCampaign(campaignId: string) {
     return this.campaignRepository.getDesignsForCampaign(campaignId);
   }
+
+  private async notifyDriversOfNewCampaign(
+    campaignName: string,
+    startDate: Date,
+  ) {
+    const drivers = await this.campaignRepository.getAllNonActiveDrivers(); // your method from earlier
+
+    await Promise.all(
+      drivers.map((driver) =>
+        this.emailService.queueTemplatedEmail(
+          EmailTemplateType.NEW_CAMPAIGN_AVAILABLE,
+          driver.email,
+          {
+            campaignName,
+            startDate,
+          },
+        ),
+      ),
+    );
+  }
   async approveCampaign(data: ApproveCampaignDto, campaignId: string) {
     if (data.approveCampaignType === approveCampaignType.REJECT) {
       const campaign =
@@ -482,6 +502,11 @@ export class CampaignService {
         `Your campaign with the title ${Trx.approveCampaign.campaignName} has been approved`,
       ),
     ]);
+
+    this.notifyDriversOfNewCampaign(
+      Trx.approveCampaign.campaignName,
+      Trx.approveCampaign.startDate,
+    );
     // console.log(Trx)
     return {
       message: 'Campaign Approved',

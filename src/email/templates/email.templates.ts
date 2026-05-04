@@ -4,6 +4,7 @@ import {
   driverWithdrawalData,
   installmentProofStatusData,
   kycResponseData,
+  NewCampaignAvailableData,
   weeklyProofStatusData,
 } from '../types/types';
 import { ApprovalStatusType } from '@src/earning/dto/create-earning.dto';
@@ -934,6 +935,100 @@ ${data.resetCode}            </a>
           <div class="footer">
             <p>© ${new Date().getFullYear()} Banatrics. All rights reserved.</p>
             <p>This is an automated notification.</p>
+          </div>
+
+        </div>
+      </body>
+    </html>
+  `;
+  }
+
+  getNewCampaignAvailableTemplate(data: NewCampaignAvailableData): string {
+    return `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+          .container { max-width: 650px; margin: 0 auto; padding: 20px; background: #ffffff; }
+          .header { background: #1a237e; color: white; padding: 30px 20px; text-align: center; }
+          .header h1 { margin: 0; font-size: 28px; }
+          .header p { margin: 8px 0 0; font-size: 14px; opacity: 0.85; }
+          .content { padding: 30px 20px; text-align: center; }
+          .icon { font-size: 60px; margin-bottom: 20px; }
+          .message { font-size: 16px; color: #555; margin: 20px 0; }
+          .status-badge {
+            display: inline-block;
+            background: #1a237e18;
+            color: #1a237e;
+            border: 1.5px solid #1a237e44;
+            padding: 6px 18px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 20px;
+          }
+          .detail-box { background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: left; }
+          .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e0e0e0; }
+          .detail-row:last-child { border-bottom: none; }
+          .detail-label { font-weight: 600; color: #555; }
+          .detail-value { color: #333; }
+          .cta-box { background: #e8eaf6; border-left: 4px solid #1a237e; padding: 15px 20px; border-radius: 8px; margin: 20px 0; text-align: left; }
+          .cta-label { font-weight: 600; color: #1a237e; margin-bottom: 5px; }
+          .cta-text { color: #555; font-size: 14px; }
+          .footer { text-align: center; padding: 20px; color: #777; font-size: 13px; border-top: 1px solid #e0e0e0; margin-top: 30px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+
+          <div class="header">
+            <h1>New Campaign Available</h1>
+            <p>A new earning opportunity just dropped</p>
+          </div>
+
+          <div class="content">
+
+            <div class="icon">📢</div>
+
+            <div class="status-badge">🟢 Now Available</div>
+
+            <h2>There's a New Campaign Waiting for You!</h2>
+
+            <p class="message">
+              A new campaign <strong>"${data.campaignName}"</strong> is now available on Banatrics.
+              Open the app now to apply before spots fill up!
+            </p>
+
+            <div class="detail-box">
+              <div class="detail-row">
+                <span class="detail-label">Campaign</span>
+                <span class="detail-value">${data.campaignName}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Starting</span>
+                <span class="detail-value">
+                  ${new Date(data.startDate).toLocaleDateString('en-NG', { day: 'numeric', month: 'long', year: 'numeric' })}
+                </span>
+              </div>
+            </div>
+
+            <div class="cta-box">
+              <div class="cta-label">⚡ Act Fast</div>
+              <div class="cta-text">
+                Spots on this campaign are limited. Open the Banatrics app and apply now to secure your place before it fills up.
+              </div>
+            </div>
+
+            <p style="font-size: 13px; color: #999; margin-top: 20px;">
+              Make sure your vehicle meets the campaign requirements before applying. Good luck! 🚗
+            </p>
+
+          </div>
+
+          <div class="footer">
+            <p>© ${new Date().getFullYear()} Banatrics. All rights reserved.</p>
+            <p>This is an automated notification. You're receiving this because you're a registered Banatrics driver.</p>
           </div>
 
         </div>

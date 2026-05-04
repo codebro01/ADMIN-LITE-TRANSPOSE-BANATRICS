@@ -36,7 +36,8 @@ export enum EmailTemplateType {
   APPROVE_REJECT_WITHDRAWAL = 'approve-reject-withdrawal', 
   DRIVER_CAMPAIGN_APPLICATION = 'driver-campaign-application',
   WEEKLY_PROOF_SUBMISSION = 'weekly-proof-submission', 
-  INSTALLMENT_PROOF_SUBMISSION = 'installment-proof-submission'
+  INSTALLMENT_PROOF_SUBMISSION = 'installment-proof-submission', 
+  NEW_CAMPAIGN_AVAILABLE = 'new-campaign-available'
 }
 
 export interface EmailResponse {
@@ -131,6 +132,11 @@ export interface installmentProofStatusData {
   rejectionReason?: string;
 }
 
+export interface NewCampaignAvailableData {
+  campaignName: string;
+  startDate: Date | string;
+}
+
 export type EmailTemplateData =
   | WelcomeTemplateData
   | CampaignCreatedTemplateData
@@ -143,4 +149,5 @@ export type EmailTemplateData =
   | driverCampaignApplicationData
   | weeklyProofStatusData
   | installmentProofStatusData
-  | createCampaignDesignData;
+  | createCampaignDesignData
+  | NewCampaignAvailableData;
