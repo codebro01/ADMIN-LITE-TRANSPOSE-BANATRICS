@@ -103,6 +103,13 @@ export class CampaignService {
           // console.log('got before del')
 
           await this.campaignRepository.deleteDriverCampaigns(userId, trx);
+
+
+          await this.userRepository.updatePending(
+            approvedCampaign.pricePerDriver,
+            userId,
+            trx,
+          );
           // console.log('got past del')
 
           return approvedCampaign;

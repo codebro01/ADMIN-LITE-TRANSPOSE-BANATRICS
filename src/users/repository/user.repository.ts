@@ -121,6 +121,34 @@ export class UserRepository {
 
     return user;
   }
+  async updatePending(amount: number, userId: string, trx?: any) {
+    const Trx = trx || this.DbProvider;
+    const [user] = await Trx.update(driverTable)
+      .set({ pending: amount })
+      .where(eq(driverTable.userId, userId))
+      .returning();
+
+    return user;
+  }
+  async updateBalance(amount: number, userId: string, trx?: any) {
+    const Trx = trx || this.DbProvider;
+    const [user] = await Trx.update(driverTable)
+      .set({ balance: sql`${driverTable.balance} + ${amount}` })
+      .where(eq(driverTable.userId, userId))
+      .returning();
+
+    return user;
+  }
+
+  async deductFromBalance(amount: number, userId: string, trx?: any) {
+    const Trx = trx || this.DbProvider;
+    const [user] = await Trx.update(driverTable)
+      .set({ balance: sql`${driverTable.balance} - ${amount}` })
+      .where(eq(driverTable.userId, userId))
+      .returning();
+
+    return user;
+  } 
 
   async updateBusinessOwnerPendingAndSpentBalance(
     amount: number,

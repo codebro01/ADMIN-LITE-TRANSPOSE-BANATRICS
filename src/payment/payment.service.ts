@@ -120,36 +120,36 @@ export class PaymentService {
         campaignId,
         userId,
       );
- await Promise.all([
-   this.notificationService.createNotification(
-     {
-       title: 'Widthdrawal Rejected',
-       message: `Your withdrawal of ${withdrawableAmount} for the campaign titled "${campaign.campaignTitle} has been rejected, please contact admin`,
-       category: CategoryType.PAYMENT,
-       variant: VariantType.SUCCESS,
-       priority: 'important',
-       status: StatusType.UNREAD,
-     },
-     userId,
-     'driver',
-   ),
-   this.oneSignalService.sendNotificationToUser(
-     campaign.userId,
-     'Withdrawal Rejected',
-     `Your withdrawal of ${withdrawableAmount} for the campaign titled "${campaign.campaignTitle} has been rejected, please, contact admin`,
-   ),
+      await Promise.all([
+        this.notificationService.createNotification(
+          {
+            title: 'Widthdrawal Rejected',
+            message: `Your withdrawal of ${withdrawableAmount} for the campaign titled "${campaign.campaignTitle} has been rejected, please contact admin`,
+            category: CategoryType.PAYMENT,
+            variant: VariantType.SUCCESS,
+            priority: 'important',
+            status: StatusType.UNREAD,
+          },
+          userId,
+          'driver',
+        ),
+        this.oneSignalService.sendNotificationToUser(
+          campaign.userId,
+          'Withdrawal Rejected',
+          `Your withdrawal of ${withdrawableAmount} for the campaign titled "${campaign.campaignTitle} has been rejected, please, contact admin`,
+        ),
 
-   this.emailService.queueTemplatedEmail(
-     EmailTemplateType.APPROVE_REJECT_WITHDRAWAL,
-     user.email,
-     {
-       campaignName: campaign.campaignTitle,
-       amount: withdrawableAmount,
-       reason: data.reason,
-       status: ApprovalStatusType.REJECTED,
-     },
-   ),
- ]);
+        this.emailService.queueTemplatedEmail(
+          EmailTemplateType.APPROVE_REJECT_WITHDRAWAL,
+          user.email,
+          {
+            campaignName: campaign.campaignTitle,
+            amount: withdrawableAmount,
+            reason: data.reason,
+            status: ApprovalStatusType.REJECTED,
+          },
+        ),
+      ]);
 
       return earnings;
     }
@@ -190,12 +190,7 @@ export class PaymentService {
         'Error loading earning information, please try again',
       );
 
-    await this.earningRepository.updateEarningApprovedStatus(
-      ApprovalStatusType.APPROVED,
-      earningId,
-      campaignId,
-      userId,
-    );
+
 
     const response = await firstValueFrom(
       this.httpService.post(
@@ -225,12 +220,21 @@ export class PaymentService {
       throw new InternalServerErrorException(
         'Could not process withdrawal, please try again',
       );
-    await this.earningRepository.updateEarningApprovedStatus(
-      ApprovalStatusType.APPROVED,
-      earningId,
-      campaignId,
-      userId,
-    );
+     await this.paymentRepository.executeInTransaction(async (trx) => {
+       await this.earningRepository.updateEarningApprovedStatus(
+         ApprovalStatusType.APPROVED,
+         earningId,
+         campaignId,
+         userId,
+         trx,
+       );
+
+       await this.userRepository.deductFromBalance(
+         withdrawableAmount,
+         userId,
+         trx,
+       );
+     });
 
     await Promise.all([
       this.notificationService.createNotification(
@@ -400,9 +404,13 @@ export class PaymentService {
             return 'already processed';
           }
 
-          if(!earning.campaignId) throw new NotFoundException('Campaign Id is not defined!')
+          if (!earning.campaignId)
+            throw new NotFoundException('Campaign Id is not defined!');
 
-          const campaign = await this.campaignRepository.findCampaignByCampaignId(earning.campaignId)
+          const campaign =
+            await this.campaignRepository.findCampaignByCampaignId(
+              earning.campaignId,
+            );
 
           console.log('got in here');
           await this.paymentRepository.executeInTransaction(async (trx) => {
@@ -437,7 +445,7 @@ export class PaymentService {
               EmailTemplateType.APPROVE_REJECT_WITHDRAWAL,
               email,
               {
-                campaignName: campaign.campaignTitle, 
+                campaignName: campaign.campaignTitle,
                 amount: amount,
                 status: ApprovalStatusType.APPROVED,
               },
@@ -463,7 +471,6 @@ export class PaymentService {
             return 'already processed';
           }
 
-          
           if (!earning.campaignId)
             throw new NotFoundException('Campaign Id is not defined!');
 
