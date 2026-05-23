@@ -79,6 +79,9 @@ export class CampaignService {
     const approvedDriverCampaign =
       await this.campaignRepository.getApprovedDriverCampaign(userId);
 
+    const campaign =
+      await this.campaignRepository.findCampaignByCampaignId(campaignId);
+
     if (approvedDriverCampaign)
       throw new ConflictException(
         'User already have an incomplete approved campaign',
@@ -104,9 +107,9 @@ export class CampaignService {
 
           await this.campaignRepository.deleteDriverCampaigns(userId, trx);
 
-
+          // console.log(campaign.earningPerDriver);
           await this.userRepository.updatePending(
-            approvedCampaign.pricePerDriver,
+            campaign.earningPerDriver || 0,
             userId,
             trx,
           );
@@ -116,10 +119,6 @@ export class CampaignService {
         });
 
       // console.log(approvedCampaign)
-
-      const campaign = await this.campaignRepository.findCampaignByCampaignId(
-        approvedCampaign.campaignId,
-      );
 
       if (!campaign) throw new NotFoundException('Could not find campaign!!!');
 
