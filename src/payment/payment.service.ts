@@ -190,7 +190,12 @@ export class PaymentService {
         'Error loading earning information, please try again',
       );
 
-
+    // console.log(
+    //   'withdrawable amount',
+    //   withdrawableAmount,
+    //   campaign.earningPerDriver,
+    //   missedWeeks,
+    // );
 
     const response = await firstValueFrom(
       this.httpService.post(
@@ -205,7 +210,7 @@ export class PaymentService {
             'https://admin-lite-transpose-banatrics.onrender.com/api/v1/payments/webhook',
           narration: data.reason,
           beneficiary: driverBankInfo.bank_details.recipientCode,
-          amount: withdrawableAmount,
+          amount: 400,
           reference: generateSecureRef(),
           meta: {
             userId: driverBankInfo.drivers?.userId,
@@ -220,21 +225,21 @@ export class PaymentService {
       throw new InternalServerErrorException(
         'Could not process withdrawal, please try again',
       );
-     await this.paymentRepository.executeInTransaction(async (trx) => {
-       await this.earningRepository.updateEarningApprovedStatus(
-         ApprovalStatusType.APPROVED,
-         earningId,
-         campaignId,
-         userId,
-         trx,
-       );
+    await this.paymentRepository.executeInTransaction(async (trx) => {
+      await this.earningRepository.updateEarningApprovedStatus(
+        ApprovalStatusType.APPROVED,
+        earningId,
+        campaignId,
+        userId,
+        trx,
+      );
 
-       await this.userRepository.deductFromBalance(
-         withdrawableAmount,
-         userId,
-         trx,
-       );
-     });
+      await this.userRepository.deductFromBalance(
+        withdrawableAmount,
+        userId,
+        trx,
+      );
+    });
 
     await Promise.all([
       this.notificationService.createNotification(
@@ -278,7 +283,7 @@ export class PaymentService {
     totalWeeklyProofs: number,
   ) {
     const durationInWeeks = duration / 7;
-    const missedWeeks = durationInWeeks - totalWeeklyProofs;
+    const missedWeeks = Math.round(durationInWeeks - totalWeeklyProofs);
 
     // 4 or more misses = no payout
     if (missedWeeks >= 4) {
