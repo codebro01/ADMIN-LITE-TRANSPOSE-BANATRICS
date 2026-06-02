@@ -210,7 +210,7 @@ export class PaymentService {
             'https://admin-lite-transpose-banatrics.onrender.com/api/v1/payments/webhook',
           narration: data.reason,
           beneficiary: driverBankInfo.bank_details.recipientCode,
-          amount: withdrawableAmount,
+          amount: 300,
           reference: generateSecureRef(),
           meta: {
             userId: driverBankInfo.drivers?.userId,
