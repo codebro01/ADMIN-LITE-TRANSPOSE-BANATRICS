@@ -210,7 +210,7 @@ export class PaymentService {
             'https://admin-lite-transpose-banatrics.onrender.com/api/v1/payments/webhook',
           narration: data.reason,
           beneficiary: driverBankInfo.bank_details.recipientCode,
-          amount: 280,
+          amount: withdrawableAmount,
           reference: generateSecureRef(),
           meta: {
             userId: driverBankInfo.drivers?.userId,
@@ -238,7 +238,7 @@ export class PaymentService {
         );
 
       const deductAmount = await this.userRepository.deductFromBalance(
-        280,
+        withdrawableAmount,
         userId,
         trx,
       );
