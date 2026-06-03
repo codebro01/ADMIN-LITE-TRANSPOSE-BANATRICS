@@ -144,11 +144,13 @@ export class UserRepository {
     const Trx = trx || this.DbProvider;
     const [user] = await Trx.update(driverTable)
       .set({ balance: sql`${driverTable.balance} - ${amount}` })
-      .where(eq(driverTable.userId, userId))
+      .where(
+        and(eq(driverTable.userId, userId), gte(driverTable.balance, amount)),
+      )
       .returning();
 
     return user;
-  } 
+  }
 
   async updateBusinessOwnerPendingAndSpentBalance(
     amount: number,

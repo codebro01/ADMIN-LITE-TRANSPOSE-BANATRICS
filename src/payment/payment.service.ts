@@ -225,25 +225,35 @@ export class PaymentService {
       throw new InternalServerErrorException(
         'Could not process withdrawal, please try again',
       );
-   const Trx =  await this.paymentRepository.executeInTransaction(async (trx) => {
-      await this.earningRepository.updateEarningApprovedStatus(
-        ApprovalStatusType.APPROVED,
-        earningId,
-        campaignId,
-        userId,
-        trx,
-      );
+    // console.log(withdrawableAmount, 'response from transfer', response.data);
+    // console.log('ids', earningId, campaignId, userId);
+    await this.paymentRepository.executeInTransaction(async (trx) => {
+      const updateEarning =
+        await this.earningRepository.updateEarningApprovedStatus(
+          ApprovalStatusType.APPROVED,
+          earningId,
+          campaignId,
+          userId,
+          trx,
+        );
 
       const deductAmount = await this.userRepository.deductFromBalance(
-        withdrawableAmount,
+        280,
         userId,
         trx,
       );
 
-      return {deductAmount};
+      if (!deductAmount)
+        throw new InternalServerErrorException(
+          'Error processing withdrawal, the user have insufficient balance',
+        );
+      if (!updateEarning)
+        throw new InternalServerErrorException(
+          'Error processing withdrawal, please try again',
+        );
     });
 
-    if(!Trx.deductAmount) throw new InternalServerErrorException('Error processing withdrawal, the user have insufficient balance');
+    // console.log('deductamount', Trx.deductAmount, 'updateEarning', Trx.updateEarning);
 
     await Promise.all([
       this.notificationService.createNotification(

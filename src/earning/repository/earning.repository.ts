@@ -126,10 +126,10 @@ export class EarningRepository {
       .set({ approved })
       .where(
         and(
+          eq(earningsTable.id, earningId),
           eq(earningsTable.approved, ApprovalStatusType.UNAPPROVED),
           eq(earningsTable.userId, userId),
           eq(earningsTable.campaignId, campaignId),
-          eq(earningsTable.id, userId),
         ),
       ).returning({
         status: earningsTable.approved
