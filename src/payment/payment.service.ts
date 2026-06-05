@@ -213,7 +213,7 @@ export class PaymentService {
           narration: data.reason,
           beneficiary: driverBankInfo.bank_details.recipientCode,
           amount: withdrawableAmount,
-          reference: generateSecureRef(),
+          reference: earning[0].reference,
           meta: {
             userId: driverBankInfo.drivers?.userId,
             email: driverBankInfo.users?.email,
