@@ -146,7 +146,7 @@ export class EarningRepository {
     const Trx = trx || this.DbProvider;
 
     const earnings = await Trx.update(earningsTable)
-      .set({ paymentStatus })
+      .set({ paymentStatus, updatedAt: new Date() })
       .where(
         and(
           eq(earningsTable.userId, userId),
