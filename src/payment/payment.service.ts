@@ -10,7 +10,6 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { firstValueFrom } from 'rxjs';
 import {
-  generateSecureRef,
   PaymentRepository,
 } from '@src/payment/repository/payment.repository';
 import { UserRepository } from '@src/users/repository/user.repository';

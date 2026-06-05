@@ -336,7 +336,6 @@ export class CampaignRepository {
       .where(
         and(
           eq(driverCampaignTable.campaignId, campaignId),
-          eq(driverCampaignTable.campaignStatus, 'approved'),
         ),
       )
       .leftJoin(driverTable, eq(driverTable.userId, driverCampaignTable.userId))
