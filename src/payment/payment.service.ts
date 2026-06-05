@@ -100,18 +100,20 @@ export class PaymentService {
         'Property price or duration is missing from campaign',
       );
 
-    const { withdrawableAmount, missedWeeks } =
-      this.calculateWithdrawableAmount(
-        campaign.duration,
-        campaign.earningPerDriver,
-        weeklyProofs.total,
-      );
+    // const {  missedWeeks } =
+    //   this.calculateWithdrawableAmount(
+    //     campaign.duration,
+    //     campaign.earningPerDriver,
+    //     weeklyProofs.total,
+    //   );
 
-    if (withdrawableAmount === 0) {
-      throw new BadRequestException(
-        `Driver missed ${Math.round(missedWeeks)} weeks and is not eligible for payout`,
-      );
-    }
+    const withdrawableAmount = 100;
+
+    // if (withdrawableAmount === 0) {
+    //   throw new BadRequestException(
+    //     `Driver missed ${Math.round(missedWeeks)} weeks and is not eligible for payout`,
+    //   );
+    // }
 
     if (data.approve === false) {
       const earnings = await this.earningRepository.updateEarningApprovedStatus(
@@ -405,142 +407,144 @@ export class PaymentService {
 
   async postVerifyWebhookSignatures(event: any) {
     try {
-      const { reference, amount } = event.data;
-      const { userId, email } = event.data.meta || {};
-      console.log('got in event', event);
-      // const recipient_code = event.data?.recipient?.recipient_code || null;
-      // const {account_number, account_name, bank_name, bank_code} = event.data.recipient.details
-      switch (event.data.status) {
-        case 'SUCCESSFUL': {
+      console.log('Got into admin webhook', event);
+
+      const { reference, amount, status, meta } = event.data;
+      const { userId, email } = meta || {};
+
+      switch (status) {
+        case 'SUCCESSFUL':
+        case 'FAILED':
+        case 'REVERSED': {
+          // Guard: missing meta means we can't process this
+          if (!userId || !email) {
+            console.warn('Missing userId or email in webhook meta, skipping');
+            return { status: 'skipped', reason: 'missing meta' };
+          }
+
           const earning = await this.earningRepository.findEarningsByReference(
             reference,
             userId,
           );
 
-          if (!earning.reference)
+          // Guard against null/undefined earning
+          if (!earning) {
+            console.warn(`No earning found for reference ${reference}`);
             throw new BadRequestException('Withdrawal request not found!');
-          if (earning && earning.paymentStatus === PaymentStatusType.SUCCESS) {
+          }
+
+          // Idempotency check
+          if (earning.paymentStatus === PaymentStatusType.SUCCESS) {
+            console.log('Already processed, skipping');
             return 'already processed';
           }
 
-          if (!earning.campaignId)
+          if (!earning.campaignId) {
             throw new NotFoundException('Campaign Id is not defined!');
+          }
 
           const campaign =
             await this.campaignRepository.findCampaignByCampaignId(
               earning.campaignId,
             );
 
-          console.log('got in here');
-          await this.paymentRepository.executeInTransaction(async (trx) => {
-            if (
-              earning &&
-              earning.paymentStatus === PaymentStatusType.PENDING
-            ) {
-              await this.earningRepository.updateEarningPaymentStatus(
-                PaymentStatusType.SUCCESS,
-                reference,
+          if (status === 'SUCCESSFUL') {
+            await this.paymentRepository.executeInTransaction(async (trx) => {
+              if (earning.paymentStatus === PaymentStatusType.PENDING) {
+                await this.earningRepository.updateEarningPaymentStatus(
+                  PaymentStatusType.SUCCESS,
+                  reference,
+                  userId,
+                  trx,
+                );
+              }
+            });
+
+            await Promise.all([
+              this.notificationService.createNotification(
+                {
+                  title: 'Withdrawal Successful',
+                  message: `Your withdrawal of ${amount} is successful`,
+                  variant: VariantType.SUCCESS,
+                  category: CategoryType.PAYMENT,
+                  priority: '',
+                  status: StatusType.UNREAD,
+                },
                 userId,
-
-                trx,
-              );
-            }
-          });
-
-          await Promise.all([
-            this.notificationService.createNotification(
-              {
-                title: `Withdrawal Successful`,
-                message: `Your withdrawal of ${amount} is successful`,
-                variant: VariantType.SUCCESS,
-                category: CategoryType.PAYMENT,
-                priority: '',
-                status: StatusType.UNREAD,
-              },
-              userId,
-              'driver',
-            ),
-            this.emailService.queueTemplatedEmail(
-              EmailTemplateType.APPROVE_REJECT_WITHDRAWAL,
-              email,
-              {
-                campaignName: campaign.campaignTitle,
-                amount: amount,
-                status: ApprovalStatusType.APPROVED,
-              },
-            ),
-            this.oneSignalService.sendNotificationToUser(
-              userId,
-              'Withdrawal Successful',
-              `Your withdrawal of ${amount} is successful`,
-            ),
-          ]);
-
-          break;
-        }
-        case 'FAILED': {
-          const earning = await this.earningRepository.findEarningsByReference(
-            reference,
-            userId,
-          );
-
-          if (!earning.reference)
-            throw new BadRequestException('Withdrawal request not found!');
-          if (earning && earning.paymentStatus === PaymentStatusType.SUCCESS) {
-            return 'already processed';
+                'driver',
+              ),
+              this.emailService.queueTemplatedEmail(
+                EmailTemplateType.APPROVE_REJECT_WITHDRAWAL,
+                email,
+                {
+                  campaignName: campaign.campaignTitle,
+                  amount,
+                  status: ApprovalStatusType.APPROVED,
+                },
+              ),
+              this.oneSignalService.sendNotificationToUser(
+                userId,
+                'Withdrawal Successful',
+                `Your withdrawal of ${amount} is successful`,
+              ),
+            ]);
           }
 
-          if (!earning.campaignId)
-            throw new NotFoundException('Campaign Id is not defined!');
+          if (status === 'FAILED' || status === 'REVERSED') {
+            await this.paymentRepository.executeInTransaction(async (trx) => {
+              if (earning.paymentStatus === PaymentStatusType.PENDING) {
+                await this.earningRepository.updateEarningPaymentStatus(
+                  PaymentStatusType.FAILED,
+                  reference,
+                  userId,
+                  trx,
+                );
+              }
+            });
 
-          const campaign =
-            await this.campaignRepository.findCampaignByCampaignId(
-              earning.campaignId,
-            );
+            const isReversed = status === 'REVERSED';
 
-          console.log('got in here');
-          await this.paymentRepository.executeInTransaction(async (trx) => {
-            if (
-              earning &&
-              earning.paymentStatus === PaymentStatusType.PENDING
-            ) {
-              await this.earningRepository.updateEarningPaymentStatus(
-                PaymentStatusType.FAILED,
-                reference,
+            await Promise.all([
+              this.notificationService.createNotification(
+                {
+                  title: isReversed
+                    ? 'Withdrawal Reversed'
+                    : 'Withdrawal Failed',
+                  message: isReversed
+                    ? `Your withdrawal of ${amount} was reversed`
+                    : `Your withdrawal of ${amount} failed`,
+                  variant: VariantType.DANGER,
+                  category: CategoryType.PAYMENT,
+                  priority: '',
+                  status: StatusType.UNREAD,
+                },
                 userId,
-                trx,
-              );
-            }
-          });
-
-          await Promise.all([
-            this.notificationService.createNotification(
-              {
-                title: `Withdrawal Failed`,
-                message: `Your withdrawal of ${amount} failed`,
-                variant: VariantType.DANGER,
-                category: CategoryType.PAYMENT,
-                priority: '',
-                status: StatusType.UNREAD,
-              },
-              userId,
-              'driver',
-            ),
-            this.emailService.queueTemplatedEmail(
-              EmailTemplateType.APPROVE_REJECT_WITHDRAWAL,
-              email,
-              {
-                campaignName: campaign.campaignTitle,
-                amount: amount,
-                status: ApprovalStatusType.REJECTED,
-              },
-            ),
-          ]);
+                'driver',
+              ),
+              this.emailService.queueTemplatedEmail(
+                EmailTemplateType.APPROVE_REJECT_WITHDRAWAL,
+                email,
+                {
+                  campaignName: campaign.campaignTitle,
+                  amount,
+                  status: ApprovalStatusType.REJECTED,
+                },
+              ),
+              this.oneSignalService.sendNotificationToUser(
+                userId,
+                isReversed ? 'Withdrawal Reversed' : 'Withdrawal Failed',
+                isReversed
+                  ? `Your withdrawal of ${amount} was reversed`
+                  : `Your withdrawal of ${amount} failed`,
+              ),
+            ]);
+          }
 
           break;
         }
 
         default:
+          console.log(`Unhandled Flutterwave transfer status: ${status}`);
       }
 
       return { status: 'success' };
