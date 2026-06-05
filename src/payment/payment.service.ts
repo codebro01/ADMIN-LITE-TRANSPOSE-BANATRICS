@@ -99,20 +99,20 @@ export class PaymentService {
         'Property price or duration is missing from campaign',
       );
 
-    // const {  missedWeeks } =
-    //   this.calculateWithdrawableAmount(
-    //     campaign.duration,
-    //     campaign.earningPerDriver,
-    //     weeklyProofs.total,
-    //   );
+    const {  missedWeeks, withdrawableAmount } =
+      this.calculateWithdrawableAmount(
+        campaign.duration,
+        campaign.earningPerDriver,
+        weeklyProofs.total,
+      );
 
-    const withdrawableAmount = 100;
+    // const withdrawableAmount = 100;
 
-    // if (withdrawableAmount === 0) {
-    //   throw new BadRequestException(
-    //     `Driver missed ${Math.round(missedWeeks)} weeks and is not eligible for payout`,
-    //   );
-    // }
+    if (withdrawableAmount === 0) {
+      throw new BadRequestException(
+        `Driver missed ${Math.round(missedWeeks)} weeks and is not eligible for payout`,
+      );
+    }
 
     if (data.approve === false) {
       const earnings = await this.earningRepository.updateEarningApprovedStatus(
